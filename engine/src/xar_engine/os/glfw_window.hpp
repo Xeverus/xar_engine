@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
+
 #include <xar_engine/os/window.hpp>
 
 namespace xar_engine::os
@@ -8,6 +10,7 @@ namespace xar_engine::os
     {
     public:
         GlfwWindow();
+        ~GlfwWindow() override;
 
         void update();
 
@@ -20,6 +23,6 @@ namespace xar_engine::os
 
     private:
         OnUpdate _on_update;
-        bool _close_requested;
+        GLFWwindow* _native_glfw_window;
     };
 }

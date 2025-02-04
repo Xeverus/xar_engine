@@ -58,10 +58,11 @@ namespace xar_engine::os
     {
         while (!close_requested())
         {
+            glfwPollEvents();
             _on_update();
             update_windows();
+            handle_application_close_request();
             handle_windows_close_request();
-            handle_close_request();
         }
     }
 
@@ -74,6 +75,21 @@ namespace xar_engine::os
         for (std::size_t i = 0; i < _glfw_windows.size(); ++i)
         {
             _glfw_windows[i]->update();
+        }
+    }
+
+    void GlfwApplication::handle_application_close_request()
+    {
+        if (_current_close_requested == _previous_close_requested)
+        {
+            return;
+        }
+
+        _current_close_requested = _previous_close_requested;
+
+        for (std::size_t i = 0; i < _glfw_windows.size(); ++i)
+        {
+            _glfw_windows[i]->request_close();
         }
     }
 
@@ -90,20 +106,5 @@ namespace xar_engine::os
         _glfw_windows.erase(
             new_end,
             _glfw_windows.end());
-    }
-
-    void GlfwApplication::handle_close_request()
-    {
-        if (_current_close_requested == _previous_close_requested)
-        {
-            return;
-        }
-
-        _current_close_requested = _previous_close_requested;
-
-        for (std::size_t i = 0; i < _glfw_windows.size(); ++i)
-        {
-            _glfw_windows[i]->request_close();
-        }
     }
 }

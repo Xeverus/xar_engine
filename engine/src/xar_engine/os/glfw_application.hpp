@@ -33,7 +33,7 @@ namespace xar_engine::os
 
     private:
         void update_windows();
+        void handle_application_close_request();
         void handle_windows_close_request();
-        void handle_close_request();
     };
 }
