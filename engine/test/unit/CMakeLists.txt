@@ -2,11 +2,13 @@ add_executable(xar_engine_unit_tests)
 
 target_sources(xar_engine_unit_tests
         PRIVATE
+            xar_engine/error/exception_utils_test.cpp
             xar_engine/os/application_test.cpp
             xar_engine/version/version_test.cpp)
 
 target_link_libraries(xar_engine_unit_tests
         PRIVATE
+            GTest::gmock
             GTest::gtest
             GTest::gtest_main
             xar_engine)
