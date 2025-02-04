@@ -8,6 +8,8 @@ namespace xar_engine::os
     {
     public:
         virtual ~IApplication();
+
+        virtual void run() = 0;
     };
 
     class ApplicationFactory
