@@ -12,9 +12,32 @@ int main()
     {
         std::visit(
             xar_engine::meta::Overloaded{
-                [](const xar_engine::os::KeyboardKeyEvent& key_event)
+                [](const xar_engine::os::KeyboardKeyEvent& event)
                 {
-                    std::cout << static_cast<int>(key_event.code) << ' ' << static_cast<int>(key_event.state)
+                    std::cout << static_cast<int>(event.code) << ' ' << static_cast<int>(event.state)
+                              << std::endl;
+                }
+            },
+            event);
+    };
+
+    const auto on_mouse_event = [](const xar_engine::os::MouseEvent& event)
+    {
+        std::visit(
+            xar_engine::meta::Overloaded{
+                [](const xar_engine::os::MouseButtonEvent& event)
+                {
+                    std::cout << static_cast<int>(event.code) << ' ' << static_cast<int>(event.state)
+                              << std::endl;
+                },
+                [](const xar_engine::os::MouseMotionEvent& event)
+                {
+                    std::cout << static_cast<int>(event.position_x) << ' ' << static_cast<int>(event.position_y)
+                              << std::endl;
+                },
+                [](const xar_engine::os::MouseScrollEvent& event)
+                {
+                    std::cout << static_cast<int>(event.delta_x) << ' ' << static_cast<int>(event.delta_y)
                               << std::endl;
                 }
             },
@@ -27,9 +50,8 @@ int main()
     };
 
     window->set_on_keyboard_event(on_keyboard_event);
+    window->set_on_mouse_event(on_mouse_event);
     window->set_on_close(on_close);
-
-    window.reset();
 
     application->run();
 
