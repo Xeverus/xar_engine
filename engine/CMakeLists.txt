@@ -20,6 +20,7 @@ target_sources(xar_engine
             src/xar_engine/os/glfw_application.hpp
             src/xar_engine/os/glfw_window.cpp
             src/xar_engine/os/glfw_window.hpp
+            src/xar_engine/os/input_event.cpp
             src/xar_engine/os/window.cpp
             src/xar_engine/version/version.cpp)
 

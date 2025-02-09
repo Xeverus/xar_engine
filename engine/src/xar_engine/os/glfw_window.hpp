@@ -17,14 +17,14 @@ namespace xar_engine::os
         void update();
         void close();
 
-        void enqueue_keyboard_event(const KeyboardEvent& event);
-        void enqueue_mouse_event(const MouseEvent& event);
-
         void set_on_update(OnUpdate&& on_update) override;
         void set_on_close(OnClose&& on_close) override;
 
         void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) override;
         void set_on_mouse_event(OnMouseEvent&& on_mouse_event) override;
+
+        void enqueue_keyboard_event(const KeyboardEvent& event) override;
+        void enqueue_mouse_event(const MouseEvent& event) override;
 
         void request_close() override;
 

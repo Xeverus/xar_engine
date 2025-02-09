@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <xar_engine/error/exception_utils.hpp>
+
 #include <xar_engine/os/glfw_window.hpp>
 
 namespace xar_engine::os

@@ -24,6 +24,9 @@ namespace xar_engine::os
         virtual void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) = 0;
         virtual void set_on_mouse_event(OnMouseEvent&& on_mouse_event) = 0;
 
+        virtual void enqueue_keyboard_event(const KeyboardEvent& event) = 0;
+        virtual void enqueue_mouse_event(const MouseEvent& event) = 0;
+
         virtual void request_close() = 0;
 
         [[nodiscard]]
