@@ -37,6 +37,33 @@ namespace
             expected_value);
     }
 
+    TEST(exception_utils, throw__should_throw)
+    {
+        EXPECT_THROW([]()
+            {
+                XAR_THROW(
+                    xar_engine::error::XarException,
+                    "Should throw");
+            }(),
+            xar_engine::error::XarException);
+    }
+
+    TEST(exception_utils, throw_with_message__message_in_exception_should_match)
+    {
+        try
+        {
+            XAR_THROW(
+                xar_engine::error::XarException,
+                "Message in exception");
+        }
+        catch (const xar_engine::error::XarException& exception)
+        {
+            EXPECT_THAT(
+                exception.what(),
+                ::testing::ContainsRegex("Message in exception"));
+        }
+    }
+
     TEST(exception_utils, throw_if_true__should_throw)
     {
         EXPECT_THROW([]()
@@ -57,7 +84,7 @@ namespace
             "Should not throw");
     }
 
-    TEST(exception_utils, throw_with_message__message_in_exception_should_match)
+    TEST(exception_utils, throw_if_with_message__message_in_exception_should_match)
     {
         try
         {
