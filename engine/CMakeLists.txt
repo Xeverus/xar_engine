@@ -7,11 +7,14 @@ target_sources(xar_engine
         PRIVATE
             include/xar_engine/error/exception.hpp
             include/xar_engine/os/application.hpp
+            include/xar_engine/os/button.hpp
+            include/xar_engine/os/input_event.hpp
             include/xar_engine/os/window.hpp
             include/xar_engine/version/version.hpp
 
             src/xar_engine/error/exception.cpp
             src/xar_engine/error/exception_utils.hpp
+            src/xar_engine/meta/overloaded.hpp
             src/xar_engine/os/application.cpp
             src/xar_engine/os/glfw_application.cpp
             src/xar_engine/os/glfw_application.hpp

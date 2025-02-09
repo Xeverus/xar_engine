@@ -1,18 +1,19 @@
 #include <gtest/gtest.h>
 
 #include <xar_engine/os/application.hpp>
+#include <xar_engine/meta/overloaded.hpp>
 
 namespace
 {
     TEST(application, make__application_created)
     {
-        auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make();
         EXPECT_NE(application, nullptr);
     }
 
     TEST(application, run_without_windows_and_request_close__application_closes)
     {
-        auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make();
         ASSERT_NE(application, nullptr);
 
         application->set_on_update([&application](){
@@ -28,7 +29,7 @@ namespace
 
     TEST(application, run_with_one_window_and_request_close__application_closes)
     {
-        auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make();
         ASSERT_NE(application, nullptr);
 
         const auto window = application->make_window();
@@ -49,7 +50,7 @@ namespace
 
     TEST(application, run_with_two_windows_and_request_close_after_few_frames__application_closes)
     {
-        auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make();
         ASSERT_NE(application, nullptr);
 
         const auto window1 = application->make_window();
@@ -61,7 +62,8 @@ namespace
         /*
          * Counter is not divisible by number of windows to avoid easy case.
          */
-        std::size_t counter = 5;
+        constexpr int expected_counter = -1;
+        int counter = 5;
         const auto on_update = [&application, &counter](){
             --counter;
             if (counter == 0)
@@ -79,8 +81,34 @@ namespace
 
         application->run();
 
+        EXPECT_EQ(counter, expected_counter);
         EXPECT_TRUE(window1->close_requested());
         EXPECT_TRUE(window2->close_requested());
         EXPECT_TRUE(application->close_requested());
+    }
+
+    TEST(application, dev_app)
+    {
+        const auto application = xar_engine::os::ApplicationFactory::make();
+        auto window = application->make_window();
+
+        const auto on_keyboard_event = [](const xar_engine::os::KeyboardEvent& event){
+            std::visit(xar_engine::meta::Overloaded{
+                [](const xar_engine::os::KeyboardKeyEvent& key_event){
+                    std::cout << static_cast<int>(key_event.code) << ' ' << static_cast<int>(key_event.state) << std::endl;
+                }
+            }, event);
+        };
+
+        const auto on_close = [&application](){
+            application->request_close();
+        };
+
+        window->set_on_keyboard_event(on_keyboard_event);
+        window->set_on_close(on_close);
+
+        window.reset();
+
+        application->run();
     }
 }

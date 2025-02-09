@@ -11,6 +11,7 @@ namespace xar_engine::os
     {
     public:
         using OnUpdate = std::function<void()>;
+        using OnClose = std::function<void()>;
 
     public:
         virtual ~IApplication();
@@ -18,6 +19,7 @@ namespace xar_engine::os
         virtual std::shared_ptr<IWindow> make_window() = 0;
 
         virtual void set_on_update(OnUpdate&& on_update) = 0;
+        virtual void set_on_close(OnClose&& on_close) = 0;
 
         virtual void run() = 0;
 

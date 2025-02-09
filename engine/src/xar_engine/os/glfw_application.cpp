@@ -9,11 +9,17 @@ namespace xar_engine::os
 {
     namespace
     {
-        IApplication::OnUpdate empty_on_update = [](){};
+        const IApplication::OnUpdate empty_on_update = []()
+        {
+        };
+        const IApplication::OnUpdate empty_on_close = []()
+        {
+        };
     }
 
     GlfwApplication::GlfwApplication()
         : _on_update(empty_on_update)
+        , _on_close(empty_on_close)
         , _current_close_requested(false)
         , _previous_close_requested(false)
     {
@@ -44,6 +50,15 @@ namespace xar_engine::os
         }
     }
 
+    void GlfwApplication::set_on_close(OnClose&& on_close)
+    {
+        _on_close = std::move(on_close);
+        if (!_on_close)
+        {
+            _on_close = empty_on_close;
+        }
+    }
+
     void GlfwApplication::request_close()
     {
         _previous_close_requested = true;
@@ -64,6 +79,8 @@ namespace xar_engine::os
             handle_application_close_request();
             handle_windows_close_request();
         }
+
+        _on_close();
     }
 
     void GlfwApplication::update_windows()
@@ -102,6 +119,11 @@ namespace xar_engine::os
             {
                 return glfw_window->close_requested();
             });
+
+        for (auto glfw_window = new_end; glfw_window != _glfw_windows.end(); ++glfw_window)
+        {
+            (*glfw_window)->close();
+        }
 
         _glfw_windows.erase(
             new_end,
