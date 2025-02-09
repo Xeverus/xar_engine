@@ -24,15 +24,8 @@ namespace xar_engine::os
             return static_cast<GlfwWindow*>(glfwGetWindowUserPointer(native_glfw_window));
         }
 
-        void glfw_key_callback(
-            GLFWwindow* const native_glfw_window,
-            const int key,
-            const int scancode,
-            const int action,
-            const int mode)
+        ButtonState action_to_button_state(const int action)
         {
-            auto* const glfw_window = get_window(native_glfw_window);
-
             auto button_state = ButtonState::DOWN;
             switch (action)
             {
@@ -48,7 +41,20 @@ namespace xar_engine::os
                         static_cast<int>(action));
             }
 
+            return button_state;
+        }
+
+        void glfw_key_callback(
+            GLFWwindow* const native_glfw_window,
+            const int key,
+            const int scancode,
+            const int action,
+            const int mode)
+        {
+            auto* const glfw_window = get_window(native_glfw_window);
+
             const auto button_code = static_cast<ButtonCode>(key);
+            const auto button_state = action_to_button_state(action);
 
             glfw_window->enqueue_keyboard_event(
                 KeyboardKeyEvent{
@@ -63,6 +69,16 @@ namespace xar_engine::os
             const int action,
             const int mods)
         {
+            auto* const glfw_window = get_window(native_glfw_window);
+
+            const auto button_code = static_cast<ButtonCode>(button);
+            const auto button_state = action_to_button_state(action);
+
+            glfw_window->enqueue_mouse_event(
+                MouseButtonEvent{
+                    button_code,
+                    button_state,
+                });
         }
 
         void glfw_cursor_position_callback(
@@ -70,6 +86,13 @@ namespace xar_engine::os
             const double x_position,
             const double y_position)
         {
+            auto* const glfw_window = get_window(native_glfw_window);
+
+            glfw_window->enqueue_mouse_event(
+                MouseMotionEvent{
+                    static_cast<std::int32_t>(x_position),
+                    static_cast<std::int32_t>(y_position),
+                });
         }
 
         void glfw_scroll_callback(
@@ -77,6 +100,13 @@ namespace xar_engine::os
             const double x_delta,
             const double y_delta)
         {
+            auto* const glfw_window = get_window(native_glfw_window);
+
+            glfw_window->enqueue_mouse_event(
+                MouseScrollEvent{
+                    static_cast<std::int32_t>(x_delta),
+                    static_cast<std::int32_t>(y_delta),
+                });
         }
     }
 

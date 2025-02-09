@@ -87,7 +87,7 @@ namespace xar_engine::os
     {
         /**
          * A window can be created during update function and it may result in vector reallocation.
-         * This is why range-based loop is not a good idea as iterators may become invalid meanwhile.
+         * This is why using range-based loop is better idea as iterators may become invalid in the meantime.
          */
         for (std::size_t i = 0; i < _glfw_windows.size(); ++i)
         {

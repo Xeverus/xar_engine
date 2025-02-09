@@ -25,8 +25,8 @@ namespace xar_engine::os
 
     struct MouseMotionEvent
     {
-        std::int32_t delta_x;
-        std::int32_t delta_y;
+        std::int32_t position_x;
+        std::int32_t position_y;
     };
 
     struct MouseScrollEvent
