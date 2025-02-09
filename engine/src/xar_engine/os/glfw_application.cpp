@@ -112,21 +112,22 @@ namespace xar_engine::os
 
     void GlfwApplication::handle_windows_close_request()
     {
-        const auto new_end = std::remove_if(
-            _glfw_windows.begin(),
-            _glfw_windows.end(),
-            [](const auto& glfw_window)
-            {
-                return glfw_window->close_requested();
-            });
-
-        for (auto glfw_window = new_end; glfw_window != _glfw_windows.end(); ++glfw_window)
+        for (auto& glfw_window : _glfw_windows)
         {
-            (*glfw_window)->close();
+            if (glfw_window->close_requested())
+            {
+                glfw_window->close();
+            }
         }
 
         _glfw_windows.erase(
-            new_end,
+            std::remove_if(
+                _glfw_windows.begin(),
+                _glfw_windows.end(),
+                [](const auto& glfw_window)
+                {
+                    return glfw_window->close_requested();
+                }),
             _glfw_windows.end());
     }
 }
