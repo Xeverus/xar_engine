@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <xar_engine/meta/enum.hpp>
+
 namespace xar_engine::os
 {
     enum class ButtonCode
@@ -41,11 +43,5 @@ namespace xar_engine::os
     };
 }
 
-namespace xar_engine::meta
-{
-    std::string enum_to_string(os::ButtonCode enum_value);
-    std::ostream& operator<<(std::ostream& stream, os::ButtonCode enum_value);
-
-    std::string enum_to_string(os::ButtonState enum_value);
-    std::ostream& operator<<(std::ostream& stream, os::ButtonState enum_value);
-}
+ENUM_TO_STRING(xar_engine::os::ButtonCode);
+ENUM_TO_STRING(xar_engine::os::ButtonState);

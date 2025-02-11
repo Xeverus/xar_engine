@@ -7,6 +7,8 @@ find_package(glfw3 REQUIRED)
 ##############################
 set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/error/exception.hpp
+        include/xar_engine/meta/enum.hpp
+        include/xar_engine/meta/for_each.hpp
         include/xar_engine/meta/overloaded.hpp
         include/xar_engine/logging/console_logger.hpp
         include/xar_engine/logging/default_log_formatter.hpp

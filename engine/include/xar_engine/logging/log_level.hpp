@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <xar_engine/meta/enum.hpp>
+
 namespace xar_engine::logging
 {
     enum class LoggingLevel
@@ -14,8 +16,4 @@ namespace xar_engine::logging
     };
 }
 
-namespace xar_engine::meta
-{
-    std::string enum_to_string(logging::LoggingLevel enum_value);
-    std::ostream& operator<<(std::ostream& stream, logging::LoggingLevel enum_value);
-}
+ENUM_TO_STRING(xar_engine::logging::LoggingLevel);

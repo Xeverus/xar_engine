@@ -11,10 +11,13 @@ namespace xar_engine::logging
         const std::string& tag,
         const std::string& message) const
     {
+        const auto level = meta::enum_to_string(logging_level);
+        const auto timestamp = time::Time::since_startup();
+
         return fmt::format(
             "[{}][{}ns][{}]: {}",
-            meta::enum_to_string(logging_level),
-            time::Time::since_startup(),
+            level,
+            timestamp,
             tag,
             message);
     }

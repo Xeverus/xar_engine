@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+
 int main()
 {
     const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();

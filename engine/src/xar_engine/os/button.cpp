@@ -4,110 +4,60 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
-namespace xar_engine::meta
-{
-    std::string enum_to_string(os::ButtonCode enum_value)
-    {
-        switch (enum_value)
-        {
-            case os::ButtonCode::MOUSE_0: return "MOUSE_0";
-            case os::ButtonCode::MOUSE_1: return "MOUSE_1";
-            case os::ButtonCode::MOUSE_2: return "MOUSE_2";
-            case os::ButtonCode::MOUSE_3: return "MOUSE_3";
-            case os::ButtonCode::MOUSE_4: return "MOUSE_4";
-            case os::ButtonCode::MOUSE_5: return "MOUSE_5";
-            case os::ButtonCode::MOUSE_6: return "MOUSE_6";
-            case os::ButtonCode::MOUSE_7: return "MOUSE_7";
-            case os::ButtonCode::MOUSE_8: return "MOUSE_8";
 
-            case os::ButtonCode::SPACE: return "SPACE";
+ENUM_TO_STRING_IMPL(xar_engine::os::ButtonCode,
+                    xar_engine::os::ButtonCode::MOUSE_0,
+                    xar_engine::os::ButtonCode::MOUSE_1,
+                    xar_engine::os::ButtonCode::MOUSE_2,
+                    xar_engine::os::ButtonCode::MOUSE_3,
+                    xar_engine::os::ButtonCode::MOUSE_4,
+                    xar_engine::os::ButtonCode::MOUSE_5,
+                    xar_engine::os::ButtonCode::MOUSE_6,
+                    xar_engine::os::ButtonCode::MOUSE_7,
+                    xar_engine::os::ButtonCode::MOUSE_8,
+                    xar_engine::os::ButtonCode::SPACE,
+                    xar_engine::os::ButtonCode::_0,
+                    xar_engine::os::ButtonCode::_1,
+                    xar_engine::os::ButtonCode::_2,
+                    xar_engine::os::ButtonCode::_3,
+                    xar_engine::os::ButtonCode::_4,
+                    xar_engine::os::ButtonCode::_5,
+                    xar_engine::os::ButtonCode::_6,
+                    xar_engine::os::ButtonCode::_7,
+                    xar_engine::os::ButtonCode::_8,
+                    xar_engine::os::ButtonCode::_9,
+                    xar_engine::os::ButtonCode::A,
+                    xar_engine::os::ButtonCode::B,
+                    xar_engine::os::ButtonCode::C,
+                    xar_engine::os::ButtonCode::D,
+                    xar_engine::os::ButtonCode::E,
+                    xar_engine::os::ButtonCode::F,
+                    xar_engine::os::ButtonCode::G,
+                    xar_engine::os::ButtonCode::H,
+                    xar_engine::os::ButtonCode::I,
+                    xar_engine::os::ButtonCode::J,
+                    xar_engine::os::ButtonCode::K,
+                    xar_engine::os::ButtonCode::L,
+                    xar_engine::os::ButtonCode::M,
+                    xar_engine::os::ButtonCode::N,
+                    xar_engine::os::ButtonCode::O,
+                    xar_engine::os::ButtonCode::P,
+                    xar_engine::os::ButtonCode::Q,
+                    xar_engine::os::ButtonCode::R,
+                    xar_engine::os::ButtonCode::S,
+                    xar_engine::os::ButtonCode::T,
+                    xar_engine::os::ButtonCode::U,
+                    xar_engine::os::ButtonCode::V,
+                    xar_engine::os::ButtonCode::W,
+                    xar_engine::os::ButtonCode::X,
+                    xar_engine::os::ButtonCode::Y,
+                    xar_engine::os::ButtonCode::Z,
+                    xar_engine::os::ButtonCode::ESCAPE,
+                    xar_engine::os::ButtonCode::ENTER,
+                    xar_engine::os::ButtonCode::TAB,
+                    xar_engine::os::ButtonCode::BACKSPACE);
 
-            case os::ButtonCode::_0: return "_0";
-            case os::ButtonCode::_1: return "_1";
-            case os::ButtonCode::_2: return "_2";
-            case os::ButtonCode::_3: return "_3";
-            case os::ButtonCode::_4: return "_4";
-            case os::ButtonCode::_5: return "_5";
-            case os::ButtonCode::_6: return "_6";
-            case os::ButtonCode::_7: return "_7";
-            case os::ButtonCode::_8: return "_8";
-            case os::ButtonCode::_9: return "_9";
-
-            case os::ButtonCode::A: return "A";
-            case os::ButtonCode::B: return "B";
-            case os::ButtonCode::C: return "C";
-            case os::ButtonCode::D: return "D";
-            case os::ButtonCode::E: return "E";
-            case os::ButtonCode::F: return "F";
-            case os::ButtonCode::G: return "G";
-            case os::ButtonCode::H: return "H";
-            case os::ButtonCode::I: return "I";
-            case os::ButtonCode::J: return "J";
-            case os::ButtonCode::K: return "K";
-            case os::ButtonCode::L: return "L";
-            case os::ButtonCode::M: return "M";
-            case os::ButtonCode::N: return "N";
-            case os::ButtonCode::O: return "O";
-            case os::ButtonCode::P: return "P";
-            case os::ButtonCode::Q: return "Q";
-            case os::ButtonCode::R: return "R";
-            case os::ButtonCode::S: return "S";
-            case os::ButtonCode::T: return "T";
-            case os::ButtonCode::U: return "U";
-            case os::ButtonCode::V: return "V";
-            case os::ButtonCode::W: return "W";
-            case os::ButtonCode::X: return "X";
-            case os::ButtonCode::Y: return "Y";
-            case os::ButtonCode::Z: return "Z";
-
-            case os::ButtonCode::ESCAPE: return "ESCAPE";
-            case os::ButtonCode::ENTER: return "ENTER";
-            case os::ButtonCode::TAB: return "TAB";
-            case os::ButtonCode::BACKSPACE: return "BACKSPACE";
-        }
-
-        XAR_THROW(
-            error::XarException,
-            "ButtonState enum value doesn't define value '{}'",
-            static_cast<int>(enum_value));
-    }
-
-    std::ostream& operator<<(
-        std::ostream& stream,
-        const os::ButtonCode enum_value)
-    {
-        if (stream.good())
-        {
-            stream << enum_to_string(enum_value);
-        }
-
-        return stream;
-    }
-
-    std::string enum_to_string(os::ButtonState enum_value)
-    {
-        switch (enum_value)
-        {
-            case os::ButtonState::DOWN: return "DOWN";
-            case os::ButtonState::REPEAT: return "REPEAT";
-            case os::ButtonState::UP: return "UP";
-        }
-
-        XAR_THROW(
-            error::XarException,
-            "ButtonState enum value doesn't define value '{}'",
-            static_cast<int>(enum_value));
-    }
-
-    std::ostream& operator<<(
-        std::ostream& stream,
-        const os::ButtonState enum_value)
-    {
-        if (stream.good())
-        {
-            stream << enum_to_string(enum_value);
-        }
-
-        return stream;
-    }
-}
+ENUM_TO_STRING_IMPL(xar_engine::os::ButtonState,
+                    xar_engine::os::ButtonState::DOWN,
+                    xar_engine::os::ButtonState::REPEAT,
+                    xar_engine::os::ButtonState::UP);
