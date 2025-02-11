@@ -1,44 +1,68 @@
 #include <xar_engine/os/application.hpp>
 #include <xar_engine/meta/overloaded.hpp>
 
+#include <xar_engine/logging/console_logger.hpp>
+#include <xar_engine/logging/logger.hpp>
+
 #include <iostream>
 
 int main()
 {
+    const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();
     const auto application = xar_engine::os::ApplicationFactory::make();
     auto window = application->make_window();
 
-    const auto on_keyboard_event = [](const xar_engine::os::KeyboardEvent& event)
+    const auto on_keyboard_event = [&](const xar_engine::os::KeyboardEvent& event)
     {
         std::visit(
             xar_engine::meta::Overloaded{
-                [](const xar_engine::os::KeyboardKeyEvent& event)
+                [&](const xar_engine::os::KeyboardKeyEvent& event)
                 {
-                    std::cout << static_cast<int>(event.code) << ' ' << static_cast<int>(event.state)
-                              << std::endl;
+                    XAR_LOG(
+                        *logger,
+                        xar_engine::logging::LoggingLevel::DEBUG,
+                        "TestApp",
+                        "key code={}, state={}",
+                        xar_engine::meta::enum_to_string(event.code),
+                        xar_engine::meta::enum_to_string(event.state));
                 }
             },
             event);
     };
 
-    const auto on_mouse_event = [](const xar_engine::os::MouseEvent& event)
+    const auto on_mouse_event = [&](const xar_engine::os::MouseEvent& event)
     {
         std::visit(
             xar_engine::meta::Overloaded{
-                [](const xar_engine::os::MouseButtonEvent& event)
+                [&](const xar_engine::os::MouseButtonEvent& event)
                 {
-                    std::cout << static_cast<int>(event.code) << ' ' << static_cast<int>(event.state)
-                              << std::endl;
+                    XAR_LOG(
+                        *logger,
+                        xar_engine::logging::LoggingLevel::DEBUG,
+                        "TestApp",
+                        "button code={}, state={}",
+                        xar_engine::meta::enum_to_string(event.code),
+                        xar_engine::meta::enum_to_string(event.state));
                 },
-                [](const xar_engine::os::MouseMotionEvent& event)
+                [&](const xar_engine::os::MouseMotionEvent& event)
                 {
-                    std::cout << static_cast<int>(event.position_x) << ' ' << static_cast<int>(event.position_y)
-                              << std::endl;
+                    XAR_LOG(
+                        *logger,
+                        xar_engine::logging::LoggingLevel::DEBUG,
+                        "TestApp",
+                        "motion x={}, y={}",
+                        event.position_x,
+                        event.position_y);
                 },
-                [](const xar_engine::os::MouseScrollEvent& event)
+                [&](const xar_engine::os::MouseScrollEvent& event)
                 {
-                    std::cout << static_cast<int>(event.delta_x) << ' ' << static_cast<int>(event.delta_y)
-                              << std::endl;
+                    XAR_LOG(
+                        *logger,
+                        xar_engine::logging::LoggingLevel::DEBUG,
+                        "TestApp",
+                        "scroll x={}, y={}",
+                        event.delta_x,
+                        event.delta_y);
                 }
             },
             event);
