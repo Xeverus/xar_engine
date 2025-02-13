@@ -19,28 +19,28 @@ namespace
 
         std::int32_t update_counter = 0;
 
-        using KeyboardEventVector = std::vector<xar_engine::os::KeyboardEvent>;
+        using KeyboardEventVector = std::vector<xar_engine::input::KeyboardEvent>;
         const auto expected_update_events_lists = std::vector<KeyboardEventVector>{
             {
-                xar_engine::os::KeyboardKeyEvent{
-                    xar_engine::os::ButtonCode::B, xar_engine::os::ButtonState::DOWN
+                xar_engine::input::KeyboardKeyEvent{
+                    xar_engine::input::ButtonCode::B, xar_engine::input::ButtonState::DOWN
                 },
-                xar_engine::os::KeyboardKeyEvent{
-                    xar_engine::os::ButtonCode::C, xar_engine::os::ButtonState::DOWN
+                xar_engine::input::KeyboardKeyEvent{
+                    xar_engine::input::ButtonCode::C, xar_engine::input::ButtonState::DOWN
                 },
-                xar_engine::os::KeyboardKeyEvent{
-                    xar_engine::os::ButtonCode::C, xar_engine::os::ButtonState::UP
+                xar_engine::input::KeyboardKeyEvent{
+                    xar_engine::input::ButtonCode::C, xar_engine::input::ButtonState::UP
                 },
-                xar_engine::os::KeyboardKeyEvent{
-                    xar_engine::os::ButtonCode::D, xar_engine::os::ButtonState::DOWN
+                xar_engine::input::KeyboardKeyEvent{
+                    xar_engine::input::ButtonCode::D, xar_engine::input::ButtonState::DOWN
                 },
             },
             {
-                xar_engine::os::KeyboardKeyEvent{
-                    xar_engine::os::ButtonCode::D, xar_engine::os::ButtonState::UP
+                xar_engine::input::KeyboardKeyEvent{
+                    xar_engine::input::ButtonCode::D, xar_engine::input::ButtonState::UP
                 },
-                xar_engine::os::KeyboardKeyEvent{
-                    xar_engine::os::ButtonCode::C, xar_engine::os::ButtonState::UP
+                xar_engine::input::KeyboardKeyEvent{
+                    xar_engine::input::ButtonCode::C, xar_engine::input::ButtonState::UP
                 },
             },
         };
@@ -67,11 +67,11 @@ namespace
             });
 
         window->set_on_keyboard_event(
-            [&](const xar_engine::os::KeyboardEvent& keyboard_event)
+            [&](const xar_engine::input::KeyboardEvent& keyboard_event)
             {
                 std::visit(
                     xar_engine::meta::Overloaded{
-                        [&](const xar_engine::os::KeyboardKeyEvent& event)
+                        [&](const xar_engine::input::KeyboardKeyEvent& event)
                         {
                             const auto idx = update_counter - 1;
                             ASSERT_LE(idx,
@@ -102,28 +102,28 @@ namespace
 
         std::int32_t update_counter = 0;
 
-        using MouseEventVector = std::vector<xar_engine::os::MouseEvent>;
+        using MouseEventVector = std::vector<xar_engine::input::MouseEvent>;
         const auto expected_update_events_lists = std::vector<MouseEventVector>{
             {
-                xar_engine::os::MouseButtonEvent{
-                    xar_engine::os::ButtonCode::MOUSE_0, xar_engine::os::ButtonState::DOWN
+                xar_engine::input::MouseButtonEvent{
+                    xar_engine::input::ButtonCode::MOUSE_0, xar_engine::input::ButtonState::DOWN
                 },
-                xar_engine::os::MouseMotionEvent{10, 20},
-                xar_engine::os::MouseButtonEvent{
-                    xar_engine::os::ButtonCode::MOUSE_1, xar_engine::os::ButtonState::DOWN
+                xar_engine::input::MouseMotionEvent{10, 20},
+                xar_engine::input::MouseButtonEvent{
+                    xar_engine::input::ButtonCode::MOUSE_1, xar_engine::input::ButtonState::DOWN
                 },
-                xar_engine::os::MouseMotionEvent{30, 60},
-                xar_engine::os::MouseScrollEvent{1, 1},
-                xar_engine::os::MouseButtonEvent{
-                    xar_engine::os::ButtonCode::MOUSE_0, xar_engine::os::ButtonState::UP
+                xar_engine::input::MouseMotionEvent{30, 60},
+                xar_engine::input::MouseScrollEvent{1, 1},
+                xar_engine::input::MouseButtonEvent{
+                    xar_engine::input::ButtonCode::MOUSE_0, xar_engine::input::ButtonState::UP
                 },
             },
             {
-                xar_engine::os::MouseButtonEvent{
-                    xar_engine::os::ButtonCode::MOUSE_1, xar_engine::os::ButtonState::UP
+                xar_engine::input::MouseButtonEvent{
+                    xar_engine::input::ButtonCode::MOUSE_1, xar_engine::input::ButtonState::UP
                 },
-                xar_engine::os::MouseScrollEvent{1, 1},
-                xar_engine::os::MouseMotionEvent{30, 60},
+                xar_engine::input::MouseScrollEvent{1, 1},
+                xar_engine::input::MouseMotionEvent{30, 60},
             },
         };
         auto update_events_lists = std::vector<MouseEventVector>{
@@ -132,11 +132,11 @@ namespace
         };
 
         window->set_on_mouse_event(
-            [&](const xar_engine::os::MouseEvent& mouse_event)
+            [&](const xar_engine::input::MouseEvent& mouse_event)
             {
                 std::visit(
                     xar_engine::meta::Overloaded{
-                        [&](const xar_engine::os::MouseButtonEvent& event)
+                        [&](const xar_engine::input::MouseButtonEvent& event)
                         {
                             const auto idx = update_counter - 1;
                             ASSERT_LE(idx,
@@ -144,7 +144,7 @@ namespace
 
                             update_events_lists[idx].emplace_back(event);
                         },
-                        [&](const xar_engine::os::MouseMotionEvent& event)
+                        [&](const xar_engine::input::MouseMotionEvent& event)
                         {
                             const auto idx = update_counter - 1;
                             ASSERT_LE(idx,
@@ -152,7 +152,7 @@ namespace
 
                             update_events_lists[idx].emplace_back(event);
                         },
-                        [&](const xar_engine::os::MouseScrollEvent& event)
+                        [&](const xar_engine::input::MouseScrollEvent& event)
                         {
                             const auto idx = update_counter - 1;
                             ASSERT_LE(idx,

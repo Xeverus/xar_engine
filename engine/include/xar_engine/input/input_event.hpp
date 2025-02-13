@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <variant>
 
-#include <xar_engine/os/button.hpp>
+#include <xar_engine/input/button.hpp>
 
-namespace xar_engine::os
+namespace xar_engine::input
 {
     struct KeyboardKeyEvent
     {
@@ -13,7 +13,9 @@ namespace xar_engine::os
         ButtonState state;
     };
 
-    bool operator==(const xar_engine::os::KeyboardKeyEvent& left, const xar_engine::os::KeyboardKeyEvent& right);
+    bool operator==(
+        const xar_engine::input::KeyboardKeyEvent& left,
+        const xar_engine::input::KeyboardKeyEvent& right);
 
     using KeyboardEvent = std::variant<
         KeyboardKeyEvent
@@ -25,7 +27,9 @@ namespace xar_engine::os
         ButtonState state;
     };
 
-    bool operator==(const xar_engine::os::MouseButtonEvent& left, const xar_engine::os::MouseButtonEvent& right);
+    bool operator==(
+        const xar_engine::input::MouseButtonEvent& left,
+        const xar_engine::input::MouseButtonEvent& right);
 
     struct MouseMotionEvent
     {
@@ -33,7 +37,9 @@ namespace xar_engine::os
         std::int32_t position_y;
     };
 
-    bool operator==(const xar_engine::os::MouseMotionEvent& left, const xar_engine::os::MouseMotionEvent& right);
+    bool operator==(
+        const xar_engine::input::MouseMotionEvent& left,
+        const xar_engine::input::MouseMotionEvent& right);
 
     struct MouseScrollEvent
     {
@@ -41,7 +47,9 @@ namespace xar_engine::os
         std::int32_t delta_y;
     };
 
-    bool operator==(const xar_engine::os::MouseScrollEvent& left, const xar_engine::os::MouseScrollEvent& right);
+    bool operator==(
+        const xar_engine::input::MouseScrollEvent& left,
+        const xar_engine::input::MouseScrollEvent& right);
 
     using MouseEvent = std::variant<
         MouseButtonEvent,

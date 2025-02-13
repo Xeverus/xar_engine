@@ -13,11 +13,11 @@ int main()
     const auto application = xar_engine::os::ApplicationFactory::make();
     auto window = application->make_window();
 
-    const auto on_keyboard_event = [&](const xar_engine::os::KeyboardEvent& event)
+    const auto on_keyboard_event = [&](const xar_engine::input::KeyboardEvent& event)
     {
         std::visit(
             xar_engine::meta::Overloaded{
-                [&](const xar_engine::os::KeyboardKeyEvent& event)
+                [&](const xar_engine::input::KeyboardKeyEvent& event)
                 {
                     XAR_LOG(
                         xar_engine::logging::LogLevel::DEBUG,
@@ -31,11 +31,11 @@ int main()
             event);
     };
 
-    const auto on_mouse_event = [&](const xar_engine::os::MouseEvent& event)
+    const auto on_mouse_event = [&](const xar_engine::input::MouseEvent& event)
     {
         std::visit(
             xar_engine::meta::Overloaded{
-                [&](const xar_engine::os::MouseButtonEvent& event)
+                [&](const xar_engine::input::MouseButtonEvent& event)
                 {
                     XAR_LOG(
                         xar_engine::logging::LogLevel::DEBUG,
@@ -45,7 +45,7 @@ int main()
                         xar_engine::meta::enum_to_string(event.code),
                         xar_engine::meta::enum_to_string(event.state));
                 },
-                [&](const xar_engine::os::MouseMotionEvent& event)
+                [&](const xar_engine::input::MouseMotionEvent& event)
                 {
                     XAR_LOG(
                         xar_engine::logging::LogLevel::INFO,
@@ -55,7 +55,7 @@ int main()
                         event.position_x,
                         event.position_y);
                 },
-                [&](const xar_engine::os::MouseScrollEvent& event)
+                [&](const xar_engine::input::MouseScrollEvent& event)
                 {
                     XAR_LOG(
                         xar_engine::logging::LogLevel::WARNING,

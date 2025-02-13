@@ -4,7 +4,7 @@
 
 #include <xar_engine/meta/enum.hpp>
 
-namespace xar_engine::os
+namespace xar_engine::input
 {
     enum class ButtonCode
     {
@@ -43,5 +43,5 @@ namespace xar_engine::os
     };
 }
 
-ENUM_TO_STRING(xar_engine::os::ButtonCode);
-ENUM_TO_STRING(xar_engine::os::ButtonState);
+ENUM_TO_STRING(xar_engine::input::ButtonCode);
+ENUM_TO_STRING(xar_engine::input::ButtonState);

@@ -12,10 +12,10 @@ namespace xar_engine::os
         const IWindow::OnUpdate empty_on_close = []()
         {
         };
-        const IWindow::OnKeyboardEvent empty_on_keyboard_event = [](const KeyboardEvent&)
+        const IWindow::OnKeyboardEvent empty_on_keyboard_event = [](const input::KeyboardEvent&)
         {
         };
-        const IWindow::OnMouseEvent empty_on_mouse_event = [](const MouseEvent&)
+        const IWindow::OnMouseEvent empty_on_mouse_event = [](const input::MouseEvent&)
         {
         };
 
@@ -24,16 +24,16 @@ namespace xar_engine::os
             return static_cast<GlfwWindow*>(glfwGetWindowUserPointer(native_glfw_window));
         }
 
-        ButtonState action_to_button_state(const int action)
+        input::ButtonState action_to_button_state(const int action)
         {
-            auto button_state = ButtonState::DOWN;
+            auto button_state = input::ButtonState::DOWN;
             switch (action)
             {
-                case GLFW_PRESS: button_state = ButtonState::DOWN;
+                case GLFW_PRESS: button_state = input::ButtonState::DOWN;
                     break;
-                case GLFW_RELEASE: button_state = ButtonState::UP;
+                case GLFW_RELEASE: button_state = input::ButtonState::UP;
                     break;
-                case GLFW_REPEAT: button_state = ButtonState::REPEAT;
+                case GLFW_REPEAT: button_state = input::ButtonState::REPEAT;
                     break;
                 default: XAR_THROW(
                         error::XarException,
@@ -53,11 +53,11 @@ namespace xar_engine::os
         {
             auto* const glfw_window = get_window(native_glfw_window);
 
-            const auto button_code = static_cast<ButtonCode>(key);
+            const auto button_code = static_cast<input::ButtonCode>(key);
             const auto button_state = action_to_button_state(action);
 
             glfw_window->enqueue_keyboard_event(
-                KeyboardKeyEvent{
+                input::KeyboardKeyEvent{
                     button_code,
                     button_state,
                 });
@@ -71,11 +71,11 @@ namespace xar_engine::os
         {
             auto* const glfw_window = get_window(native_glfw_window);
 
-            const auto button_code = static_cast<ButtonCode>(button);
+            const auto button_code = static_cast<input::ButtonCode>(button);
             const auto button_state = action_to_button_state(action);
 
             glfw_window->enqueue_mouse_event(
-                MouseButtonEvent{
+                input::MouseButtonEvent{
                     button_code,
                     button_state,
                 });
@@ -89,7 +89,7 @@ namespace xar_engine::os
             auto* const glfw_window = get_window(native_glfw_window);
 
             glfw_window->enqueue_mouse_event(
-                MouseMotionEvent{
+                input::MouseMotionEvent{
                     static_cast<std::int32_t>(x_position),
                     static_cast<std::int32_t>(y_position),
                 });
@@ -103,7 +103,7 @@ namespace xar_engine::os
             auto* const glfw_window = get_window(native_glfw_window);
 
             glfw_window->enqueue_mouse_event(
-                MouseScrollEvent{
+                input::MouseScrollEvent{
                     static_cast<std::int32_t>(x_delta),
                     static_cast<std::int32_t>(y_delta),
                 });
@@ -197,12 +197,12 @@ namespace xar_engine::os
         _on_close();
     }
 
-    void GlfwWindow::enqueue_keyboard_event(const KeyboardEvent& event)
+    void GlfwWindow::enqueue_keyboard_event(const input::KeyboardEvent& event)
     {
         _keyboard_event_queue.push_back(event);
     }
 
-    void GlfwWindow::enqueue_mouse_event(const MouseEvent& event)
+    void GlfwWindow::enqueue_mouse_event(const input::MouseEvent& event)
     {
         _mouse_event_queue.push_back(event);
     }

@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include <xar_engine/os/input_event.hpp>
+#include <xar_engine/input/input_event.hpp>
 
 namespace xar_engine::os
 {
@@ -12,8 +12,8 @@ namespace xar_engine::os
         using OnUpdate = std::function<void()>;
         using OnClose = std::function<void()>;
 
-        using OnKeyboardEvent = std::function<void(const KeyboardEvent& event)>;
-        using OnMouseEvent = std::function<void(const MouseEvent& event)>;
+        using OnKeyboardEvent = std::function<void(const input::KeyboardEvent& event)>;
+        using OnMouseEvent = std::function<void(const input::MouseEvent& event)>;
 
     public:
         virtual ~IWindow();
@@ -24,8 +24,8 @@ namespace xar_engine::os
         virtual void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) = 0;
         virtual void set_on_mouse_event(OnMouseEvent&& on_mouse_event) = 0;
 
-        virtual void enqueue_keyboard_event(const KeyboardEvent& event) = 0;
-        virtual void enqueue_mouse_event(const MouseEvent& event) = 0;
+        virtual void enqueue_keyboard_event(const input::KeyboardEvent& event) = 0;
+        virtual void enqueue_mouse_event(const input::MouseEvent& event) = 0;
 
         virtual void request_close() = 0;
 

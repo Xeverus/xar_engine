@@ -7,6 +7,8 @@ find_package(glfw3 REQUIRED)
 ##############################
 set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/error/exception.hpp
+        include/xar_engine/input/button.hpp
+        include/xar_engine/input/input_event.hpp
         include/xar_engine/meta/enum.hpp
         include/xar_engine/meta/overloaded.hpp
         include/xar_engine/logging/console_logger.hpp
@@ -18,14 +20,14 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/logging/logger_chain.hpp
         include/xar_engine/logging/stream_logger.hpp
         include/xar_engine/os/application.hpp
-        include/xar_engine/os/button.hpp
-        include/xar_engine/os/input_event.hpp
         include/xar_engine/os/window.hpp
         include/xar_engine/version/version.hpp)
 
 set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/error/exception.cpp
         src/xar_engine/error/exception_utils.hpp
+        src/xar_engine/input/button.cpp
+        src/xar_engine/input/input_event.cpp
         src/xar_engine/logging/console_logger.cpp
         src/xar_engine/logging/default_log_formatter.cpp
         src/xar_engine/logging/file_logger.cpp
@@ -37,12 +39,10 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/meta/enum_impl.hpp
         src/xar_engine/meta/for_each.hpp
         src/xar_engine/os/application.cpp
-        src/xar_engine/os/button.cpp
         src/xar_engine/os/glfw_application.cpp
         src/xar_engine/os/glfw_application.hpp
         src/xar_engine/os/glfw_window.cpp
         src/xar_engine/os/glfw_window.hpp
-        src/xar_engine/os/input_event.cpp
         src/xar_engine/os/window.cpp
         src/xar_engine/time/time.cpp
         src/xar_engine/time/time.hpp

@@ -23,8 +23,8 @@ namespace xar_engine::os
         void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) override;
         void set_on_mouse_event(OnMouseEvent&& on_mouse_event) override;
 
-        void enqueue_keyboard_event(const KeyboardEvent& event) override;
-        void enqueue_mouse_event(const MouseEvent& event) override;
+        void enqueue_keyboard_event(const input::KeyboardEvent& event) override;
+        void enqueue_mouse_event(const input::MouseEvent& event) override;
 
         void request_close() override;
 
@@ -39,7 +39,7 @@ namespace xar_engine::os
         OnKeyboardEvent _on_keyboard_event;
         OnMouseEvent _on_mouse_event;
 
-        std::deque<KeyboardEvent> _keyboard_event_queue;
-        std::deque<MouseEvent> _mouse_event_queue;
+        std::deque<input::KeyboardEvent> _keyboard_event_queue;
+        std::deque<input::MouseEvent> _mouse_event_queue;
     };
 }
