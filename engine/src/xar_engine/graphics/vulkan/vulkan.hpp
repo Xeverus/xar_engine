@@ -24,11 +24,6 @@ namespace xar_engine::graphics::vulkan
     public:
         explicit Vulkan(os::GlfwWindow* window);
 
-        /*void init_vulkan(
-            const std::string& application_name,
-            const base::types::Version& application_version,
-            const platform::application::IApplication& application);*/
-
         void init_surface();
         void init_device();
         void init_swapchain();
@@ -65,5 +60,8 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;
         std::vector<VkFence> inFlightFence;
+
+        uint32_t currentFrame;
+        uint32_t frameCounter;
     };
 }

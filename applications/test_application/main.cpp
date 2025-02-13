@@ -19,7 +19,12 @@ int main()
     window->set_on_run(
         [&]()
         {
-            xar_engine::graphics::run_vulkan_test(*window);
+            xar_engine::graphics::init_vulkan_test(*window);
+        });
+
+    window->set_on_update(
+        [](){
+            xar_engine::graphics::run_vulkan_test_frame();
         });
 
     window->set_on_keyboard_event(
@@ -83,6 +88,7 @@ int main()
     window->set_on_close(
         [&application]()
         {
+            xar_engine::graphics::cleanup_vulkan_test();
             application->request_close();
         });
 
