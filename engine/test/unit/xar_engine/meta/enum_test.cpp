@@ -28,7 +28,6 @@ ENUM_TO_STRING_IMPL(enum_test::ns::EnumTestEnum,
                     enum_test::ns::EnumTestEnum::VALUE_1,
                     enum_test::ns::EnumTestEnum::VALUE_2);
 
-
 ENUM_TO_STRING(EnumTestEnum);
 ENUM_TO_STRING_IMPL(EnumTestEnum,
                     EnumTestEnum::VALUE_10,

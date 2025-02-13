@@ -8,7 +8,6 @@ find_package(glfw3 REQUIRED)
 set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/error/exception.hpp
         include/xar_engine/meta/enum.hpp
-        include/xar_engine/meta/for_each.hpp
         include/xar_engine/meta/overloaded.hpp
         include/xar_engine/logging/console_logger.hpp
         include/xar_engine/logging/default_log_formatter.hpp
@@ -36,6 +35,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/logging/logger_chain.cpp
         src/xar_engine/logging/stream_logger.cpp
         src/xar_engine/meta/enum_impl.hpp
+        src/xar_engine/meta/for_each.hpp
         src/xar_engine/os/application.cpp
         src/xar_engine/os/button.cpp
         src/xar_engine/os/glfw_application.cpp
