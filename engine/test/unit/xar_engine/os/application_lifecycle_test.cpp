@@ -52,7 +52,7 @@ namespace
     TEST(application,
          lifecycle__no_windows)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make({"lifecycle__no_windows"});
         ASSERT_NE(application,
                   nullptr);
 
@@ -103,11 +103,11 @@ namespace
     TEST(application,
          lifecycle__with_single_window)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make({"lifecycle__with_single_window"});
         ASSERT_NE(application,
                   nullptr);
 
-        const auto window = application->make_window();
+        const auto window = application->make_window({"lifecycle__with_single_window"});
         ASSERT_NE(window,
                   nullptr);
 
@@ -182,14 +182,20 @@ namespace
     TEST(application,
          lifecycle__with_three_windows)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make();
+        const auto app_id = std::string{"lifecycle__with_three_windows"};
+        const auto application = xar_engine::os::ApplicationFactory::make({app_id});
         ASSERT_NE(application,
                   nullptr);
 
+        const std::array<std::string, 3> window_ids = {
+            std::string{"lifecycle__with_three_windows__0"},
+            std::string{"lifecycle__with_three_windows__1"},
+            std::string{"lifecycle__with_three_windows__2"},
+        };
         const auto windows = std::vector<std::shared_ptr<xar_engine::os::IWindow>>{
-            application->make_window(),
-            application->make_window(),
-            application->make_window(),
+            application->make_window({window_ids[0]}),
+            application->make_window({window_ids[1]}),
+            application->make_window({window_ids[2]}),
         };
         for (const auto& window: windows)
         {
@@ -198,36 +204,34 @@ namespace
         }
 
         constexpr auto expected_update_counter = std::int32_t{5};
-        const auto app_id = std::string{"application"};
-        const auto window_id_prefix = std::string{"window_"};
         const auto expected_call_order = std::vector<ActionWithId>{
             {ActionType::APPLICATION_ON_RUN,    app_id},
             {ActionType::APPLICATION_ON_UPDATE, app_id},
-            {ActionType::WINDOW_ON_RUN,         window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_RUN,         window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_RUN,         window_id_prefix + "2"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_RUN,         window_ids[0]},
+            {ActionType::WINDOW_ON_RUN,         window_ids[1]},
+            {ActionType::WINDOW_ON_RUN,         window_ids[2]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[0]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[1]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[2]},
             {ActionType::APPLICATION_ON_UPDATE, app_id},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[0]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[1]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[2]},
             {ActionType::APPLICATION_ON_UPDATE, app_id},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[0]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[1]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[2]},
             {ActionType::APPLICATION_ON_UPDATE, app_id},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[0]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[1]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[2]},
             {ActionType::APPLICATION_ON_UPDATE, app_id},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
-            {ActionType::WINDOW_ON_CLOSE,       window_id_prefix + "0"},
-            {ActionType::WINDOW_ON_CLOSE,       window_id_prefix + "1"},
-            {ActionType::WINDOW_ON_CLOSE,       window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[0]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[1]},
+            {ActionType::WINDOW_ON_UPDATE,      window_ids[2]},
+            {ActionType::WINDOW_ON_CLOSE,       window_ids[0]},
+            {ActionType::WINDOW_ON_CLOSE,       window_ids[1]},
+            {ActionType::WINDOW_ON_CLOSE,       window_ids[2]},
             {ActionType::APPLICATION_ON_CLOSE,  app_id},
         };
         auto actual_call_order = std::vector<ActionWithId>{};
@@ -258,7 +262,7 @@ namespace
 
         for (auto i = 0; i < windows.size(); ++i)
         {
-            const auto window_id = window_id_prefix + std::to_string(i);
+            const auto& window_id = window_ids[i];
             windows[i]->set_on_run(
                 [&, window_id]()
                 {
@@ -285,19 +289,20 @@ namespace
     TEST(application,
          lifecycle__single_window_recreated)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make();
+        const auto app_id = std::string{"lifecycle__single_window_recreated"};
+
+        const auto application = xar_engine::os::ApplicationFactory::make({app_id});
         ASSERT_NE(application,
                   nullptr);
 
-        auto window = application->make_window();
+        const auto original_window_id = std::string{"lifecycle__single_window_recreated__original"};
+        const auto recreated_window_id = std::string{"lifecycle__single_window_recreated__recreated"};
+        auto window = application->make_window({original_window_id});
         ASSERT_NE(window,
                   nullptr);
 
         constexpr auto expected_update_counter = std::int32_t{5};
         constexpr auto recreate_in_frame = expected_update_counter;
-        const auto app_id = std::string{"application"};
-        const auto original_window_id = std::string{"window_original"};
-        const auto recreated_window_id = std::string{"window_recreated"};
         const auto expected_call_order = std::vector<ActionWithId>{
             {ActionType::APPLICATION_ON_RUN,    app_id},
             {ActionType::APPLICATION_ON_UPDATE, app_id},
@@ -351,7 +356,7 @@ namespace
                 }
 
                 window->request_close();
-                window = application->make_window();
+                window = application->make_window({recreated_window_id});
                 window->set_on_run(
                     [&]()
                     {

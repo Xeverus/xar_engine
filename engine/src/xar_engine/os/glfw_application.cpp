@@ -21,12 +21,13 @@ namespace xar_engine::os
         };
     }
 
-    GlfwApplication::GlfwApplication()
+    GlfwApplication::GlfwApplication(IApplication::Parameters parameters)
         : _on_run(empty_on_run)
         , _on_update(empty_on_update)
         , _on_close(empty_on_close)
         , _current_close_requested(false)
         , _previous_close_requested(false)
+        , _parameters(std::move(parameters))
     {
         const bool glfw_initialized = glfwInit();
         XAR_THROW_IF(
@@ -40,9 +41,9 @@ namespace xar_engine::os
         glfwTerminate();
     }
 
-    std::shared_ptr<IWindow> GlfwApplication::make_window()
+    std::shared_ptr<IWindow> GlfwApplication::make_window(IWindow::Parameters parameters)
     {
-        _glfw_windows_to_run.push_back(std::make_shared<GlfwWindow>());
+        _glfw_windows_to_run.push_back(std::make_shared<GlfwWindow>(std::move(parameters)));
         return _glfw_windows_to_run.back();
     }
 
@@ -156,5 +157,10 @@ namespace xar_engine::os
                     return glfw_window->close_requested();
                 }),
             _glfw_windows_running.end());
+    }
+
+    const std::string& GlfwApplication::get_name() const
+    {
+        return _parameters.name;
     }
 }

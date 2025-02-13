@@ -11,10 +11,10 @@ namespace xar_engine::os
     class GlfwApplication : public IApplication
     {
     public:
-        GlfwApplication();
+        explicit GlfwApplication(IApplication::Parameters parameters);
         ~GlfwApplication() override;
 
-        std::shared_ptr<IWindow> make_window() override;
+        std::shared_ptr<IWindow> make_window(IWindow::Parameters parameters) override;
 
         void set_on_run(OnRun&& on_run) override;
         void set_on_update(OnUpdate&& on_update) override;
@@ -27,6 +27,9 @@ namespace xar_engine::os
         [[nodiscard]]
         bool close_requested() const override;
 
+        [[nodiscard]]
+        const std::string& get_name() const override;
+
     private:
         std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows_running;
         std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows_to_run;
@@ -37,6 +40,8 @@ namespace xar_engine::os
 
          bool _current_close_requested;
          bool _previous_close_requested;
+
+         Parameters _parameters;
 
     private:
         void handle_windows_run();

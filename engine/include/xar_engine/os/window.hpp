@@ -9,6 +9,8 @@ namespace xar_engine::os
     class IWindow
     {
     public:
+        struct Parameters;
+
         using OnRun = std::function<void()>;
         using OnUpdate = std::function<void()>;
         using OnClose = std::function<void()>;
@@ -33,5 +35,13 @@ namespace xar_engine::os
 
         [[nodiscard]]
         virtual bool close_requested() const = 0;
+
+        [[nodiscard]]
+        virtual const std::string& get_title() const = 0;
+    };
+
+    struct IWindow::Parameters
+    {
+        std::string title;
     };
 }

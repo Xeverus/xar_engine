@@ -9,11 +9,11 @@ namespace
     TEST(application,
          input__keyboard)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make({"input test"});
         ASSERT_NE(application,
                   nullptr);
 
-        const auto window = application->make_window();
+        const auto window = application->make_window({"input test"});
         ASSERT_NE(window,
                   nullptr);
 
@@ -92,11 +92,11 @@ namespace
     TEST(application,
          input__mouse)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make();
+        const auto application = xar_engine::os::ApplicationFactory::make({"input test"});
         ASSERT_NE(application,
                   nullptr);
 
-        const auto window = application->make_window();
+        const auto window = application->make_window({"input test"});
         ASSERT_NE(window,
                   nullptr);
 

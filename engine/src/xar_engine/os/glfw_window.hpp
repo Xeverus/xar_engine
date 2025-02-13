@@ -11,7 +11,7 @@ namespace xar_engine::os
     class GlfwWindow : public IWindow
     {
     public:
-        GlfwWindow();
+        explicit GlfwWindow(Parameters parameters);
         ~GlfwWindow() override;
 
         void run();
@@ -33,6 +33,9 @@ namespace xar_engine::os
         [[nodiscard]]
         bool close_requested() const override;
 
+        [[nodiscard]]
+        const std::string& get_title() const override;
+
     private:
         GLFWwindow* _native_glfw_window;
 
@@ -45,5 +48,7 @@ namespace xar_engine::os
 
         std::deque<input::KeyboardEvent> _keyboard_event_queue;
         std::deque<input::MouseEvent> _mouse_event_queue;
+
+        Parameters _parameters;
     };
 }

@@ -113,13 +113,14 @@ namespace xar_engine::os
         }
     }
 
-    GlfwWindow::GlfwWindow()
+    GlfwWindow::GlfwWindow(Parameters parameters)
         : _native_glfw_window(nullptr)
         , _on_run(empty_on_run)
         , _on_update(empty_on_update)
         , _on_close(empty_on_close)
         , _on_keyboard_event(empty_on_keyboard_event)
         , _on_mouse_event(empty_on_mouse_event)
+        , _parameters(std::move(parameters))
     {
         glfwWindowHint(
             GLFW_CONTEXT_VERSION_MAJOR,
@@ -159,6 +160,10 @@ namespace xar_engine::os
         glfwSetScrollCallback(
             _native_glfw_window,
             glfw_scroll_callback);
+
+        glfwSetWindowTitle(
+            _native_glfw_window,
+            _parameters.title.c_str());
 
         glfwMakeContextCurrent(_native_glfw_window);
     }
@@ -271,5 +276,10 @@ namespace xar_engine::os
     bool GlfwWindow::close_requested() const
     {
         return glfwWindowShouldClose(_native_glfw_window);
+    }
+
+    const std::string& GlfwWindow::get_title() const
+    {
+        return _parameters.title;
     }
 }

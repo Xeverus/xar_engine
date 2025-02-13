@@ -10,6 +10,8 @@ namespace xar_engine::os
     class IApplication
     {
     public:
+        struct Parameters;
+
         using OnClose = std::function<void()>;
         using OnRun = std::function<void()>;
         using OnUpdate = std::function<void()>;
@@ -17,7 +19,7 @@ namespace xar_engine::os
     public:
         virtual ~IApplication();
 
-        virtual std::shared_ptr<IWindow> make_window() = 0;
+        virtual std::shared_ptr<IWindow> make_window(IWindow::Parameters parameters) = 0;
 
         virtual void set_on_run(OnRun&& on_run) = 0;
         virtual void set_on_update(OnUpdate&& on_update) = 0;
@@ -29,11 +31,19 @@ namespace xar_engine::os
 
         [[nodiscard]]
         virtual bool close_requested() const = 0;
+
+        [[nodiscard]]
+        virtual const std::string& get_name() const = 0;
+    };
+
+    struct IApplication::Parameters
+    {
+        std::string name;
     };
 
     class ApplicationFactory
     {
     public:
-        static std::unique_ptr<IApplication> make();
+        static std::unique_ptr<IApplication> make(IApplication::Parameters parameters);
     };
 }

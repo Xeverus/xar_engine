@@ -13,8 +13,8 @@
 int main()
 {
     const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();
-    const auto application = xar_engine::os::ApplicationFactory::make();
-    auto window = application->make_window();
+    const auto application = xar_engine::os::ApplicationFactory::make({"Test Application"});
+    auto window = application->make_window({"Test Application"});
 
     const auto on_keyboard_event = [&](const xar_engine::input::KeyboardEvent& event)
     {

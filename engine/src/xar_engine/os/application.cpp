@@ -6,8 +6,8 @@ namespace xar_engine::os
 {
     IApplication::~IApplication() = default;
 
-    std::unique_ptr<IApplication> ApplicationFactory::make()
+    std::unique_ptr<IApplication> ApplicationFactory::make(IApplication::Parameters parameters)
     {
-        return std::make_unique<GlfwApplication>();
+        return std::make_unique<GlfwApplication>(std::move(parameters));
     }
 }
