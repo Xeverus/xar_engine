@@ -13,14 +13,14 @@ namespace
         xar_engine::logging::StreamLogger logger(stream);
 
         logger.log_message(
-            xar_engine::logging::LoggingLevel::INFO,
+            xar_engine::logging::LogLevel::INFO,
             "tag",
             "message");
     }
 
     TEST(stream_logger, with_formatter__message_is_logged_with_correct_format)
     {
-        const auto logging_level = xar_engine::logging::LoggingLevel::INFO;
+        const auto logging_level = xar_engine::logging::LogLevel::INFO;
         const auto tag = std::string{"some tag"};
         const auto message = std::string{"some message"};
 

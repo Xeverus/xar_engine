@@ -21,7 +21,7 @@ namespace xar_engine::logging
     }
 
     void StreamLogger::log_message(
-        LoggingLevel logging_level,
+        LogLevel log_level,
         const std::string& tag,
         const std::string& message)
     {
@@ -30,6 +30,6 @@ namespace xar_engine::logging
             return;
         }
 
-        _stream << _log_formatter->format(logging_level, tag, message) << std::endl;
+        _stream << _log_formatter->format(log_level, tag, message) << std::endl;
     }
 }

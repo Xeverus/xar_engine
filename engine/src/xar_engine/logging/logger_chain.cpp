@@ -8,13 +8,13 @@ namespace xar_engine::logging
     }
 
     void LoggerChain::log_message(
-        LoggingLevel logging_level,
+        LogLevel log_level,
         const std::string& tag,
         const std::string& message)
     {
         for (auto& logger : _loggers)
         {
-            logger->log_message(logging_level, tag, message);
+            logger->log_message(log_level, tag, message);
         }
     }
 }

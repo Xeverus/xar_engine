@@ -1,13 +1,11 @@
 #include <xar_engine/logging/log_level.hpp>
 
-#include <ostream>
-
-#include <xar_engine/error/exception_utils.hpp>
+#include <xar_engine/meta/enum_impl.hpp>
 
 
-ENUM_TO_STRING_IMPL(xar_engine::logging::LoggingLevel,
-                    xar_engine::logging::LoggingLevel::DEBUG,
-                    xar_engine::logging::LoggingLevel::INFO,
-                    xar_engine::logging::LoggingLevel::WARNING,
-                    xar_engine::logging::LoggingLevel::ERROR,
-                    xar_engine::logging::LoggingLevel::CRITICAL);
+ENUM_TO_STRING_IMPL(xar_engine::logging::LogLevel,
+                    xar_engine::logging::LogLevel::DEBUG,
+                    xar_engine::logging::LogLevel::INFO,
+                    xar_engine::logging::LogLevel::WARNING,
+                    xar_engine::logging::LogLevel::ERROR,
+                    xar_engine::logging::LogLevel::CRITICAL);

@@ -12,13 +12,21 @@ namespace xar_engine::logging
         virtual ~ILogger();
 
         virtual void log_message(
-            LoggingLevel logging_level,
+            LogLevel logging_level,
             const std::string& tag,
             const std::string& message) = 0;
     };
 
 
-#define XAR_LOG(logger, logging_level, tag, message, ...) \
-    (logger).log_message(logging_level, tag, fmt::format(message, __VA_ARGS__))
+#define XAR_LOG_LEVEL xar_engine::logging::LogLevel::DEBUG
 
+#define XAR_LOG(logging_level, logger, tag, message, ...) \
+    do                                                    \
+    {                                                     \
+        if constexpr(logging_level >= XAR_LOG_LEVEL)      \
+        {                                                 \
+            (logger).log_message(logging_level, tag, fmt::format(message, __VA_ARGS__)); \
+        }                                                 \
+    }                                                     \
+    while(false)
 }

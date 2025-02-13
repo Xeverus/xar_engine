@@ -6,7 +6,7 @@
 
 namespace xar_engine::logging
 {
-    enum class LoggingLevel
+    enum class LogLevel
     {
         DEBUG,
         INFO,
@@ -16,4 +16,4 @@ namespace xar_engine::logging
     };
 }
 
-ENUM_TO_STRING(xar_engine::logging::LoggingLevel);
+ENUM_TO_STRING(xar_engine::logging::LogLevel);

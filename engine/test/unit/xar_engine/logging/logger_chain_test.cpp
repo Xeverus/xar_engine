@@ -10,14 +10,14 @@ namespace
         auto logger = xar_engine::logging::LoggerChain{{}};
 
         logger.log_message(
-            xar_engine::logging::LoggingLevel::INFO,
+            xar_engine::logging::LogLevel::INFO,
             "tag",
             "message");
     }
 
     TEST(logger_chain, all_loggers_are_called)
     {
-        const auto logging_level = xar_engine::logging::LoggingLevel::INFO;
+        const auto logging_level = xar_engine::logging::LogLevel::INFO;
         const auto tag = std::string{"some tag"};
         const auto message = std::string{"some message"};
 

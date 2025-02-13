@@ -14,7 +14,7 @@ namespace xar_engine::logging
         explicit LoggerChain(std::vector<std::unique_ptr<ILogger>> loggers);
 
         void log_message(
-            LoggingLevel logging_level,
+            LogLevel log_level,
             const std::string& tag,
             const std::string& message) override;
 

@@ -16,7 +16,7 @@ namespace xar_engine::logging
         FileLogger(const std::filesystem::path& filepath, std::unique_ptr<ILogFormatter> log_formatter);
 
         void log_message(
-            LoggingLevel logging_level,
+            LogLevel log_level,
             const std::string& tag,
             const std::string& message) override;
 

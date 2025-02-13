@@ -35,6 +35,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/logging/logger.cpp
         src/xar_engine/logging/logger_chain.cpp
         src/xar_engine/logging/stream_logger.cpp
+        src/xar_engine/meta/enum_impl.hpp
         src/xar_engine/os/application.cpp
         src/xar_engine/os/button.cpp
         src/xar_engine/os/glfw_application.cpp

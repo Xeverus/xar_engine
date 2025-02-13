@@ -13,7 +13,7 @@ namespace xar_engine::logging
             void,
             log_message,
             (
-                LoggingLevel logging_level,
+                LogLevel log_level,
                 const std::string& tag,
                 const std::string& message
             ),

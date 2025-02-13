@@ -20,8 +20,8 @@ int main()
                 [&](const xar_engine::os::KeyboardKeyEvent& event)
                 {
                     XAR_LOG(
+                        xar_engine::logging::LogLevel::DEBUG,
                         *logger,
-                        xar_engine::logging::LoggingLevel::DEBUG,
                         "TestApp",
                         "key code={}, state={}",
                         xar_engine::meta::enum_to_string(event.code),
@@ -38,8 +38,8 @@ int main()
                 [&](const xar_engine::os::MouseButtonEvent& event)
                 {
                     XAR_LOG(
+                        xar_engine::logging::LogLevel::DEBUG,
                         *logger,
-                        xar_engine::logging::LoggingLevel::DEBUG,
                         "TestApp",
                         "button code={}, state={}",
                         xar_engine::meta::enum_to_string(event.code),
@@ -48,8 +48,8 @@ int main()
                 [&](const xar_engine::os::MouseMotionEvent& event)
                 {
                     XAR_LOG(
+                        xar_engine::logging::LogLevel::INFO,
                         *logger,
-                        xar_engine::logging::LoggingLevel::DEBUG,
                         "TestApp",
                         "motion x={}, y={}",
                         event.position_x,
@@ -58,8 +58,8 @@ int main()
                 [&](const xar_engine::os::MouseScrollEvent& event)
                 {
                     XAR_LOG(
+                        xar_engine::logging::LogLevel::WARNING,
                         *logger,
-                        xar_engine::logging::LoggingLevel::DEBUG,
                         "TestApp",
                         "scroll x={}, y={}",
                         event.delta_x,

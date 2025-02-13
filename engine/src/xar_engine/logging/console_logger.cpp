@@ -11,16 +11,16 @@ namespace xar_engine::logging
 {
     namespace
     {
-        std::ostream& select_stream(LoggingLevel logging_level)
+        std::ostream& select_stream(LogLevel logging_level)
         {
             switch (logging_level)
             {
-                case LoggingLevel::DEBUG:
-                case LoggingLevel::INFO:
-                case LoggingLevel::WARNING:
+                case LogLevel::DEBUG:
+                case LogLevel::INFO:
+                case LogLevel::WARNING:
                     return std::cout;
-                case LoggingLevel::ERROR:
-                case LoggingLevel::CRITICAL:
+                case LogLevel::ERROR:
+                case LogLevel::CRITICAL:
                     return std::cerr;
             }
 
@@ -46,16 +46,16 @@ namespace xar_engine::logging
     }
 
     void ConsoleLogger::log_message(
-        LoggingLevel logging_level,
+        LogLevel log_level,
         const std::string& tag,
         const std::string& message)
     {
-        std::ostream& stream = select_stream(logging_level);
+        std::ostream& stream = select_stream(log_level);
         if (!stream.good())
         {
             return;
         }
 
-        stream << _log_formatter->format(logging_level, tag, message) << std::endl;
+        stream << _log_formatter->format(log_level, tag, message) << std::endl;
     }
 }

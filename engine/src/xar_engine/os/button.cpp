@@ -1,8 +1,6 @@
 #include <xar_engine/os/button.hpp>
 
-#include <ostream>
-
-#include <xar_engine/error/exception_utils.hpp>
+#include <xar_engine/meta/enum_impl.hpp>
 
 
 ENUM_TO_STRING_IMPL(xar_engine::os::ButtonCode,

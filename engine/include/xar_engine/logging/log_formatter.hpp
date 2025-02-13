@@ -13,7 +13,7 @@ namespace xar_engine::logging
 
         [[nodiscard]]
         virtual std::string format(
-            LoggingLevel logging_level,
+            LogLevel log_level,
             const std::string& tag,
             const std::string& message) const = 0;
     };

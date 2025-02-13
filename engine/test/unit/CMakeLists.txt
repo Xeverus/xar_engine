@@ -6,6 +6,7 @@ target_sources(xar_engine_test_unit
             xar_engine/logging/file_logger_test.cpp
             xar_engine/logging/logger_chain_test.cpp
             xar_engine/logging/stream_logger_test.cpp
+            xar_engine/meta/enum_test.cpp
             xar_engine/os/application_lifecycle_test.cpp
             xar_engine/os/window_input_test.cpp
             xar_engine/version/version_test.cpp)

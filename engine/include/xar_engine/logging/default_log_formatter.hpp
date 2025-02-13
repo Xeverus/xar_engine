@@ -9,7 +9,7 @@ namespace xar_engine::logging
     public:
         [[nodiscard]]
         std::string format(
-            LoggingLevel logging_level,
+            LogLevel log_level,
             const std::string& tag,
             const std::string& message) const override;
     };

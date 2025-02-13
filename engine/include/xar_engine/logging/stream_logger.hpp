@@ -14,7 +14,7 @@ namespace xar_engine::logging
         StreamLogger(std::ostream& stream, std::unique_ptr<ILogFormatter> log_formatter);
 
         void log_message(
-            LoggingLevel logging_level,
+            LogLevel log_level,
             const std::string& tag,
             const std::string& message) override;
 
