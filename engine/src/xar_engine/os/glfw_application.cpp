@@ -10,16 +10,20 @@ namespace xar_engine::os
 {
     namespace
     {
+        const IApplication::OnRun empty_on_run = []()
+        {
+        };
         const IApplication::OnUpdate empty_on_update = []()
         {
         };
-        const IApplication::OnUpdate empty_on_close = []()
+        const IApplication::OnClose empty_on_close = []()
         {
         };
     }
 
     GlfwApplication::GlfwApplication()
-        : _on_update(empty_on_update)
+        : _on_run(empty_on_run)
+        , _on_update(empty_on_update)
         , _on_close(empty_on_close)
         , _current_close_requested(false)
         , _previous_close_requested(false)
@@ -40,6 +44,15 @@ namespace xar_engine::os
     {
         _glfw_windows.push_back(std::make_shared<GlfwWindow>());
         return _glfw_windows.back();
+    }
+
+    void GlfwApplication::set_on_run(IApplication::OnRun&& on_run)
+    {
+        _on_run = std::move(on_run);
+        if (!_on_run)
+        {
+            _on_run = empty_on_run;
+        }
     }
 
     void GlfwApplication::set_on_update(OnUpdate&& on_update)
@@ -72,6 +85,8 @@ namespace xar_engine::os
 
     void GlfwApplication::run()
     {
+        _on_run();
+
         while (!close_requested())
         {
             glfwPollEvents();

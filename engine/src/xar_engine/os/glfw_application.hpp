@@ -16,6 +16,7 @@ namespace xar_engine::os
 
         std::shared_ptr<IWindow> make_window() override;
 
+        void set_on_run(OnRun&& on_run) override;
         void set_on_update(OnUpdate&& on_update) override;
         void set_on_close(OnClose&& on_close) override;
 
@@ -28,6 +29,7 @@ namespace xar_engine::os
 
     private:
          std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows;
+         OnUpdate _on_run;
          OnUpdate _on_update;
          OnUpdate _on_close;
          bool _current_close_requested;

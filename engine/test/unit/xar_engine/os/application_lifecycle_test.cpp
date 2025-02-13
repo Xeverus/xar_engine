@@ -51,9 +51,16 @@ namespace
         ASSERT_NE(window,
                   nullptr);
 
+        constexpr std::int32_t expected_on_application_on_run_counter = 1;
+        std::int32_t application_on_run_counter = 0;
+        application->set_on_run(
+            [&application_on_run_counter]()
+            {
+                ++application_on_run_counter;
+            });
+
         constexpr std::int32_t expected_update_counter = 5;
         constexpr std::int32_t expected_on_close_counter = 1;
-
         std::int32_t application_update_counter = 0;
         application->set_on_update(
             [&application_update_counter, &application]()
@@ -87,6 +94,9 @@ namespace
             });
 
         application->run();
+
+        EXPECT_EQ(application_on_run_counter,
+                  expected_on_application_on_run_counter);
 
         EXPECT_EQ(application_update_counter,
                   expected_update_counter);
@@ -124,9 +134,16 @@ namespace
                       nullptr);
         }
 
+        constexpr std::int32_t expected_application_on_run_counter = 1;
+        std::int32_t application_on_run_counter = 0;
+        application->set_on_run(
+            [&application_on_run_counter]()
+            {
+                ++application_on_run_counter;
+            });
+
         constexpr std::int32_t expected_update_counter = 5;
         constexpr std::int32_t expected_on_close_counter = 1;
-
         std::int32_t application_update_counter = 0;
         application->set_on_update(
             [&application_update_counter, &application]()
@@ -161,6 +178,8 @@ namespace
 
         application->run();
 
+        EXPECT_EQ(application_on_run_counter,
+                  expected_application_on_run_counter);
         EXPECT_EQ(application_update_counter,
                   expected_update_counter);
         EXPECT_EQ(application_on_close_counter,

@@ -9,6 +9,7 @@ find_package(volk REQUIRED)
 ##############################
 set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/error/exception.hpp
+        include/xar_engine/graphics/vulkan_test.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
         include/xar_engine/meta/enum.hpp
@@ -28,6 +29,9 @@ set(XAR_ENGINE_PUBLIC_FILES
 set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/error/exception.cpp
         src/xar_engine/error/exception_utils.hpp
+        src/xar_engine/graphics/vulkan/vulkan_instance.cpp
+        src/xar_engine/graphics/vulkan/vulkan_instance.hpp
+        src/xar_engine/graphics/vulkan_test.cpp
         src/xar_engine/input/button.cpp
         src/xar_engine/input/input_event.cpp
         src/xar_engine/logging/console_logger.cpp
