@@ -16,77 +16,75 @@ int main()
     const auto application = xar_engine::os::ApplicationFactory::make({"Test Application"});
     auto window = application->make_window({"Test Application"});
 
-    const auto on_keyboard_event = [&](const xar_engine::input::KeyboardEvent& event)
-    {
-        std::visit(
-            xar_engine::meta::Overloaded{
-                [&](const xar_engine::input::KeyboardKeyEvent& event)
-                {
-                    XAR_LOG(
-                        xar_engine::logging::LogLevel::DEBUG,
-                        *logger,
-                        "TestApp",
-                        "key code={}, state={}",
-                        xar_engine::meta::enum_to_string(event.code),
-                        xar_engine::meta::enum_to_string(event.state));
-                }
-            },
-            event);
-    };
+    window->set_on_run(
+        [&]()
+        {
+            xar_engine::graphics::run_vulkan_test(*window);
+        });
 
-    const auto on_mouse_event = [&](const xar_engine::input::MouseEvent& event)
-    {
-        std::visit(
-            xar_engine::meta::Overloaded{
-                [&](const xar_engine::input::MouseButtonEvent& event)
-                {
-                    XAR_LOG(
-                        xar_engine::logging::LogLevel::DEBUG,
-                        *logger,
-                        "TestApp",
-                        "button code={}, state={}",
-                        xar_engine::meta::enum_to_string(event.code),
-                        xar_engine::meta::enum_to_string(event.state));
+    window->set_on_keyboard_event(
+        [&](const xar_engine::input::KeyboardEvent& event)
+        {
+            std::visit(
+                xar_engine::meta::Overloaded{
+                    [&](const xar_engine::input::KeyboardKeyEvent& event)
+                    {
+                        XAR_LOG(
+                            xar_engine::logging::LogLevel::DEBUG,
+                            *logger,
+                            "TestApp",
+                            "key code={}, state={}",
+                            xar_engine::meta::enum_to_string(event.code),
+                            xar_engine::meta::enum_to_string(event.state));
+                    }
                 },
-                [&](const xar_engine::input::MouseMotionEvent& event)
-                {
-                    XAR_LOG(
-                        xar_engine::logging::LogLevel::INFO,
-                        *logger,
-                        "TestApp",
-                        "motion x={}, y={}",
-                        event.position_x,
-                        event.position_y);
+                event);
+        });
+
+    window->set_on_mouse_event(
+        [&](const xar_engine::input::MouseEvent& event)
+        {
+            std::visit(
+                xar_engine::meta::Overloaded{
+                    [&](const xar_engine::input::MouseButtonEvent& event)
+                    {
+                        XAR_LOG(
+                            xar_engine::logging::LogLevel::DEBUG,
+                            *logger,
+                            "TestApp",
+                            "button code={}, state={}",
+                            xar_engine::meta::enum_to_string(event.code),
+                            xar_engine::meta::enum_to_string(event.state));
+                    },
+                    [&](const xar_engine::input::MouseMotionEvent& event)
+                    {
+                        XAR_LOG(
+                            xar_engine::logging::LogLevel::INFO,
+                            *logger,
+                            "TestApp",
+                            "motion x={}, y={}",
+                            event.position_x,
+                            event.position_y);
+                    },
+                    [&](const xar_engine::input::MouseScrollEvent& event)
+                    {
+                        XAR_LOG(
+                            xar_engine::logging::LogLevel::WARNING,
+                            *logger,
+                            "TestApp",
+                            "scroll x={}, y={}",
+                            event.delta_x,
+                            event.delta_y);
+                    }
                 },
-                [&](const xar_engine::input::MouseScrollEvent& event)
-                {
-                    XAR_LOG(
-                        xar_engine::logging::LogLevel::WARNING,
-                        *logger,
-                        "TestApp",
-                        "scroll x={}, y={}",
-                        event.delta_x,
-                        event.delta_y);
-                }
-            },
-            event);
-    };
+                event);
+        });
 
-    const auto on_window_close = [&application]()
-    {
-        application->request_close();
-    };
-
-    window->set_on_keyboard_event(on_keyboard_event);
-    window->set_on_mouse_event(on_mouse_event);
-    window->set_on_close(on_window_close);
-
-    const auto on_application_run = []()
-    {
-       xar_engine::graphics::run_vulkan_test();
-    };
-
-    application->set_on_run(on_application_run);
+    window->set_on_close(
+        [&application]()
+        {
+            application->request_close();
+        });
 
     application->run();
 

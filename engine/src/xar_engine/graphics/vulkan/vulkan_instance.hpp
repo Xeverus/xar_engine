@@ -10,6 +10,9 @@ namespace xar_engine::graphics::vulkan
         VulkanInstance();
         ~VulkanInstance();
 
+        [[nodiscard]]
+        VkInstance get_native() const;
+
     private:
         VkInstance _vk_instance;
     };

@@ -2,6 +2,7 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+
 namespace xar_engine::os
 {
     namespace
@@ -123,19 +124,13 @@ namespace xar_engine::os
         , _parameters(std::move(parameters))
     {
         glfwWindowHint(
-            GLFW_CONTEXT_VERSION_MAJOR,
-            4);
-        glfwWindowHint(
-            GLFW_CONTEXT_VERSION_MINOR,
-            6);
-        glfwWindowHint(
-            GLFW_OPENGL_PROFILE,
-            GLFW_OPENGL_CORE_PROFILE);
+            GLFW_CLIENT_API,
+            GLFW_NO_API);
 
         _native_glfw_window = glfwCreateWindow(
             800,
             600,
-            "GLFW App",
+            _parameters.title.c_str(),
             nullptr,
             nullptr);
         XAR_THROW_IF(
@@ -164,8 +159,6 @@ namespace xar_engine::os
         glfwSetWindowTitle(
             _native_glfw_window,
             _parameters.title.c_str());
-
-        glfwMakeContextCurrent(_native_glfw_window);
     }
 
     GlfwWindow::~GlfwWindow()
@@ -209,6 +202,11 @@ namespace xar_engine::os
     void GlfwWindow::close()
     {
         _on_close();
+    }
+
+    GLFWwindow* GlfwWindow::get_native() const
+    {
+        return _native_glfw_window;
     }
 
     void GlfwWindow::set_on_run(IWindow::OnRun&& on_run)

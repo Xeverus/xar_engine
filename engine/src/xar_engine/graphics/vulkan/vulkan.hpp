@@ -1,0 +1,69 @@
+#pragma once
+
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <volk.h>
+#include <glfw/glfw3.h>
+
+#include <xar_engine/logging/logger.hpp>
+
+#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
+
+#include <xar_engine/os/glfw_window.hpp>
+
+
+namespace xar_engine::graphics::vulkan
+{
+    class Vulkan
+    {
+    public:
+        const int MAX_FRAMES_IN_FLIGHT = 2;
+
+    public:
+        explicit Vulkan(os::GlfwWindow* window);
+
+        /*void init_vulkan(
+            const std::string& application_name,
+            const base::types::Version& application_version,
+            const platform::application::IApplication& application);*/
+
+        void init_surface();
+        void init_device();
+        void init_swapchain();
+        void init_shaders();
+        void init_graphics_pipeline();
+        void init_cmd_buffers();
+        void init_sync_objects();
+
+        void run_frame_sandbox();
+
+        void cleanup_sandbox();
+
+    private:
+        os::GlfwWindow* _glfw_window;
+        std::unique_ptr<logging::ILogger> _logger;
+
+        VulkanInstance vk_instance;
+        VkSurfaceKHR vk_surface;
+        VkDevice vk_device;
+        VkQueue vk_queue;
+        uint32_t graphics_queue_family;
+        VkSurfaceFormatKHR format_to_use;
+        VkSwapchainKHR vk_swapchain;
+        VkExtent2D swapchainExtent;
+        std::vector<VkImage> swapchain_images;
+        std::vector<VkImageView> swapchain_image_views;
+        VkShaderModule vertShaderModule;
+        VkShaderModule fragShaderModule;
+        VkPipelineLayout pipelineLayout;
+        VkPipeline graphicsPipeline;
+        VkCommandPool commandPool;
+        std::vector<VkCommandBuffer> commandBuffer;
+
+        std::vector<VkSemaphore> imageAvailableSemaphore;
+        std::vector<VkSemaphore> renderFinishedSemaphore;
+        std::vector<VkFence> inFlightFence;
+    };
+}

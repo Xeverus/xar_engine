@@ -29,6 +29,10 @@ set(XAR_ENGINE_PUBLIC_FILES
 set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/error/exception.cpp
         src/xar_engine/error/exception_utils.hpp
+        src/xar_engine/file/file.cpp
+        src/xar_engine/file/file.hpp
+        src/xar_engine/graphics/vulkan/vulkan.cpp
+        src/xar_engine/graphics/vulkan/vulkan.hpp
         src/xar_engine/graphics/vulkan/vulkan_instance.cpp
         src/xar_engine/graphics/vulkan/vulkan_instance.hpp
         src/xar_engine/graphics/vulkan_test.cpp
