@@ -42,8 +42,8 @@ namespace xar_engine::os
 
     std::shared_ptr<IWindow> GlfwApplication::make_window()
     {
-        _glfw_windows.push_back(std::make_shared<GlfwWindow>());
-        return _glfw_windows.back();
+        _glfw_windows_to_run.push_back(std::make_shared<GlfwWindow>());
+        return _glfw_windows_to_run.back();
     }
 
     void GlfwApplication::set_on_run(IApplication::OnRun&& on_run)
@@ -91,7 +91,8 @@ namespace xar_engine::os
         {
             glfwPollEvents();
             _on_update();
-            update_windows();
+            handle_windows_run();
+            handle_windows_update();
             handle_application_close_request();
             handle_windows_close_request();
         }
@@ -99,15 +100,25 @@ namespace xar_engine::os
         _on_close();
     }
 
-    void GlfwApplication::update_windows()
+    void GlfwApplication::handle_windows_run()
+    {
+        for (std::size_t i = 0; i < _glfw_windows_to_run.size(); ++i)
+        {
+            _glfw_windows_to_run[i]->run();
+            _glfw_windows_running.push_back(std::move(_glfw_windows_to_run[i]));
+        }
+        _glfw_windows_to_run.clear();
+    }
+
+    void GlfwApplication::handle_windows_update()
     {
         /**
          * A window can be created during update function and it may result in vector reallocation.
          * This is why using range-based loop is better idea as iterators may become invalid in the meantime.
          */
-        for (std::size_t i = 0; i < _glfw_windows.size(); ++i)
+        for (std::size_t i = 0; i < _glfw_windows_running.size(); ++i)
         {
-            _glfw_windows[i]->update();
+            _glfw_windows_running[i]->update();
         }
     }
 
@@ -120,15 +131,15 @@ namespace xar_engine::os
 
         _current_close_requested = _previous_close_requested;
 
-        for (std::size_t i = 0; i < _glfw_windows.size(); ++i)
+        for (std::size_t i = 0; i < _glfw_windows_running.size(); ++i)
         {
-            _glfw_windows[i]->request_close();
+            _glfw_windows_running[i]->request_close();
         }
     }
 
     void GlfwApplication::handle_windows_close_request()
     {
-        for (auto& glfw_window : _glfw_windows)
+        for (auto& glfw_window : _glfw_windows_running)
         {
             if (glfw_window->close_requested())
             {
@@ -136,14 +147,14 @@ namespace xar_engine::os
             }
         }
 
-        _glfw_windows.erase(
+        _glfw_windows_running.erase(
             std::remove_if(
-                _glfw_windows.begin(),
-                _glfw_windows.end(),
+                _glfw_windows_running.begin(),
+                _glfw_windows_running.end(),
                 [](const auto& glfw_window)
                 {
                     return glfw_window->close_requested();
                 }),
-            _glfw_windows.end());
+            _glfw_windows_running.end());
     }
 }

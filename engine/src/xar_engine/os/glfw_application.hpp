@@ -28,15 +28,19 @@ namespace xar_engine::os
         bool close_requested() const override;
 
     private:
-         std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows;
+        std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows_running;
+        std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows_to_run;
+
          OnUpdate _on_run;
          OnUpdate _on_update;
          OnUpdate _on_close;
+
          bool _current_close_requested;
          bool _previous_close_requested;
 
     private:
-        void update_windows();
+        void handle_windows_run();
+        void handle_windows_update();
         void handle_application_close_request();
         void handle_windows_close_request();
     };

@@ -6,10 +6,13 @@ namespace xar_engine::os
 {
     namespace
     {
+        const IWindow::OnRun empty_on_run = []()
+        {
+        };
         const IWindow::OnUpdate empty_on_update = []()
         {
         };
-        const IWindow::OnUpdate empty_on_close = []()
+        const IWindow::OnClose empty_on_close = []()
         {
         };
         const IWindow::OnKeyboardEvent empty_on_keyboard_event = [](const input::KeyboardEvent&)
@@ -112,6 +115,7 @@ namespace xar_engine::os
 
     GlfwWindow::GlfwWindow()
         : _native_glfw_window(nullptr)
+        , _on_run(empty_on_run)
         , _on_update(empty_on_update)
         , _on_close(empty_on_close)
         , _on_keyboard_event(empty_on_keyboard_event)
@@ -168,6 +172,11 @@ namespace xar_engine::os
         }
     }
 
+    void GlfwWindow::run()
+    {
+        _on_run();
+    }
+
     void GlfwWindow::update()
     {
         if (close_requested())
@@ -197,14 +206,13 @@ namespace xar_engine::os
         _on_close();
     }
 
-    void GlfwWindow::enqueue_keyboard_event(const input::KeyboardEvent& event)
+    void GlfwWindow::set_on_run(IWindow::OnRun&& on_run)
     {
-        _keyboard_event_queue.push_back(event);
-    }
-
-    void GlfwWindow::enqueue_mouse_event(const input::MouseEvent& event)
-    {
-        _mouse_event_queue.push_back(event);
+        _on_run = std::move(on_run);
+        if (!_on_run)
+        {
+            _on_run = empty_on_run;
+        }
     }
 
     void GlfwWindow::set_on_update(OnUpdate&& on_update)
@@ -241,6 +249,16 @@ namespace xar_engine::os
         {
             _on_mouse_event = empty_on_mouse_event;
         }
+    }
+
+    void GlfwWindow::enqueue_keyboard_event(const input::KeyboardEvent& event)
+    {
+        _keyboard_event_queue.push_back(event);
+    }
+
+    void GlfwWindow::enqueue_mouse_event(const input::MouseEvent& event)
+    {
+        _mouse_event_queue.push_back(event);
     }
 
     void GlfwWindow::request_close()

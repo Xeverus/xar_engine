@@ -1,6 +1,51 @@
+#include <fmt/core.h>
+
 #include <gtest/gtest.h>
 
+#include <xar_engine/meta/enum_impl.hpp>
+
 #include <xar_engine/os/application.hpp>
+
+enum class ActionType
+{
+    APPLICATION_ON_RUN,
+    APPLICATION_ON_UPDATE,
+    APPLICATION_ON_CLOSE,
+
+    WINDOW_ON_RUN,
+    WINDOW_ON_UPDATE,
+    WINDOW_ON_CLOSE,
+};
+
+ENUM_TO_STRING(ActionType);
+ENUM_TO_STRING_IMPL(ActionType,
+                    ActionType::APPLICATION_ON_RUN,
+                    ActionType::APPLICATION_ON_UPDATE,
+                    ActionType::APPLICATION_ON_CLOSE,
+                    ActionType::WINDOW_ON_RUN,
+                    ActionType::WINDOW_ON_UPDATE,
+                    ActionType::WINDOW_ON_CLOSE);
+
+struct ActionWithId
+{
+    ActionType action;
+    std::string id;
+
+    bool operator==(const ActionWithId& other) const
+    {
+        return action == other.action && id == other.id;
+    }
+};
+
+std::ostream& operator<<(
+    std::ostream& stream,
+    const ActionWithId& action_with_id)
+{
+    return stream << fmt::format(
+        "{{{},{}}}",
+        xar_engine::meta::enum_to_short_string(action_with_id.action),
+        action_with_id.id);
+}
 
 namespace
 {
@@ -11,13 +56,31 @@ namespace
         ASSERT_NE(application,
                   nullptr);
 
-        constexpr std::int32_t expected_update_counter = 5;
-        constexpr std::int32_t expected_on_close_counter = 1;
+        constexpr auto expected_update_counter = std::int32_t{5};
 
-        std::int32_t application_update_counter = 0;
-        application->set_on_update(
-            [&application_update_counter, &application]()
+        const auto expected_call_order = std::vector<ActionType>{
+            ActionType::APPLICATION_ON_RUN,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::APPLICATION_ON_CLOSE
+        };
+        auto actual_call_order = std::vector<ActionType>{};
+
+        application->set_on_run(
+            [&]()
             {
+                actual_call_order.push_back(ActionType::APPLICATION_ON_RUN);
+            });
+
+        auto application_update_counter = std::int32_t{0};
+        application->set_on_update(
+            [&]()
+            {
+                actual_call_order.push_back(ActionType::APPLICATION_ON_UPDATE);
+
                 ++application_update_counter;
                 if (application_update_counter == expected_update_counter)
                 {
@@ -25,19 +88,16 @@ namespace
                 }
             });
 
-        std::int32_t application_on_close_counter = 0;
         application->set_on_close(
-            [&application_on_close_counter]()
+            [&]()
             {
-                ++application_on_close_counter;
+                actual_call_order.push_back(ActionType::APPLICATION_ON_CLOSE);
             });
 
         application->run();
 
-        EXPECT_EQ(application_update_counter,
-                  expected_update_counter);
-        EXPECT_EQ(application_on_close_counter,
-                  expected_on_close_counter);
+        EXPECT_EQ(expected_call_order,
+                  actual_call_order);
     }
 
     TEST(application,
@@ -51,20 +111,37 @@ namespace
         ASSERT_NE(window,
                   nullptr);
 
-        constexpr std::int32_t expected_on_application_on_run_counter = 1;
-        std::int32_t application_on_run_counter = 0;
+        constexpr auto expected_update_counter = std::int32_t{5};
+
+        const auto expected_call_order = std::vector<ActionType>{
+            ActionType::APPLICATION_ON_RUN,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::WINDOW_ON_RUN,
+            ActionType::WINDOW_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::WINDOW_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::WINDOW_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::WINDOW_ON_UPDATE,
+            ActionType::APPLICATION_ON_UPDATE,
+            ActionType::WINDOW_ON_UPDATE,
+            ActionType::WINDOW_ON_CLOSE,
+            ActionType::APPLICATION_ON_CLOSE,
+        };
+        auto actual_call_order = std::vector<ActionType>{};
+
         application->set_on_run(
-            [&application_on_run_counter]()
+            [&]()
             {
-                ++application_on_run_counter;
+                actual_call_order.push_back(ActionType::APPLICATION_ON_RUN);
             });
 
-        constexpr std::int32_t expected_update_counter = 5;
-        constexpr std::int32_t expected_on_close_counter = 1;
         std::int32_t application_update_counter = 0;
         application->set_on_update(
-            [&application_update_counter, &application]()
+            [&]()
             {
+                actual_call_order.push_back(ActionType::APPLICATION_ON_UPDATE);
                 ++application_update_counter;
                 if (application_update_counter == expected_update_counter)
                 {
@@ -72,82 +149,100 @@ namespace
                 }
             });
 
-        std::int32_t application_on_close_counter = 0;
         application->set_on_close(
-            [&application_on_close_counter]()
+            [&]()
             {
-                ++application_on_close_counter;
+                actual_call_order.push_back(ActionType::APPLICATION_ON_CLOSE);
             });
 
-        std::int32_t window_update_counter = 0;
+        window->set_on_run(
+            [&]()
+            {
+                actual_call_order.push_back(ActionType::WINDOW_ON_RUN);
+            });
+
         window->set_on_update(
-            [&window_update_counter]()
+            [&]()
             {
-                ++window_update_counter;
+                actual_call_order.push_back(ActionType::WINDOW_ON_UPDATE);
             });
 
-        std::int32_t window_on_close_counter = 0;
         window->set_on_close(
-            [&window_on_close_counter]()
+            [&]()
             {
-                ++window_on_close_counter;
+                actual_call_order.push_back(ActionType::WINDOW_ON_CLOSE);
             });
 
         application->run();
 
-        EXPECT_EQ(application_on_run_counter,
-                  expected_on_application_on_run_counter);
-
-        EXPECT_EQ(application_update_counter,
-                  expected_update_counter);
-        EXPECT_EQ(window_update_counter,
-                  expected_update_counter);
-
-        EXPECT_EQ(application_on_close_counter,
-                  expected_on_close_counter);
-        EXPECT_EQ(window_on_close_counter,
-                  expected_on_close_counter);
+        EXPECT_EQ(expected_call_order,
+                  actual_call_order);
     }
 
     TEST(application,
          lifecycle__with_three_windows)
     {
-        struct WindowWithCounters
-        {
-            std::shared_ptr<xar_engine::os::IWindow> window;
-            std::int32_t on_update_counter;
-            std::int32_t on_close_counter;
-        };
-
         const auto application = xar_engine::os::ApplicationFactory::make();
         ASSERT_NE(application,
                   nullptr);
 
-        auto windows_with_counters = std::vector<WindowWithCounters>{
-            {application->make_window(), 0, 0},
-            {application->make_window(), 0, 0},
-            {application->make_window(), 0, 0},
+        const auto windows = std::vector<std::shared_ptr<xar_engine::os::IWindow>>{
+            application->make_window(),
+            application->make_window(),
+            application->make_window(),
         };
-        for (const auto& window_with_counters: windows_with_counters)
+        for (const auto& window: windows)
         {
-            ASSERT_NE(window_with_counters.window,
+            ASSERT_NE(window,
                       nullptr);
         }
 
-        constexpr std::int32_t expected_application_on_run_counter = 1;
-        std::int32_t application_on_run_counter = 0;
+        constexpr auto expected_update_counter = std::int32_t{5};
+        const auto app_id = std::string{"application"};
+        const auto window_id_prefix = std::string{"window_"};
+        const auto expected_call_order = std::vector<ActionWithId>{
+            {ActionType::APPLICATION_ON_RUN,    app_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_RUN,         window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_RUN,         window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_RUN,         window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_UPDATE,      window_id_prefix + "2"},
+            {ActionType::WINDOW_ON_CLOSE,       window_id_prefix + "0"},
+            {ActionType::WINDOW_ON_CLOSE,       window_id_prefix + "1"},
+            {ActionType::WINDOW_ON_CLOSE,       window_id_prefix + "2"},
+            {ActionType::APPLICATION_ON_CLOSE,  app_id},
+        };
+        auto actual_call_order = std::vector<ActionWithId>{};
+
         application->set_on_run(
-            [&application_on_run_counter]()
+            [&]()
             {
-                ++application_on_run_counter;
+                actual_call_order.push_back({ActionType::APPLICATION_ON_RUN, app_id});
             });
 
-        constexpr std::int32_t expected_update_counter = 5;
-        constexpr std::int32_t expected_on_close_counter = 1;
         std::int32_t application_update_counter = 0;
         application->set_on_update(
-            [&application_update_counter, &application]()
+            [&]()
             {
+                actual_call_order.push_back({ActionType::APPLICATION_ON_UPDATE, app_id});
                 ++application_update_counter;
                 if (application_update_counter == expected_update_counter)
                 {
@@ -155,43 +250,36 @@ namespace
                 }
             });
 
-        std::int32_t application_on_close_counter = 0;
         application->set_on_close(
-            [&application_on_close_counter]()
+            [&]()
             {
-                ++application_on_close_counter;
+                actual_call_order.push_back({ActionType::APPLICATION_ON_CLOSE, app_id});
             });
 
-        for (auto& window_with_counters: windows_with_counters)
+        for (auto i = 0; i < windows.size(); ++i)
         {
-            window_with_counters.window->set_on_update(
-                [&window_with_counters]()
+            const auto window_id = window_id_prefix + std::to_string(i);
+            windows[i]->set_on_run(
+                [&, window_id]()
                 {
-                    ++window_with_counters.on_update_counter;
+                    actual_call_order.push_back({ActionType::WINDOW_ON_RUN, window_id});
                 });
-            window_with_counters.window->set_on_close(
-                [&window_with_counters]()
+            windows[i]->set_on_update(
+                [&, window_id]()
                 {
-                    ++window_with_counters.on_close_counter;
+                    actual_call_order.push_back({ActionType::WINDOW_ON_UPDATE, window_id});
+                });
+            windows[i]->set_on_close(
+                [&, window_id]()
+                {
+                    actual_call_order.push_back({ActionType::WINDOW_ON_CLOSE, window_id});
                 });
         }
 
         application->run();
 
-        EXPECT_EQ(application_on_run_counter,
-                  expected_application_on_run_counter);
-        EXPECT_EQ(application_update_counter,
-                  expected_update_counter);
-        EXPECT_EQ(application_on_close_counter,
-                  expected_on_close_counter);
-
-        for (auto& window_with_counters: windows_with_counters)
-        {
-            EXPECT_EQ(window_with_counters.on_update_counter,
-                      expected_update_counter);
-            EXPECT_EQ(window_with_counters.on_close_counter,
-                      expected_on_close_counter);
-        }
+        EXPECT_EQ(expected_call_order,
+                  actual_call_order);
     }
 
     TEST(application,
@@ -205,84 +293,107 @@ namespace
         ASSERT_NE(window,
                   nullptr);
 
-        decltype(window) recreated_window = nullptr;
+        constexpr auto expected_update_counter = std::int32_t{5};
+        constexpr auto recreate_in_frame = expected_update_counter;
+        const auto app_id = std::string{"application"};
+        const auto original_window_id = std::string{"window_original"};
+        const auto recreated_window_id = std::string{"window_recreated"};
+        const auto expected_call_order = std::vector<ActionWithId>{
+            {ActionType::APPLICATION_ON_RUN,    app_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_RUN,         original_window_id},
+            {ActionType::WINDOW_ON_UPDATE,      original_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      original_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      original_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      original_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_RUN,         recreated_window_id},
+            {ActionType::WINDOW_ON_UPDATE,      recreated_window_id},
+            {ActionType::WINDOW_ON_CLOSE,       original_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      recreated_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      recreated_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      recreated_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_UPDATE,      recreated_window_id},
+            {ActionType::APPLICATION_ON_UPDATE, app_id},
+            {ActionType::WINDOW_ON_CLOSE,       recreated_window_id},
+            {ActionType::APPLICATION_ON_CLOSE,  app_id},
+        };
+        auto actual_call_order = std::vector<ActionWithId>{};
 
-        constexpr std::int32_t expected_application_update_counter = 9;
-        constexpr std::int32_t expected_on_close_counter = 1;
-        constexpr std::int32_t recreate_window_in_update_number = 5;
+        application->set_on_run(
+            [&]()
+            {
+                actual_call_order.push_back({ActionType::APPLICATION_ON_RUN, app_id});
+            });
 
-        constexpr std::int32_t expected_window_update_counter = 4;
-        constexpr std::int32_t expected_recreate_window_update_counter = 5;
-
-        std::int32_t window_update_counter = 0;
-        std::int32_t recreated_window_update_counter = 0;
-
-        std::int32_t window_on_close_counter = 0;
-        std::int32_t recreated_window_on_close_counter = 0;
-
-        std::int32_t application_update_counter = 0;
+        auto update_counter = std::int32_t{0};
         application->set_on_update(
             [&]()
             {
-                ++application_update_counter;
+                actual_call_order.push_back({ActionType::APPLICATION_ON_UPDATE, app_id});
 
-                if (application_update_counter != recreate_window_in_update_number)
+                ++update_counter;
+                if (expected_update_counter * 2 == update_counter)
+                {
+                    window->request_close();
+                    application->request_close();
+                }
+                if (recreate_in_frame != update_counter)
                 {
                     return;
                 }
 
                 window->request_close();
-                window.reset();
-
-                recreated_window = application->make_window();
-                recreated_window->set_on_update(
+                window = application->make_window();
+                window->set_on_run(
                     [&]()
                     {
-                        ++recreated_window_update_counter;
-                        if (recreated_window_update_counter == expected_recreate_window_update_counter)
-                        {
-                            application->request_close();
-                        }
+                        actual_call_order.push_back({ActionType::WINDOW_ON_RUN, recreated_window_id});
                     });
-                recreated_window->set_on_close(
-                    [&recreated_window_on_close_counter]()
+                window->set_on_update(
+                    [&]()
                     {
-                        ++recreated_window_on_close_counter;
+                        actual_call_order.push_back({ActionType::WINDOW_ON_UPDATE, recreated_window_id});
+                    });
+                window->set_on_close(
+                    [&]()
+                    {
+                        actual_call_order.push_back({ActionType::WINDOW_ON_CLOSE, recreated_window_id});
                     });
             });
 
-        std::int32_t application_on_close_counter = 0;
         application->set_on_close(
-            [&application_on_close_counter]()
+            [&]()
             {
-                ++application_on_close_counter;
+                actual_call_order.push_back({ActionType::APPLICATION_ON_CLOSE, app_id});
             });
 
-        window->set_on_update(
-            [&window_update_counter]()
+        window->set_on_run(
+            [&]()
             {
-                ++window_update_counter;
+                actual_call_order.push_back({ActionType::WINDOW_ON_RUN, original_window_id});
+            });
+        window->set_on_update(
+            [&]()
+            {
+                actual_call_order.push_back({ActionType::WINDOW_ON_UPDATE, original_window_id});
             });
         window->set_on_close(
-            [&window_on_close_counter]()
+            [&]()
             {
-                ++window_on_close_counter;
+                actual_call_order.push_back({ActionType::WINDOW_ON_CLOSE, original_window_id});
             });
 
         application->run();
 
-        EXPECT_EQ(application_update_counter,
-                  expected_application_update_counter);
-        EXPECT_EQ(window_update_counter,
-                  expected_window_update_counter);
-        EXPECT_EQ(recreated_window_update_counter,
-                  expected_recreate_window_update_counter);
-
-        EXPECT_EQ(application_on_close_counter,
-                  expected_on_close_counter);
-        EXPECT_EQ(window_on_close_counter,
-                  expected_on_close_counter);
-        EXPECT_EQ(recreated_window_on_close_counter,
-                  expected_on_close_counter);
+        EXPECT_EQ(expected_call_order,
+                  actual_call_order);
     }
 }

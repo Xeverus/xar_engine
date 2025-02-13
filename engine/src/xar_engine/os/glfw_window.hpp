@@ -14,9 +14,11 @@ namespace xar_engine::os
         GlfwWindow();
         ~GlfwWindow() override;
 
+        void run();
         void update();
         void close();
 
+        void set_on_run(OnRun&& on_run) override;
         void set_on_update(OnUpdate&& on_update) override;
         void set_on_close(OnClose&& on_close) override;
 
@@ -34,8 +36,10 @@ namespace xar_engine::os
     private:
         GLFWwindow* _native_glfw_window;
 
+        OnRun _on_run;
         OnUpdate _on_update;
         OnUpdate _on_close;
+
         OnKeyboardEvent _on_keyboard_event;
         OnMouseEvent _on_mouse_event;
 

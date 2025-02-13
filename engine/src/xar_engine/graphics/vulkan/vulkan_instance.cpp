@@ -6,6 +6,23 @@ namespace xar_engine::graphics::vulkan
 {
     namespace
     {
+        void initialize_volk_once()
+        {
+            static auto volk_already_initialized = false;
+            if (volk_already_initialized)
+            {
+                return;
+            }
+
+            const auto result = volkInitialize();
+            XAR_THROW_IF(
+                result != VK_SUCCESS,
+                error::XarException,
+                "Failed to initialize Volk");
+
+            volk_already_initialized = true;
+        }
+
         VkInstance make_vk_instance()
         {
             VkInstance vk_instance = nullptr;
@@ -38,8 +55,11 @@ namespace xar_engine::graphics::vulkan
     }
 
     VulkanInstance::VulkanInstance()
-        : _vk_instance(make_vk_instance())
+        : _vk_instance(nullptr)
     {
+        initialize_volk_once();
+
+        _vk_instance = make_vk_instance();
         volkLoadInstance(_vk_instance);
     }
 
