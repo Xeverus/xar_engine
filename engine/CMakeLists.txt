@@ -1,5 +1,7 @@
+find_package(assimp REQUIRED)
 find_package(fmt REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(volk REQUIRED)
 
 
 ##############################
@@ -65,8 +67,10 @@ target_include_directories(xar_engine_impl
 
 target_link_libraries(xar_engine_impl
         PUBLIC
+            assimp::assimp
             fmt::fmt
-            glfw)
+            glfw
+            volk::volk)
 
 
 ##############################
