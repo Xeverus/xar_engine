@@ -460,12 +460,17 @@ namespace xar_engine::graphics::vulkan
         colorBlending.blendConstants[2] = 0.0f; // Optional
         colorBlending.blendConstants[3] = 0.0f; // Optional
 
+        VkPushConstantRange pushConstantRange{};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT; // Do fragment shadera
+        pushConstantRange.offset = 0;  // Start od początku
+        pushConstantRange.size = sizeof(float);  // 4 bajty na float
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 0; // Optional
         pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-        pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-        pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+        pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
+        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
         if (vkCreatePipelineLayout(
             vk_device,
             &pipelineLayoutInfo,
@@ -627,6 +632,10 @@ namespace xar_engine::graphics::vulkan
                           "failed to begin recording command buffer!");
             }
 
+            struct Constants {
+                float time;
+            };
+
             const VkImageMemoryBarrier image_memory_barrier_start{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -680,6 +689,14 @@ namespace xar_engine::graphics::vulkan
                 commandBuffer[currentFrame],
                 VK_PIPELINE_BIND_POINT_GRAPHICS,
                 graphicsPipeline);
+
+            const Constants pc = { static_cast<float>(frameCounter) };
+            vkCmdPushConstants(commandBuffer[currentFrame],
+                               pipelineLayout,
+                               VK_SHADER_STAGE_FRAGMENT_BIT,
+                               0,
+                               sizeof(Constants),
+                               &pc);
 
             VkViewport viewport{};
             viewport.x = 0.0f;

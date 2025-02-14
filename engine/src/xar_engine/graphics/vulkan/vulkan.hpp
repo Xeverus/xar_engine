@@ -61,7 +61,7 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkSemaphore> renderFinishedSemaphore;
         std::vector<VkFence> inFlightFence;
 
-        uint32_t currentFrame;
         uint32_t frameCounter;
+        uint32_t currentFrame;
     };
 }
