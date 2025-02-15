@@ -26,6 +26,7 @@ namespace xar_engine::graphics::vulkan
 
         void init_surface();
         void init_device();
+        void destroy_swapchain();
         void init_swapchain();
         void init_shaders();
         void init_graphics_pipeline();
@@ -33,6 +34,8 @@ namespace xar_engine::graphics::vulkan
         void init_sync_objects();
 
         void run_frame_sandbox();
+
+        void wait();
 
         void cleanup_sandbox();
 

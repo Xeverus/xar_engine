@@ -25,7 +25,7 @@ namespace xar_engine::logging
     {                                                     \
         if constexpr(logging_level >= XAR_LOG_LEVEL)      \
         {                                                 \
-            (logger).log_message(logging_level, tag, fmt::format(message, __VA_ARGS__)); \
+            (logger).log_message(logging_level, tag, fmt::format(message, ##__VA_ARGS__)); \
         }                                                 \
     }                                                     \
     while(false)

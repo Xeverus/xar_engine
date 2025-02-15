@@ -27,6 +27,9 @@ int main()
             xar_engine::graphics::run_vulkan_test_frame();
         });
 
+    window->set_on_resize_event([](const std::int32_t new_width, const std::int32_t new_height){
+    });
+
     window->set_on_keyboard_event(
         [&](const xar_engine::input::KeyboardEvent& event)
         {

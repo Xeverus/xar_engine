@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <optional>
 
 #include <GLFW/glfw3.h>
 
@@ -25,6 +26,10 @@ namespace xar_engine::os
         void set_on_update(OnUpdate&& on_update) override;
         void set_on_close(OnClose&& on_close) override;
 
+        void set_on_resize_event(OnResize&& on_resize) override;
+
+        void enqueue_resize_event(int32_t new_width, int32_t new_height);
+
         void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) override;
         void set_on_mouse_event(OnMouseEvent&& on_mouse_event) override;
 
@@ -40,14 +45,25 @@ namespace xar_engine::os
         const std::string& get_title() const override;
 
     private:
+        struct ResizeEvent
+        {
+            std::int32_t new_width;
+            std::int32_t new_height;
+        };
+
+    private:
         GLFWwindow* _native_glfw_window;
 
         OnRun _on_run;
         OnUpdate _on_update;
-        OnUpdate _on_close;
+        OnClose _on_close;
+
+        OnResize _on_resize;
 
         OnKeyboardEvent _on_keyboard_event;
         OnMouseEvent _on_mouse_event;
+
+        std::optional<ResizeEvent> _resize_event;
 
         std::deque<input::KeyboardEvent> _keyboard_event_queue;
         std::deque<input::MouseEvent> _mouse_event_queue;

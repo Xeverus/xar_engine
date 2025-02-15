@@ -34,4 +34,11 @@ namespace xar_engine::graphics
     {
         vulkan_inst->cleanup_sandbox();
     }
+
+    void recreate_swapchain()
+    {
+        vulkan_inst->wait();
+        vulkan_inst->destroy_swapchain();
+        vulkan_inst->init_swapchain();
+    }
 }

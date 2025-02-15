@@ -177,6 +177,23 @@ namespace xar_engine::graphics::vulkan
             &vk_queue);
     }
 
+    void Vulkan::destroy_swapchain()
+    {
+        for (auto& image: swapchain_image_views)
+        {
+            vkDestroyImageView(
+                vk_device,
+                image,
+                nullptr);
+        }
+        swapchain_image_views.clear();
+
+        vkDestroySwapchainKHR(
+            vk_device,
+            vk_swapchain,
+            nullptr);
+    }
+
     void Vulkan::init_swapchain()
     {
         // physical device
@@ -245,7 +262,10 @@ namespace xar_engine::graphics::vulkan
 
         std::int32_t fb_size_x;
         std::int32_t fb_size_y;
-        glfwGetFramebufferSize(_glfw_window->get_native(), &fb_size_x, &fb_size_y);
+        glfwGetFramebufferSize(
+            _glfw_window->get_native(),
+            &fb_size_x,
+            &fb_size_y);
 
         swapchainExtent = {
             static_cast<std::uint32_t>(fb_size_x),
@@ -352,7 +372,7 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_THROW(
                 error::XarException,
-                      "vert shader failed");
+                "vert shader failed");
         }
 
         VkShaderModuleCreateInfo fragInfo{};
@@ -368,7 +388,7 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_THROW(
                 error::XarException,
-                      "frag shader failed");
+                "frag shader failed");
         }
     }
 
@@ -591,6 +611,11 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
+    void Vulkan::wait()
+    {
+        vkDeviceWaitIdle(vk_device);
+    }
+
     void Vulkan::run_frame_sandbox()
     {
         vkWaitForFences(
@@ -605,13 +630,45 @@ namespace xar_engine::graphics::vulkan
             &inFlightFence[currentFrame]);
 
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(
+        const auto acquire_img_result = vkAcquireNextImageKHR(
             vk_device,
             vk_swapchain,
             UINT64_MAX,
             imageAvailableSemaphore[currentFrame],
             VK_NULL_HANDLE,
             &imageIndex);
+        if (acquire_img_result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                *_logger,
+                tag,
+                "Acquire failed because Swapchain is out of date");
+            wait();
+            destroy_swapchain();
+            init_swapchain();
+            XAR_LOG(
+                logging::LogLevel::DEBUG,
+                *_logger,
+                tag,
+                "Acquire failed because Swapchain is out of date but swapchain was recreated");
+            return;
+        }
+        else if (acquire_img_result != VK_SUCCESS && acquire_img_result != VK_SUBOPTIMAL_KHR)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                *_logger,
+                tag,
+                "Acquire failed because Swapchain");
+            return;
+        }
+
+        // Only reset the fence if we are submitting work
+        vkResetFences(
+            vk_device,
+            1,
+            &inFlightFence[currentFrame]);
 
         // Record CMD buffer
         {
@@ -632,7 +689,8 @@ namespace xar_engine::graphics::vulkan
                           "failed to begin recording command buffer!");
             }
 
-            struct Constants {
+            struct Constants
+            {
                 float time;
             };
 
@@ -690,13 +748,14 @@ namespace xar_engine::graphics::vulkan
                 VK_PIPELINE_BIND_POINT_GRAPHICS,
                 graphicsPipeline);
 
-            const Constants pc = { static_cast<float>(frameCounter) };
-            vkCmdPushConstants(commandBuffer[currentFrame],
-                               pipelineLayout,
-                               VK_SHADER_STAGE_FRAGMENT_BIT,
-                               0,
-                               sizeof(Constants),
-                               &pc);
+            const Constants pc = {static_cast<float>(frameCounter)};
+            vkCmdPushConstants(
+                commandBuffer[currentFrame],
+                pipelineLayout,
+                VK_SHADER_STAGE_FRAGMENT_BIT,
+                0,
+                sizeof(Constants),
+                &pc);
 
             VkViewport viewport{};
             viewport.x = 0.0f;
@@ -799,9 +858,35 @@ namespace xar_engine::graphics::vulkan
             presentInfo.pSwapchains = swapChains;
             presentInfo.pImageIndices = &imageIndex;
             presentInfo.pResults = nullptr; // Optional
-            vkQueuePresentKHR(
+            const auto present_result = vkQueuePresentKHR(
                 vk_queue,
                 &presentInfo);
+
+            if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR)
+            {
+                XAR_LOG(
+                    logging::LogLevel::ERROR,
+                    *_logger,
+                    tag,
+                    "Present failed because Swapchain is out of date");
+                wait();
+                destroy_swapchain();
+                init_swapchain();
+                XAR_LOG(
+                    logging::LogLevel::DEBUG,
+                    *_logger,
+                    tag,
+                    "Present failed because Swapchain is out of date but swapchain was recreated");
+            }
+            else if (present_result != VK_SUCCESS)
+            {
+                XAR_LOG(
+                    logging::LogLevel::ERROR,
+                    *_logger,
+                    tag,
+                    "Acquire failed because Swapchain");
+                return;
+            }
         }
 
         XAR_LOG(

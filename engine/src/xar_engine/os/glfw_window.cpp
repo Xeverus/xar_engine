@@ -16,6 +16,9 @@ namespace xar_engine::os
         const IWindow::OnClose empty_on_close = []()
         {
         };
+        const IWindow::OnResize empty_on_resize = [](const int32_t, const int32_t)
+        {
+        };
         const IWindow::OnKeyboardEvent empty_on_keyboard_event = [](const input::KeyboardEvent&)
         {
         };
@@ -26,6 +29,14 @@ namespace xar_engine::os
         GlfwWindow* get_window(GLFWwindow* const native_glfw_window)
         {
             return static_cast<GlfwWindow*>(glfwGetWindowUserPointer(native_glfw_window));
+        }
+
+        void glfw_framebuffer_resize_callback(
+            GLFWwindow* const native_glfw_window,
+            int width,
+            int height)
+        {
+            auto* const glfw_window = get_window(native_glfw_window);
         }
 
         input::ButtonState action_to_button_state(const int action)
@@ -119,6 +130,7 @@ namespace xar_engine::os
         , _on_run(empty_on_run)
         , _on_update(empty_on_update)
         , _on_close(empty_on_close)
+        , _on_resize(empty_on_resize)
         , _on_keyboard_event(empty_on_keyboard_event)
         , _on_mouse_event(empty_on_mouse_event)
         , _parameters(std::move(parameters))
@@ -141,6 +153,10 @@ namespace xar_engine::os
         glfwSetWindowUserPointer(
             _native_glfw_window,
             this);
+
+        glfwSetFramebufferSizeCallback(
+            _native_glfw_window,
+            glfw_framebuffer_resize_callback);
 
         glfwSetKeyCallback(
             _native_glfw_window,
@@ -194,6 +210,14 @@ namespace xar_engine::os
         }
         _mouse_event_queue.clear();
 
+        if (_resize_event)
+        {
+            _on_resize(
+                _resize_event->new_width,
+                _resize_event->new_height);
+            _resize_event.reset();
+        }
+
         _on_update();
 
         glfwSwapBuffers(_native_glfw_window);
@@ -234,6 +258,22 @@ namespace xar_engine::os
         {
             _on_close = empty_on_close;
         }
+    }
+
+    void GlfwWindow::set_on_resize_event(OnResize&& on_resize)
+    {
+        _on_resize = std::move(on_resize);
+        if (!_on_resize)
+        {
+            _on_resize = empty_on_resize;
+        }
+    }
+
+    void GlfwWindow::enqueue_resize_event(
+        const int32_t new_width,
+        const int32_t new_height)
+    {
+        _resize_event = {new_width, new_height};
     }
 
     void GlfwWindow::set_on_keyboard_event(IWindow::OnKeyboardEvent&& on_keyboard_event)

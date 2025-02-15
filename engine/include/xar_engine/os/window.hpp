@@ -15,6 +15,8 @@ namespace xar_engine::os
         using OnUpdate = std::function<void()>;
         using OnClose = std::function<void()>;
 
+        using OnResize = std::function<void(int32_t new_width, int32_t new_height)>;
+
         using OnKeyboardEvent = std::function<void(const input::KeyboardEvent& event)>;
         using OnMouseEvent = std::function<void(const input::MouseEvent& event)>;
 
@@ -24,6 +26,8 @@ namespace xar_engine::os
         virtual void set_on_run(OnRun&& on_run) = 0;
         virtual void set_on_update(OnUpdate&& on_update) = 0;
         virtual void set_on_close(OnClose&& on_close) = 0;
+
+        virtual void set_on_resize_event(OnResize&& on_resize) = 0;
 
         virtual void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) = 0;
         virtual void set_on_mouse_event(OnMouseEvent&& on_mouse_event) = 0;
