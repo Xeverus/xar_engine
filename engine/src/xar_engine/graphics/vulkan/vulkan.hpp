@@ -41,6 +41,14 @@ namespace xar_engine::graphics::vulkan
         void cleanup_sandbox();
 
     private:
+        void createBuffer(
+            VkDeviceSize size,
+            VkBufferUsageFlags usage,
+            VkMemoryPropertyFlags properties,
+            VkBuffer& buffer,
+            VkDeviceMemory& bufferMemory);
+
+    private:
         os::GlfwWindow* _glfw_window;
         std::unique_ptr<logging::ILogger> _logger;
 
