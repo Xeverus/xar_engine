@@ -20,6 +20,7 @@ namespace xar_engine::graphics
         vulkan_inst->init_swapchain();
         vulkan_inst->init_shaders();
         vulkan_inst->init_graphics_pipeline();
+        vulkan_inst->init_data();
         vulkan_inst->init_cmd_buffers();
         vulkan_inst->init_sync_objects();
         vulkan_inst->run_frame_sandbox();

@@ -30,6 +30,7 @@ namespace xar_engine::graphics::vulkan
         void init_swapchain();
         void init_shaders();
         void init_graphics_pipeline();
+        void init_data();
         void init_cmd_buffers();
         void init_sync_objects();
 
@@ -45,6 +46,7 @@ namespace xar_engine::graphics::vulkan
 
         VulkanInstance vk_instance;
         VkSurfaceKHR vk_surface;
+        VkPhysicalDevice vk_physical_device;
         VkDevice vk_device;
         VkQueue vk_queue;
         uint32_t graphics_queue_family;
@@ -57,6 +59,8 @@ namespace xar_engine::graphics::vulkan
         VkShaderModule fragShaderModule;
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
+        VkBuffer vertexBuffer;
+        VkDeviceMemory vertexBufferMemory;
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffer;
 

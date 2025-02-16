@@ -1,6 +1,9 @@
 #include <xar_engine/graphics/vulkan/vulkan.hpp>
 
 #include <thread>
+#include <vector>
+
+#include <glm/glm.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
@@ -9,11 +12,53 @@
 #include <xar_engine/logging/console_logger.hpp>
 
 
-#define USE_DYNAMIC 1
-
 namespace xar_engine::graphics::vulkan
 {
-    constexpr auto tag = "Vulkan Sandbox";
+    namespace
+    {
+        constexpr auto tag = "Vulkan Sandbox";
+
+        struct Vertex
+        {
+            glm::vec2 position;
+            glm::vec3 color;
+
+            static VkVertexInputBindingDescription getBindingDescription()
+            {
+                VkVertexInputBindingDescription bindingDescription{};
+                bindingDescription.binding = 0;
+                bindingDescription.stride = sizeof(Vertex);
+                bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+                return bindingDescription;
+            }
+
+            static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
+            {
+                std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+                attributeDescriptions[0].binding = 0;
+                attributeDescriptions[0].location = 0;
+                attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+                attributeDescriptions[0].offset = offsetof(Vertex,
+                                                           position);
+
+                attributeDescriptions[1].binding = 0;
+                attributeDescriptions[1].location = 1;
+                attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+                attributeDescriptions[1].offset = offsetof(Vertex,
+                                                           color);
+
+                return attributeDescriptions;
+            }
+        };
+
+        const std::vector<Vertex> vertices = {
+            {{0.0f, -0.5f}, {1.0f, 0.8f, 0.6f}},
+            {{0.5f, 0.5f},  {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+        };
+    }
 
     Vulkan::Vulkan(os::GlfwWindow* window)
         : vk_instance()
@@ -160,6 +205,7 @@ namespace xar_engine::graphics::vulkan
 
         device_create_info.pNext = &dynamic_rendering_feature;
 
+        vk_physical_device = physical_devices[0];
         const auto device_create_result = vkCreateDevice(
             physical_devices[0],
             &device_create_info,
@@ -356,8 +402,8 @@ namespace xar_engine::graphics::vulkan
 
     void Vulkan::init_shaders()
     {
-        const auto vert_bytes = xar_engine::file::File::read_binary_file("shaders/hardcoded_triangle.vert.spv");
-        const auto frag_bytes = xar_engine::file::File::read_binary_file("shaders/hardcoded_triangle.frag.spv");
+        const auto vert_bytes = xar_engine::file::File::read_binary_file("shaders/triangle.vert.spv");
+        const auto frag_bytes = xar_engine::file::File::read_binary_file("shaders/triangle.frag.spv");
 
         VkShaderModuleCreateInfo vertInfo{};
         vertInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -408,12 +454,15 @@ namespace xar_engine::graphics::vulkan
 
         VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
+        const auto bindingDescription = Vertex::getBindingDescription();
+        const auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -539,6 +588,91 @@ namespace xar_engine::graphics::vulkan
             XAR_THROW(error::XarException,
                       "failed to create graphics pipeline!");
         }
+    }
+
+    void Vulkan::init_data()
+    {
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = sizeof(vertices[0]) * vertices.size();
+        bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        if (vkCreateBuffer(
+            vk_device,
+            &bufferInfo,
+            nullptr,
+            &vertexBuffer) != VK_SUCCESS)
+        {
+            XAR_THROW(
+                error::XarException,
+                "Failed to create vertex buffer");
+        }
+
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(
+            vk_device,
+            vertexBuffer,
+            &memRequirements);
+
+        const auto findMemoryType = [this](
+            uint32_t typeFilter,
+            VkMemoryPropertyFlags properties) -> uint32_t
+        {
+            VkPhysicalDeviceMemoryProperties memProperties;
+            vkGetPhysicalDeviceMemoryProperties(
+                this->vk_physical_device,
+                &memProperties);
+
+            for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
+            {
+                if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+                {
+                    return i;
+                }
+            }
+
+            XAR_THROW(error::XarException,
+                      "Failed to find suitable memory type");
+        };
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(
+            memRequirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        if (vkAllocateMemory(
+            vk_device,
+            &allocInfo,
+            nullptr,
+            &vertexBufferMemory) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to allocate vertex buffer memory!");
+        }
+
+        vkBindBufferMemory(
+            vk_device,
+            vertexBuffer,
+            vertexBufferMemory,
+            0);
+
+        void* data;
+        vkMapMemory(
+            vk_device,
+            vertexBufferMemory,
+            0,
+            bufferInfo.size,
+            0,
+            &data);
+        memcpy(
+            data,
+            vertices.data(),
+            (size_t) bufferInfo.size);
+        vkUnmapMemory(
+            vk_device,
+            vertexBufferMemory);
     }
 
     void Vulkan::init_cmd_buffers()
@@ -779,9 +913,18 @@ namespace xar_engine::graphics::vulkan
                 1,
                 &scissor);
 
+            VkBuffer vertexBuffers[] = {vertexBuffer};
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers(
+                commandBuffer[currentFrame],
+                0,
+                1,
+                vertexBuffers,
+                offsets);
+
             vkCmdDraw(
                 commandBuffer[currentFrame],
-                3,
+                static_cast<uint32_t>(vertices.size()),
                 1,
                 0,
                 0);
@@ -947,6 +1090,15 @@ namespace xar_engine::graphics::vulkan
         vkDestroyShaderModule(
             vk_device,
             vertShaderModule,
+            nullptr);
+
+        vkDestroyBuffer(
+            vk_device,
+            vertexBuffer,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            vertexBufferMemory,
             nullptr);
 
         // cleanup

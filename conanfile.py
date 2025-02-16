@@ -98,6 +98,7 @@ class XarEngine(ConanFile):
         self.requires("fmt/11.0.0")
         # self.requires("gperftools/2.16")  # https://github.com/gperftools/gperftools
         self.requires("glfw/3.4")
+        self.requires("glm/1.0.1")
         self.requires("gtest/1.15.0")
         self.requires("volk/1.3.268.0")
 
