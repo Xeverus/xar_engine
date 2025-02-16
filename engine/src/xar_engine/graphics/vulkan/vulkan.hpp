@@ -29,9 +29,12 @@ namespace xar_engine::graphics::vulkan
         void destroy_swapchain();
         void init_swapchain();
         void init_shaders();
+        void init_descriptor_set_layout();
         void init_graphics_pipeline();
         void init_vertex_data();
         void init_index_data();
+        void init_ubo_data();
+        void init_descriptors();
         void init_cmd_buffers();
         void init_sync_objects();
 
@@ -51,6 +54,8 @@ namespace xar_engine::graphics::vulkan
 
         void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
+        void updateUniformBuffer(uint32_t currentImage);
+
     private:
         os::GlfwWindow* _glfw_window;
         std::unique_ptr<logging::ILogger> _logger;
@@ -68,12 +73,22 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkImageView> swapchain_image_views;
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
+
+        VkDescriptorPool descriptorPool;
+        VkDescriptorSetLayout descriptorSetLayout;
+        std::vector<VkDescriptorSet> descriptorSets;
+
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
+
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
         VkBuffer indexBuffer;
         VkDeviceMemory indexBufferMemory;
+        std::vector<VkBuffer> uniformBuffers;
+        std::vector<VkDeviceMemory> uniformBuffersMemory;
+        std::vector<void*> uniformBuffersMapped;
+
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffer;
 
