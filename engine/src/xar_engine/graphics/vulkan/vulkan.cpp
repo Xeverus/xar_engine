@@ -54,9 +54,14 @@ namespace xar_engine::graphics::vulkan
         };
 
         const std::vector<Vertex> vertices = {
-            {{0.0f, -0.5f}, {1.0f, 0.8f, 0.6f}},
-            {{0.5f, 0.5f},  {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f,  -0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{0.5f,  0.5f},  {0.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f},  {1.0f, 1.0f, 1.0f}}
+        };
+
+        const std::vector<uint16_t> indices = {
+            0, 1, 2, 2, 3, 0
         };
     }
 
@@ -590,7 +595,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_data()
+    void Vulkan::init_vertex_data()
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -626,10 +631,70 @@ namespace xar_engine::graphics::vulkan
             vertexBuffer,
             vertexBufferMemory);
 
-        copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+        copyBuffer(
+            stagingBuffer,
+            vertexBuffer,
+            bufferSize);
 
-        vkDestroyBuffer(vk_device, stagingBuffer, nullptr);
-        vkFreeMemory(vk_device, stagingBufferMemory, nullptr);
+        vkDestroyBuffer(
+            vk_device,
+            stagingBuffer,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            stagingBufferMemory,
+            nullptr);
+    }
+
+    void Vulkan::init_index_data()
+    {
+        VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            stagingBuffer,
+            stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(
+            vk_device,
+            stagingBufferMemory,
+            0,
+            bufferSize,
+            0,
+            &data);
+        memcpy(
+            data,
+            indices.data(),
+            (size_t) bufferSize);
+        vkUnmapMemory(
+            vk_device,
+            stagingBufferMemory);
+
+        createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            indexBuffer,
+            indexBufferMemory);
+
+        copyBuffer(
+            stagingBuffer,
+            indexBuffer,
+            bufferSize);
+
+        vkDestroyBuffer(
+            vk_device,
+            stagingBuffer,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            stagingBufferMemory,
+            nullptr);
     }
 
     void Vulkan::init_cmd_buffers()
@@ -878,11 +943,17 @@ namespace xar_engine::graphics::vulkan
                 1,
                 vertexBuffers,
                 offsets);
-
-            vkCmdDraw(
+            vkCmdBindIndexBuffer(
                 commandBuffer[currentFrame],
-                static_cast<uint32_t>(vertices.size()),
+                indexBuffer,
+                0,
+                VK_INDEX_TYPE_UINT16);
+
+            vkCmdDrawIndexed(
+                commandBuffer[currentFrame],
+                static_cast<uint32_t>(indices.size()),
                 1,
+                0,
                 0,
                 0);
 
@@ -1051,6 +1122,14 @@ namespace xar_engine::graphics::vulkan
 
         vkDestroyBuffer(
             vk_device,
+            indexBuffer,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            indexBufferMemory,
+            nullptr);
+        vkDestroyBuffer(
+            vk_device,
             vertexBuffer,
             nullptr);
         vkFreeMemory(
@@ -1167,19 +1246,29 @@ namespace xar_engine::graphics::vulkan
         allocInfo.commandBufferCount = 1;
 
         VkCommandBuffer tempCommandBuffer;
-        vkAllocateCommandBuffers(vk_device, &allocInfo, &tempCommandBuffer);
+        vkAllocateCommandBuffers(
+            vk_device,
+            &allocInfo,
+            &tempCommandBuffer);
 
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkBeginCommandBuffer(tempCommandBuffer, &beginInfo);
+        vkBeginCommandBuffer(
+            tempCommandBuffer,
+            &beginInfo);
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0; // Optional
         copyRegion.dstOffset = 0; // Optional
         copyRegion.size = size;
-        vkCmdCopyBuffer(tempCommandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+        vkCmdCopyBuffer(
+            tempCommandBuffer,
+            srcBuffer,
+            dstBuffer,
+            1,
+            &copyRegion);
 
         vkEndCommandBuffer(tempCommandBuffer);
 
@@ -1188,10 +1277,18 @@ namespace xar_engine::graphics::vulkan
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &tempCommandBuffer;
 
-        vkQueueSubmit(vk_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueSubmit(
+            vk_queue,
+            1,
+            &submitInfo,
+            VK_NULL_HANDLE);
         vkQueueWaitIdle(vk_queue);
 
-        vkFreeCommandBuffers(vk_device, commandPool, 1, &tempCommandBuffer);
+        vkFreeCommandBuffers(
+            vk_device,
+            commandPool,
+            1,
+            &tempCommandBuffer);
 
     }
 }
