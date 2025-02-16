@@ -593,17 +593,20 @@ namespace xar_engine::graphics::vulkan
     void Vulkan::init_data()
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
         createBuffer(
             bufferSize,
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            vertexBuffer,
-            vertexBufferMemory);
+            stagingBuffer,
+            stagingBufferMemory);
 
         void* data;
         vkMapMemory(
             vk_device,
-            vertexBufferMemory,
+            stagingBufferMemory,
             0,
             bufferSize,
             0,
@@ -611,10 +614,22 @@ namespace xar_engine::graphics::vulkan
         memcpy(
             data,
             vertices.data(),
-            (size_t)bufferSize);
+            (size_t) bufferSize);
         vkUnmapMemory(
             vk_device,
+            stagingBufferMemory);
+
+        createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            vertexBuffer,
             vertexBufferMemory);
+
+        copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+
+        vkDestroyBuffer(vk_device, stagingBuffer, nullptr);
+        vkFreeMemory(vk_device, stagingBufferMemory, nullptr);
     }
 
     void Vulkan::init_cmd_buffers()
@@ -1138,5 +1153,45 @@ namespace xar_engine::graphics::vulkan
             buffer,
             bufferMemory,
             0);
+    }
+
+    void Vulkan::copyBuffer(
+        VkBuffer srcBuffer,
+        VkBuffer dstBuffer,
+        VkDeviceSize size)
+    {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = commandPool;
+        allocInfo.commandBufferCount = 1;
+
+        VkCommandBuffer tempCommandBuffer;
+        vkAllocateCommandBuffers(vk_device, &allocInfo, &tempCommandBuffer);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(tempCommandBuffer, &beginInfo);
+
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = 0; // Optional
+        copyRegion.dstOffset = 0; // Optional
+        copyRegion.size = size;
+        vkCmdCopyBuffer(tempCommandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(tempCommandBuffer);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &tempCommandBuffer;
+
+        vkQueueSubmit(vk_queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(vk_queue);
+
+        vkFreeCommandBuffers(vk_device, commandPool, 1, &tempCommandBuffer);
+
     }
 }

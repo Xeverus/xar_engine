@@ -48,6 +48,8 @@ namespace xar_engine::graphics::vulkan
             VkBuffer& buffer,
             VkDeviceMemory& bufferMemory);
 
+        void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
     private:
         os::GlfwWindow* _glfw_window;
         std::unique_ptr<logging::ILogger> _logger;
