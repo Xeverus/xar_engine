@@ -22,6 +22,7 @@ namespace xar_engine::graphics
         vulkan_inst->init_descriptor_set_layout();
         vulkan_inst->init_graphics_pipeline();
         vulkan_inst->init_cmd_buffers();
+        vulkan_inst->init_texture();
         vulkan_inst->init_vertex_data();
         vulkan_inst->init_index_data();
         vulkan_inst->init_ubo_data();

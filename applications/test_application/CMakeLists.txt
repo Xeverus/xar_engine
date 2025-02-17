@@ -15,5 +15,5 @@ add_custom_command(TARGET xar_engine_test_application
 
 add_custom_command(TARGET xar_engine_test_application
         POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/shaders
-            $<TARGET_FILE_DIR:xar_engine_test_application>/shaders)
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets
+            $<TARGET_FILE_DIR:xar_engine_test_application>/assets)

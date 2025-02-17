@@ -36,6 +36,7 @@ namespace xar_engine::graphics::vulkan
         void init_ubo_data();
         void init_descriptors();
         void init_cmd_buffers();
+        void init_texture();
         void init_sync_objects();
 
         void run_frame_sandbox();
@@ -45,6 +46,10 @@ namespace xar_engine::graphics::vulkan
         void cleanup_sandbox();
 
     private:
+        std::uint32_t findMemoryType(
+            uint32_t typeFilter,
+            VkMemoryPropertyFlags properties);
+
         void createBuffer(
             VkDeviceSize size,
             VkBufferUsageFlags usage,
@@ -52,9 +57,37 @@ namespace xar_engine::graphics::vulkan
             VkBuffer& buffer,
             VkDeviceMemory& bufferMemory);
 
-        void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+        void copyBuffer(
+            VkBuffer srcBuffer,
+            VkBuffer dstBuffer,
+            VkDeviceSize size);
 
         void updateUniformBuffer(uint32_t currentImage);
+
+        void createImage(
+            uint32_t width,
+            uint32_t height,
+            VkFormat format,
+            VkImageTiling tiling,
+            VkImageUsageFlags usage,
+            VkMemoryPropertyFlags properties,
+            VkImage& image,
+            VkDeviceMemory& imageMemory);
+
+        VkCommandBuffer beginSingleTimeCommands();
+        void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+        void transitionImageLayout(
+            VkImage image,
+            VkFormat format,
+            VkImageLayout oldLayout,
+            VkImageLayout newLayout);
+
+        void copyBufferToImage(
+            VkBuffer buffer,
+            VkImage image,
+            uint32_t width,
+            uint32_t height);
 
     private:
         os::GlfwWindow* _glfw_window;
@@ -91,6 +124,9 @@ namespace xar_engine::graphics::vulkan
 
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffer;
+
+        VkImage textureImage;
+        VkDeviceMemory textureImageMemory;
 
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;
