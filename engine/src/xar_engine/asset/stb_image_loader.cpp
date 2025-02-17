@@ -29,7 +29,7 @@ namespace xar_engine::asset
 
         Image image;
         image.pixel_width = width;
-        image.pixel_width = height;
+        image.pixel_height = height;
         image.channel_count = data_channel_count;
 
         image.bytes.resize(image::get_byte_size(image));
