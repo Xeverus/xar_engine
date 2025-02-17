@@ -100,6 +100,7 @@ class XarEngine(ConanFile):
         self.requires("glfw/3.4")
         self.requires("glm/1.0.1")
         self.requires("gtest/1.15.0")
+        self.requires("stb/cci.20240531")
         self.requires("volk/1.3.268.0")
 
     def layout(self):

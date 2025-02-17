@@ -2,6 +2,7 @@ find_package(assimp REQUIRED)
 find_package(fmt REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
+find_package(stb REQUIRED)
 find_package(volk REQUIRED)
 
 
@@ -80,6 +81,7 @@ target_link_libraries(xar_engine_impl
             fmt::fmt
             glfw
             glm::glm
+            stb::stb
             volk::volk)
 
 
