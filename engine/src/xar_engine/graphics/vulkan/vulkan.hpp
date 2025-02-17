@@ -37,6 +37,8 @@ namespace xar_engine::graphics::vulkan
         void init_descriptors();
         void init_cmd_buffers();
         void init_texture();
+        void init_texture_view();
+        void init_sampler();
         void init_sync_objects();
 
         void run_frame_sandbox();
@@ -89,6 +91,8 @@ namespace xar_engine::graphics::vulkan
             uint32_t width,
             uint32_t height);
 
+        VkImageView createImageView(VkImage image, VkFormat format);
+
     private:
         os::GlfwWindow* _glfw_window;
         std::unique_ptr<logging::ILogger> _logger;
@@ -126,7 +130,9 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkCommandBuffer> commandBuffer;
 
         VkImage textureImage;
+        VkImageView textureImageView;
         VkDeviceMemory textureImageMemory;
+        VkSampler textureSampler;
 
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;
