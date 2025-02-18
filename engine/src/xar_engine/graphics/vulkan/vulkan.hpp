@@ -84,8 +84,7 @@ namespace xar_engine::graphics::vulkan
             VkImage image,
             VkFormat format,
             VkImageLayout oldLayout,
-            VkImageLayout newLayout,
-            VkImageAspectFlags aspect);
+            VkImageLayout newLayout);
 
         void copyBufferToImage(
             VkBuffer buffer,

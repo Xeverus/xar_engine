@@ -600,6 +600,13 @@ namespace xar_engine::graphics::vulkan
                       "Cannot create pipeline layout");
         }
 
+        VkPipelineDepthStencilStateCreateInfo depthStencilStateInfo{};
+        depthStencilStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        depthStencilStateInfo.stencilTestEnable = VK_FALSE;
+        depthStencilStateInfo.depthTestEnable = VK_TRUE;
+        depthStencilStateInfo.depthWriteEnable = VK_TRUE;
+        depthStencilStateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo.stageCount = 2;
@@ -610,7 +617,7 @@ namespace xar_engine::graphics::vulkan
         pipelineInfo.pViewportState = &viewportState;
         pipelineInfo.pRasterizationState = &rasterizer;
         pipelineInfo.pMultisampleState = &multisampling;
-        pipelineInfo.pDepthStencilState = nullptr; // Optional
+        pipelineInfo.pDepthStencilState = &depthStencilStateInfo;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
 
@@ -624,6 +631,7 @@ namespace xar_engine::graphics::vulkan
         pipeline_create.pNext = VK_NULL_HANDLE;
         pipeline_create.colorAttachmentCount = 1;
         pipeline_create.pColorAttachmentFormats = &format_to_use.format;
+        pipeline_create.depthAttachmentFormat = findDepthFormat();
 
         pipelineInfo.pNext = &pipeline_create;
 
@@ -910,10 +918,7 @@ namespace xar_engine::graphics::vulkan
             depthImage,
             depthFormat,
             VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            VK_IMAGE_ASPECT_DEPTH_BIT);
-
-
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     }
 
     void Vulkan::init_texture()
@@ -961,8 +966,7 @@ namespace xar_engine::graphics::vulkan
             textureImage,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_ASPECT_COLOR_BIT);
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         copyBufferToImage(
             stagingBuffer,
@@ -974,8 +978,7 @@ namespace xar_engine::graphics::vulkan
             textureImage,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            VK_IMAGE_ASPECT_COLOR_BIT);
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         vkDestroyBuffer(
             vk_device,
@@ -1178,20 +1181,33 @@ namespace xar_engine::graphics::vulkan
                 &image_memory_barrier_start // pImageMemoryBarriers
             );
 
-            VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+            VkClearValue clearColorColor{};
+            clearColorColor.color = {0.0f, 0.0f, 0.0f, 1.0f};
 
-            VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfo{};
-            vkRenderingAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-            vkRenderingAttachmentInfo.clearValue = clearColor;
-            vkRenderingAttachmentInfo.imageView = swapchain_image_views[imageIndex];
-            vkRenderingAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            vkRenderingAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
+            vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+            vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
+            vkRenderingAttachmentInfoColor.imageView = swapchain_image_views[imageIndex];
+            vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+            vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+            VkClearValue clearDepthColor{};
+            clearDepthColor.depthStencil = {1.0f, 0};
+
+            VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
+            vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+            vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
+            vkRenderingAttachmentInfoDepth.imageView = depthImageView;
+            vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+            vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
             VkRenderingInfoKHR renderingInfo{};
             renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
             renderingInfo.colorAttachmentCount = 1;
-            renderingInfo.pColorAttachments = &vkRenderingAttachmentInfo;
+            renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
+            renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
             renderingInfo.renderArea = VkRect2D{VkOffset2D{}, swapchainExtent};
             renderingInfo.layerCount = 1;
 
@@ -1780,8 +1796,7 @@ namespace xar_engine::graphics::vulkan
         VkImage image,
         VkFormat format,
         VkImageLayout oldLayout,
-        VkImageLayout newLayout,
-        VkImageAspectFlags aspect)
+        VkImageLayout newLayout)
     {
         VkCommandBuffer tempCommandBuffer = beginSingleTimeCommands();
 
@@ -1794,7 +1809,7 @@ namespace xar_engine::graphics::vulkan
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
         barrier.image = image;
-        barrier.subresourceRange.aspectMask = aspect;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseMipLevel = 0;
         barrier.subresourceRange.levelCount = 1;
         barrier.subresourceRange.baseArrayLayer = 0;
@@ -1805,6 +1820,20 @@ namespace xar_engine::graphics::vulkan
 
         VkPipelineStageFlags sourceStage;
         VkPipelineStageFlags destinationStage;
+
+        if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        {
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+            if (hasStencilComponent(format))
+            {
+                barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+            }
+        }
+        else
+        {
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        }
 
         if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
         {
