@@ -33,6 +33,7 @@ namespace xar_engine::graphics::vulkan
         void init_graphics_pipeline();
         void init_vertex_data();
         void init_index_data();
+        void init_model();
         void init_ubo_data();
         void init_descriptors();
         void init_cmd_buffers();

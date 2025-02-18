@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <xar_engine/asset/image_loader.hpp>
+#include <xar_engine/asset/model_loader.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
@@ -761,6 +762,14 @@ namespace xar_engine::graphics::vulkan
             vk_device,
             stagingBufferMemory,
             nullptr);
+    }
+
+    void Vulkan::init_model()
+    {
+        const auto model = xar_engine::asset::ModelLoaderFactory::make_loader()->load_model_from_file("assets/viking_room.obj");
+
+        int a = 12 * 32;
+        (void)a;
     }
 
     void Vulkan::init_ubo_data()

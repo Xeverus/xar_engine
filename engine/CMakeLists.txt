@@ -12,6 +12,8 @@ find_package(volk REQUIRED)
 set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/asset/image.hpp
         include/xar_engine/asset/image_loader.hpp
+        include/xar_engine/asset/model.hpp
+        include/xar_engine/asset/model_loader.hpp
         include/xar_engine/error/exception.hpp
         include/xar_engine/graphics/vulkan_test.hpp
         include/xar_engine/input/button.hpp
@@ -31,8 +33,12 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/version/version.hpp)
 
 set(XAR_ENGINE_PRIVATE_FILES
+        src/xar_engine/asset/assimp_model_loader.cpp
+        src/xar_engine/asset/assimp_model_loader.hpp
         src/xar_engine/asset/image.cpp
         src/xar_engine/asset/image_loader.cpp
+        src/xar_engine/asset/model.cpp
+        src/xar_engine/asset/model_loader.cpp
         src/xar_engine/asset/stb_image_loader.cpp
         src/xar_engine/asset/stb_image_loader.hpp
         src/xar_engine/error/exception.cpp

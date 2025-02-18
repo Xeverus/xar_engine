@@ -28,6 +28,7 @@ namespace xar_engine::graphics
         vulkan_inst->init_sampler();
         vulkan_inst->init_vertex_data();
         vulkan_inst->init_index_data();
+        vulkan_inst->init_model();
         vulkan_inst->init_ubo_data();
         vulkan_inst->init_descriptors();
         vulkan_inst->init_sync_objects();
