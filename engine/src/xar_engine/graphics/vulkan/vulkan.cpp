@@ -271,6 +271,19 @@ namespace xar_engine::graphics::vulkan
         }
         swapchain_image_views.clear();
 
+        vkDestroyImageView(
+            vk_device,
+            depthImageView,
+            nullptr);
+        vkDestroyImage(
+            vk_device,
+            depthImage,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            depthImageMemory,
+            nullptr);
+
         vkDestroySwapchainKHR(
             vk_device,
             vk_swapchain,
@@ -1106,6 +1119,7 @@ namespace xar_engine::graphics::vulkan
             wait();
             destroy_swapchain();
             init_swapchain();
+            init_depth();
             XAR_LOG(
                 logging::LogLevel::DEBUG,
                 *_logger,
@@ -1371,6 +1385,7 @@ namespace xar_engine::graphics::vulkan
                 wait();
                 destroy_swapchain();
                 init_swapchain();
+                init_depth();
                 XAR_LOG(
                     logging::LogLevel::DEBUG,
                     *_logger,
@@ -1505,31 +1520,7 @@ namespace xar_engine::graphics::vulkan
             textureImageMemory,
             nullptr);
 
-        vkDestroyImageView(
-            vk_device,
-            depthImageView,
-            nullptr);
-        vkDestroyImage(
-            vk_device,
-            depthImage,
-            nullptr);
-        vkFreeMemory(
-            vk_device,
-            depthImageMemory,
-            nullptr);
-
-        // cleanup
-        for (auto view: swapchain_image_views)
-        {
-            vkDestroyImageView(
-                vk_device,
-                view,
-                nullptr);
-        }
-        vkDestroySwapchainKHR(
-            vk_device,
-            vk_swapchain,
-            nullptr);
+        destroy_swapchain();
 
         vkDestroyDevice(
             vk_device,
