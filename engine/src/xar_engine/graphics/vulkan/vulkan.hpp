@@ -36,6 +36,7 @@ namespace xar_engine::graphics::vulkan
         void init_ubo_data();
         void init_descriptors();
         void init_cmd_buffers();
+        void init_depth();
         void init_texture();
         void init_texture_view();
         void init_sampler();
@@ -83,7 +84,8 @@ namespace xar_engine::graphics::vulkan
             VkImage image,
             VkFormat format,
             VkImageLayout oldLayout,
-            VkImageLayout newLayout);
+            VkImageLayout newLayout,
+            VkImageAspectFlags aspect);
 
         void copyBufferToImage(
             VkBuffer buffer,
@@ -91,7 +93,19 @@ namespace xar_engine::graphics::vulkan
             uint32_t width,
             uint32_t height);
 
-        VkImageView createImageView(VkImage image, VkFormat format);
+        VkImageView createImageView(
+            VkImage image,
+            VkFormat format,
+            VkImageAspectFlags aspectFlags);
+
+        VkFormat findSupportedFormat(
+            const std::vector<VkFormat>& candidates,
+            VkImageTiling tiling,
+            VkFormatFeatureFlags features);
+
+        VkFormat findDepthFormat();
+
+        bool hasStencilComponent(VkFormat format);
 
     private:
         os::GlfwWindow* _glfw_window;
@@ -133,6 +147,10 @@ namespace xar_engine::graphics::vulkan
         VkImageView textureImageView;
         VkDeviceMemory textureImageMemory;
         VkSampler textureSampler;
+
+        VkImage depthImage;
+        VkDeviceMemory depthImageMemory;
+        VkImageView depthImageView;
 
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;

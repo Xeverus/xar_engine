@@ -5,6 +5,7 @@
 #include <vector>
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -26,7 +27,7 @@ namespace xar_engine::graphics::vulkan
 
         struct Vertex
         {
-            glm::vec2 position;
+            glm::vec3 position;
             glm::vec3 color;
             glm::vec2 textureCoords;
 
@@ -46,7 +47,7 @@ namespace xar_engine::graphics::vulkan
 
                 attributeDescriptions[0].binding = 0;
                 attributeDescriptions[0].location = 0;
-                attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+                attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
                 attributeDescriptions[0].offset = offsetof(Vertex,
                                                            position);
 
@@ -59,21 +60,28 @@ namespace xar_engine::graphics::vulkan
                 attributeDescriptions[2].binding = 0;
                 attributeDescriptions[2].location = 2;
                 attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-                attributeDescriptions[2].offset = offsetof(Vertex, textureCoords);
+                attributeDescriptions[2].offset = offsetof(Vertex,
+                                                           textureCoords);
 
                 return attributeDescriptions;
             }
         };
 
         const std::vector<Vertex> vertices = {
-            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+            {{-0.5f, -0.5f, 0.0f},  {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            {{0.5f,  -0.5f, 0.0f},  {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+            {{0.5f,  0.5f,  0.0f},  {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+            {{-0.5f, 0.5f,  0.0f},  {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+            {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            {{0.5f,  -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+            {{0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+            {{-0.5f, 0.5f,  -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
         };
 
         const std::vector<uint16_t> indices = {
-            0, 1, 2, 2, 3, 0
+            0, 1, 2, 2, 3, 0,
+            4, 5, 6, 6, 7, 4
         };
 
         struct UniformBufferObject
@@ -404,7 +412,8 @@ namespace xar_engine::graphics::vulkan
         {
             swapchain_image_views[i] = createImageView(
                 swapchain_images[i],
-                format_to_use.format);
+                format_to_use.format,
+                VK_IMAGE_ASPECT_COLOR_BIT);
         }
     }
 
@@ -878,6 +887,35 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
+    void Vulkan::init_depth()
+    {
+        VkFormat depthFormat = findDepthFormat();
+
+        createImage(
+            swapchainExtent.width,
+            swapchainExtent.height,
+            depthFormat,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            depthImage,
+            depthImageMemory);
+
+        depthImageView = createImageView(
+            depthImage,
+            depthFormat,
+            VK_IMAGE_ASPECT_DEPTH_BIT);
+
+        transitionImageLayout(
+            depthImage,
+            depthFormat,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            VK_IMAGE_ASPECT_DEPTH_BIT);
+
+
+    }
+
     void Vulkan::init_texture()
     {
         const auto image = asset::ImageLoaderFactory::make_loader()->load_image_from_file("assets/image.png");
@@ -923,7 +961,8 @@ namespace xar_engine::graphics::vulkan
             textureImage,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_ASPECT_COLOR_BIT);
 
         copyBufferToImage(
             stagingBuffer,
@@ -935,7 +974,8 @@ namespace xar_engine::graphics::vulkan
             textureImage,
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            VK_IMAGE_ASPECT_COLOR_BIT);
 
         vkDestroyBuffer(
             vk_device,
@@ -951,7 +991,8 @@ namespace xar_engine::graphics::vulkan
     {
         textureImageView = createImageView(
             textureImage,
-            VK_FORMAT_R8G8B8A8_SRGB);
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     void Vulkan::init_sampler()
@@ -1448,6 +1489,19 @@ namespace xar_engine::graphics::vulkan
             textureImageMemory,
             nullptr);
 
+        vkDestroyImageView(
+            vk_device,
+            depthImageView,
+            nullptr);
+        vkDestroyImage(
+            vk_device,
+            depthImage,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            depthImageMemory,
+            nullptr);
+
         // cleanup
         for (auto view: swapchain_image_views)
         {
@@ -1628,10 +1682,10 @@ namespace xar_engine::graphics::vulkan
         imageInfo.extent.depth = 1;
         imageInfo.mipLevels = 1;
         imageInfo.arrayLayers = 1;
-        imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-        imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        imageInfo.format = format;
+        imageInfo.tiling = tiling;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.usage = usage;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.flags = 0; // Optional
@@ -1640,7 +1694,7 @@ namespace xar_engine::graphics::vulkan
             vk_device,
             &imageInfo,
             nullptr,
-            &textureImage) != VK_SUCCESS)
+            &image) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create image!");
         }
@@ -1648,7 +1702,7 @@ namespace xar_engine::graphics::vulkan
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(
             vk_device,
-            textureImage,
+            image,
             &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
@@ -1656,21 +1710,21 @@ namespace xar_engine::graphics::vulkan
         allocInfo.allocationSize = memRequirements.size;
         allocInfo.memoryTypeIndex = findMemoryType(
             memRequirements.memoryTypeBits,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            properties);
 
         if (vkAllocateMemory(
             vk_device,
             &allocInfo,
             nullptr,
-            &textureImageMemory) != VK_SUCCESS)
+            &imageMemory) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
         vkBindImageMemory(
             vk_device,
-            textureImage,
-            textureImageMemory,
+            image,
+            imageMemory,
             0);
     }
 
@@ -1726,7 +1780,8 @@ namespace xar_engine::graphics::vulkan
         VkImage image,
         VkFormat format,
         VkImageLayout oldLayout,
-        VkImageLayout newLayout)
+        VkImageLayout newLayout,
+        VkImageAspectFlags aspect)
     {
         VkCommandBuffer tempCommandBuffer = beginSingleTimeCommands();
 
@@ -1739,7 +1794,7 @@ namespace xar_engine::graphics::vulkan
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
         barrier.image = image;
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.aspectMask = aspect;
         barrier.subresourceRange.baseMipLevel = 0;
         barrier.subresourceRange.levelCount = 1;
         barrier.subresourceRange.baseArrayLayer = 0;
@@ -1767,6 +1822,16 @@ namespace xar_engine::graphics::vulkan
 
             sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+                 newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+        {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask =
+                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         }
         else
         {
@@ -1827,14 +1892,15 @@ namespace xar_engine::graphics::vulkan
 
     VkImageView Vulkan::createImageView(
         VkImage image,
-        VkFormat format)
+        VkFormat format,
+        VkImageAspectFlags aspectFlags)
     {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = image;
         viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         viewInfo.format = format;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.aspectMask = aspectFlags;
         viewInfo.subresourceRange.baseMipLevel = 0;
         viewInfo.subresourceRange.levelCount = 1;
         viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -1851,5 +1917,45 @@ namespace xar_engine::graphics::vulkan
         }
 
         return imageView;
+    }
+
+    VkFormat Vulkan::findSupportedFormat(
+        const std::vector<VkFormat>& candidates,
+        VkImageTiling tiling,
+        VkFormatFeatureFlags features)
+    {
+        for (VkFormat format: candidates)
+        {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(
+                vk_physical_device,
+                format,
+                &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+            {
+                return format;
+            }
+            else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+            {
+                return format;
+            }
+        }
+
+        throw std::runtime_error("failed to find supported format!");
+    }
+
+    VkFormat Vulkan::findDepthFormat()
+    {
+        return findSupportedFormat(
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+        );
+    }
+
+    bool Vulkan::hasStencilComponent(VkFormat format)
+    {
+        return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 }
