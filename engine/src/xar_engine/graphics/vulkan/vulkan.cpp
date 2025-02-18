@@ -68,29 +68,15 @@ namespace xar_engine::graphics::vulkan
             }
         };
 
-        const std::vector<Vertex> vertices = {
-            {{-0.5f, -0.5f, 0.0f},  {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            {{0.5f,  -0.5f, 0.0f},  {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-            {{0.5f,  0.5f,  0.0f},  {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-            {{-0.5f, 0.5f,  0.0f},  {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-            {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            {{0.5f,  -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-            {{0.5f,  0.5f,  -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-            {{-0.5f, 0.5f,  -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-        };
-
-        const std::vector<uint16_t> indices = {
-            0, 1, 2, 2, 3, 0,
-            4, 5, 6, 6, 7, 4
-        };
-
         struct UniformBufferObject
         {
             alignas(16) glm::mat4 model;
             alignas(16) glm::mat4 view;
             alignas(16) glm::mat4 proj;
         };
+
+        std::vector<Vertex> vertices;
+        std::vector<std::uint32_t> indices;
     }
 
     Vulkan::Vulkan(os::GlfwWindow* window)
@@ -768,8 +754,29 @@ namespace xar_engine::graphics::vulkan
     {
         const auto model = xar_engine::asset::ModelLoaderFactory::make_loader()->load_model_from_file("assets/viking_room.obj");
 
-        int a = 12 * 32;
-        (void)a;
+        vertices.resize(model.meshes.back().vertices.size());
+        for (auto i = 0; i < model.meshes.back().vertices.size(); ++i)
+        {
+            vertices[i].position.x = model.meshes.back().vertices[i].x;
+            vertices[i].position.y = model.meshes.back().vertices[i].y;
+            vertices[i].position.z = model.meshes.back().vertices[i].z;
+
+            const auto channels = model.meshes.back().tex_coords_channel_count[0];
+            vertices[i].textureCoords.x = model.meshes.back().tex_coords[0][i * channels + 0];
+            vertices[i].textureCoords.y = model.meshes.back().tex_coords[0][i * channels + 1];
+        }
+
+        indices.resize(model.meshes.back().indices.size());
+        memcpy(
+            indices.data(),
+            model.meshes.back().indices.data(),
+            sizeof(indices[0]) * indices.size());
+
+        const auto vi = vertices.size();
+        const auto ii = indices.size();
+
+        (void)vi;
+        (void)ii;
     }
 
     void Vulkan::init_ubo_data()
@@ -945,7 +952,7 @@ namespace xar_engine::graphics::vulkan
 
     void Vulkan::init_texture()
     {
-        const auto image = asset::ImageLoaderFactory::make_loader()->load_image_from_file("assets/image.png");
+        const auto image = asset::ImageLoaderFactory::make_loader()->load_image_from_file("assets/viking_room.png");
 
         VkDeviceSize imageSize = asset::image::get_byte_size(image);
 
@@ -1286,7 +1293,7 @@ namespace xar_engine::graphics::vulkan
                 commandBuffer[currentFrame],
                 indexBuffer,
                 0,
-                VK_INDEX_TYPE_UINT16);
+                VK_INDEX_TYPE_UINT32);
 
             vkCmdBindDescriptorSets(
                 commandBuffer[currentFrame],
