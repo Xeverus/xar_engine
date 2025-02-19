@@ -210,6 +210,7 @@ namespace xar_engine::graphics::vulkan
 
         VkPhysicalDeviceFeatures device_features{};
         device_features.samplerAnisotropy = VK_TRUE;
+        device_features.sampleRateShading = VK_TRUE;
 
         std::vector<const char*> physical_device_extension_names = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -565,7 +566,7 @@ namespace xar_engine::graphics::vulkan
 
         VkPipelineMultisampleStateCreateInfo multisampling{};
         multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampling.sampleShadingEnable = VK_FALSE;
+        multisampling.sampleShadingEnable = VK_TRUE;
         multisampling.rasterizationSamples = msaaSamples;
         multisampling.minSampleShading = 1.0f; // Optional
         multisampling.pSampleMask = nullptr; // Optional
