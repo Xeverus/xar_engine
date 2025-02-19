@@ -76,7 +76,8 @@ namespace xar_engine::graphics::vulkan
             VkImageUsageFlags usage,
             VkMemoryPropertyFlags properties,
             VkImage& image,
-            VkDeviceMemory& imageMemory);
+            VkDeviceMemory& imageMemory,
+            uint32_t mipLevels);
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -85,7 +86,8 @@ namespace xar_engine::graphics::vulkan
             VkImage image,
             VkFormat format,
             VkImageLayout oldLayout,
-            VkImageLayout newLayout);
+            VkImageLayout newLayout,
+            uint32_t mipLevels);
 
         void copyBufferToImage(
             VkBuffer buffer,
@@ -96,7 +98,8 @@ namespace xar_engine::graphics::vulkan
         VkImageView createImageView(
             VkImage image,
             VkFormat format,
-            VkImageAspectFlags aspectFlags);
+            VkImageAspectFlags aspectFlags,
+            uint32_t mipLevels);
 
         VkFormat findSupportedFormat(
             const std::vector<VkFormat>& candidates,
@@ -106,6 +109,13 @@ namespace xar_engine::graphics::vulkan
         VkFormat findDepthFormat();
 
         bool hasStencilComponent(VkFormat format);
+
+        void generateMipmaps(
+            VkImage image,
+            VkFormat imageFormat,
+            int32_t texWidth,
+            int32_t texHeight,
+            uint32_t mipLevels);
 
     private:
         os::GlfwWindow* _glfw_window;
@@ -143,6 +153,7 @@ namespace xar_engine::graphics::vulkan
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffer;
 
+        uint32_t mipLevels;
         VkImage textureImage;
         VkImageView textureImageView;
         VkDeviceMemory textureImageMemory;
