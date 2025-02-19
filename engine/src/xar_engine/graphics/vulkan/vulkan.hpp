@@ -37,6 +37,7 @@ namespace xar_engine::graphics::vulkan
         void init_ubo_data();
         void init_descriptors();
         void init_cmd_buffers();
+        void init_color_msaa();
         void init_depth();
         void init_texture();
         void init_texture_view();
@@ -77,7 +78,8 @@ namespace xar_engine::graphics::vulkan
             VkMemoryPropertyFlags properties,
             VkImage& image,
             VkDeviceMemory& imageMemory,
-            uint32_t mipLevels);
+            uint32_t mipLevels,
+            VkSampleCountFlagBits numSamples);
 
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
@@ -116,6 +118,8 @@ namespace xar_engine::graphics::vulkan
             int32_t texWidth,
             int32_t texHeight,
             uint32_t mipLevels);
+
+        VkSampleCountFlagBits getMaxUsableSampleCount();
 
     private:
         os::GlfwWindow* _glfw_window;
@@ -163,11 +167,17 @@ namespace xar_engine::graphics::vulkan
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;
 
+        VkImage colorImage;
+        VkDeviceMemory colorImageMemory;
+        VkImageView colorImageView;
+
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;
         std::vector<VkFence> inFlightFence;
 
         uint32_t frameCounter;
         uint32_t currentFrame;
+
+        VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
     };
 }

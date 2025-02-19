@@ -38,7 +38,6 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/asset/assimp_model_loader.hpp
         src/xar_engine/asset/image.cpp
         src/xar_engine/asset/image_loader.cpp
-        src/xar_engine/asset/model.cpp
         src/xar_engine/asset/model_loader.cpp
         src/xar_engine/asset/stb_image_loader.cpp
         src/xar_engine/asset/stb_image_loader.hpp

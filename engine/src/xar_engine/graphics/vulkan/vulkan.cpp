@@ -230,6 +230,8 @@ namespace xar_engine::graphics::vulkan
         device_create_info.pNext = &dynamic_rendering_feature;
 
         vk_physical_device = physical_devices[0];
+        msaaSamples = getMaxUsableSampleCount();
+
         const auto device_create_result = vkCreateDevice(
             physical_devices[0],
             &device_create_info,
@@ -249,6 +251,19 @@ namespace xar_engine::graphics::vulkan
 
     void Vulkan::destroy_swapchain()
     {
+        vkDestroyImageView(
+            vk_device,
+            colorImageView,
+            nullptr);
+        vkDestroyImage(
+            vk_device,
+            colorImage,
+            nullptr);
+        vkFreeMemory(
+            vk_device,
+            colorImageMemory,
+            nullptr);
+
         for (auto& image: swapchain_image_views)
         {
             vkDestroyImageView(
@@ -551,7 +566,7 @@ namespace xar_engine::graphics::vulkan
         VkPipelineMultisampleStateCreateInfo multisampling{};
         multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampling.sampleShadingEnable = VK_FALSE;
-        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampling.rasterizationSamples = msaaSamples;
         multisampling.minSampleShading = 1.0f; // Optional
         multisampling.pSampleMask = nullptr; // Optional
         multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
@@ -919,6 +934,29 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
+    void Vulkan::init_color_msaa()
+    {
+        VkFormat colorFormat = format_to_use.format;
+
+        createImage(
+            swapchainExtent.width,
+            swapchainExtent.height,
+            colorFormat,
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            colorImage,
+            colorImageMemory,
+            1,
+            msaaSamples);
+
+        colorImageView = createImageView(
+            colorImage,
+            colorFormat,
+            VK_IMAGE_ASPECT_COLOR_BIT,
+            1);
+    }
+
     void Vulkan::init_depth()
     {
         VkFormat depthFormat = findDepthFormat();
@@ -932,7 +970,8 @@ namespace xar_engine::graphics::vulkan
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             depthImage,
             depthImageMemory,
-            1);
+            1,
+            msaaSamples);
 
         depthImageView = createImageView(
             depthImage,
@@ -993,7 +1032,8 @@ namespace xar_engine::graphics::vulkan
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             textureImage,
             textureImageMemory,
-            mipLevels);
+            mipLevels,
+            VK_SAMPLE_COUNT_1_BIT);
 
         transitionImageLayout(
             textureImage,
@@ -1148,6 +1188,7 @@ namespace xar_engine::graphics::vulkan
             wait();
             destroy_swapchain();
             init_swapchain();
+            init_color_msaa();
             init_depth();
             XAR_LOG(
                 logging::LogLevel::DEBUG,
@@ -1230,10 +1271,13 @@ namespace xar_engine::graphics::vulkan
             VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
             vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
             vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
-            vkRenderingAttachmentInfoColor.imageView = swapchain_image_views[imageIndex];
-            vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+            vkRenderingAttachmentInfoColor.imageView = colorImageView;
+            vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+            vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+            vkRenderingAttachmentInfoColor.resolveImageView = swapchain_image_views[imageIndex];
 
             VkClearValue clearDepthColor{};
             clearDepthColor.depthStencil = {1.0f, 0};
@@ -1242,7 +1286,7 @@ namespace xar_engine::graphics::vulkan
             vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
             vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
             vkRenderingAttachmentInfoDepth.imageView = depthImageView;
-            vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+            vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
@@ -1414,6 +1458,7 @@ namespace xar_engine::graphics::vulkan
                 wait();
                 destroy_swapchain();
                 init_swapchain();
+                init_color_msaa();
                 init_depth();
                 XAR_LOG(
                     logging::LogLevel::DEBUG,
@@ -1709,7 +1754,8 @@ namespace xar_engine::graphics::vulkan
         VkMemoryPropertyFlags properties,
         VkImage& image,
         VkDeviceMemory& imageMemory,
-        uint32_t mipLevels)
+        uint32_t requestedMipLevels,
+        VkSampleCountFlagBits numSamples)
     {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1717,14 +1763,14 @@ namespace xar_engine::graphics::vulkan
         imageInfo.extent.width = static_cast<uint32_t>(width);
         imageInfo.extent.height = static_cast<uint32_t>(height);
         imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = mipLevels;
+        imageInfo.mipLevels = requestedMipLevels;
         imageInfo.arrayLayers = 1;
         imageInfo.format = format;
         imageInfo.tiling = tiling;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.samples = numSamples;
         imageInfo.flags = 0; // Optional
 
         if (vkCreateImage(
@@ -2134,5 +2180,42 @@ namespace xar_engine::graphics::vulkan
 
 
         endSingleTimeCommands(tempCommandBuffer);
+    }
+
+    VkSampleCountFlagBits Vulkan::getMaxUsableSampleCount()
+    {
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(
+            vk_physical_device,
+            &physicalDeviceProperties);
+
+        VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                    physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+        if (counts & VK_SAMPLE_COUNT_64_BIT)
+        {
+            return VK_SAMPLE_COUNT_64_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_32_BIT)
+        {
+            return VK_SAMPLE_COUNT_32_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_16_BIT)
+        {
+            return VK_SAMPLE_COUNT_16_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_8_BIT)
+        {
+            return VK_SAMPLE_COUNT_8_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_4_BIT)
+        {
+            return VK_SAMPLE_COUNT_4_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_2_BIT)
+        {
+            return VK_SAMPLE_COUNT_2_BIT;
+        }
+
+        return VK_SAMPLE_COUNT_1_BIT;
     }
 }
