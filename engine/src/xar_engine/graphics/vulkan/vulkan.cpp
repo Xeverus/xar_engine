@@ -762,9 +762,9 @@ namespace xar_engine::graphics::vulkan
             vertices[i].position.y = model.meshes.back().vertices[i].y;
             vertices[i].position.z = model.meshes.back().vertices[i].z;
 
-            const auto channels = model.meshes.back().tex_coords_channel_count[0];
-            vertices[i].textureCoords.x = model.meshes.back().tex_coords[0][i * channels + 0];
-            vertices[i].textureCoords.y = model.meshes.back().tex_coords[0][i * channels + 1];
+            const auto channels = model.meshes.back().tex_coords[0].channel_count;
+            vertices[i].textureCoords.x = model.meshes.back().tex_coords[0].coords[i * channels + 0];
+            vertices[i].textureCoords.y = model.meshes.back().tex_coords[0].coords[i * channels + 1];
         }
 
         indices.resize(model.meshes.back().indices.size());

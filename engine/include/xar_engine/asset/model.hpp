@@ -1,31 +1,32 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
+
+#include <xar_engine/math/vector.hpp>
 
 
 namespace xar_engine::asset
 {
-    struct Float3
+    struct TextureCoords
     {
-        float x;
-        float y;
-        float z;
+        std::vector<float> coords;
+        std::uint32_t channel_count;
     };
-
-    static_assert(sizeof(Float3) == sizeof(float) * 3);
 
     struct Mesh
     {
-        std::vector<Float3> vertices;
-        std::vector<std::uint32_t> indices;
+        std::vector<math::Vector3f> vertices;
+        std::vector<math::Vector3f> normals;
+        std::vector<TextureCoords> tex_coords;
 
-        std::vector<std::vector<float>> tex_coords;
-        std::vector<std::uint32_t> tex_coords_channel_count;
+        std::vector<std::uint32_t> indices;
     };
 
     struct Model
     {
+        std::string name;
         std::vector<Mesh> meshes;
     };
 }

@@ -18,6 +18,7 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/graphics/vulkan_test.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
+        include/xar_engine/math/vector.hpp
         include/xar_engine/meta/enum.hpp
         include/xar_engine/meta/overloaded.hpp
         include/xar_engine/logging/console_logger.hpp
