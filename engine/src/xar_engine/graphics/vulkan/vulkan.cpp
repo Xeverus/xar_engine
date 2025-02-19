@@ -755,16 +755,16 @@ namespace xar_engine::graphics::vulkan
     {
         const auto model = xar_engine::asset::ModelLoaderFactory::make_loader()->load_model_from_file("assets/viking_room.obj");
 
-        vertices.resize(model.meshes.back().vertices.size());
-        for (auto i = 0; i < model.meshes.back().vertices.size(); ++i)
+        vertices.resize(model.meshes.back().positions.size());
+        for (auto i = 0; i < model.meshes.back().positions.size(); ++i)
         {
-            vertices[i].position.x = model.meshes.back().vertices[i].x;
-            vertices[i].position.y = model.meshes.back().vertices[i].y;
-            vertices[i].position.z = model.meshes.back().vertices[i].z;
+            vertices[i].position.x = model.meshes.back().positions[i].x;
+            vertices[i].position.y = model.meshes.back().positions[i].y;
+            vertices[i].position.z = model.meshes.back().positions[i].z;
 
-            const auto channels = model.meshes.back().tex_coords[0].channel_count;
-            vertices[i].textureCoords.x = model.meshes.back().tex_coords[0].coords[i * channels + 0];
-            vertices[i].textureCoords.y = model.meshes.back().tex_coords[0].coords[i * channels + 1];
+            const auto channels = model.meshes.back().texture_coords[0].channel_count;
+            vertices[i].textureCoords.x = model.meshes.back().texture_coords[0].coords[i * channels + 0];
+            vertices[i].textureCoords.y = model.meshes.back().texture_coords[0].coords[i * channels + 1];
         }
 
         indices.resize(model.meshes.back().indices.size());

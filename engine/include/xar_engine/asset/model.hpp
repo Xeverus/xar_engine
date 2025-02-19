@@ -17,16 +17,21 @@ namespace xar_engine::asset
 
     struct Mesh
     {
-        std::vector<math::Vector3f> vertices;
+        std::vector<math::Vector3f> positions;
         std::vector<math::Vector3f> normals;
-        std::vector<TextureCoords> tex_coords;
+        std::vector<TextureCoords> texture_coords;
 
         std::vector<std::uint32_t> indices;
     };
 
-    struct Model
+    struct ModelMetadata
     {
         std::string name;
+    };
+
+    struct Model
+    {
+        ModelMetadata metadata;
         std::vector<Mesh> meshes;
     };
 }
