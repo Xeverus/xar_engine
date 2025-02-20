@@ -74,23 +74,36 @@ set(XAR_ENGINE_PRIVATE_FILES
 
 
 ##############################
-# IMPL
+# Interface
 ##############################
-add_library(xar_engine_impl STATIC)
+add_library(xar_engine_interface INTERFACE)
 
-target_sources(xar_engine_impl PUBLIC
-        ${XAR_ENGINE_PUBLIC_FILES}
-        ${XAR_ENGINE_PRIVATE_FILES})
-
-target_include_directories(xar_engine_impl
-        PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(xar_engine_interface
+        INTERFACE
             ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(xar_engine_impl
+
+##############################
+# Implementation
+##############################
+add_library(xar_engine SHARED)
+
+target_sources(xar_engine
+        PRIVATE
+            ${XAR_ENGINE_PUBLIC_FILES}
+            ${XAR_ENGINE_PRIVATE_FILES})
+
+target_include_directories(xar_engine
         PUBLIC
-            assimp::assimp
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+target_link_libraries(xar_engine
+        PUBLIC
             fmt::fmt
+        PRIVATE
+            assimp::assimp
             glfw
             glm::glm
             stb::stb
@@ -98,21 +111,6 @@ target_link_libraries(xar_engine_impl
 
 
 ##############################
-# Final target
+# Tests
 ##############################
-add_library(xar_engine SHARED)
-
-target_sources(xar_engine PUBLIC
-        ${XAR_ENGINE_PUBLIC_FILES})
-
-target_include_directories(xar_engine
-        PUBLIC
-            ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_link_libraries(xar_engine
-        PUBLIC
-            fmt::fmt
-        PRIVATE
-            xar_engine_impl)
-
 add_subdirectory(test)

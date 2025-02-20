@@ -1,5 +1,7 @@
 add_executable(xar_engine_test_application)
 
+find_package(GTest REQUIRED)
+
 target_sources(xar_engine_test_application
         PRIVATE
             main.cpp)

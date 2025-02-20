@@ -21,6 +21,8 @@ class XarEngine(ConanFile):
         if cross_building(self):
             self.output.warn("Cross-building detected")
 
+        self.options["assimp/*"].with_obj = True
+
         self.options["assimp/*"].with_x = False
         self.options["assimp/*"].with_3d = False
         self.options["assimp/*"].with_ac = False
@@ -49,7 +51,6 @@ class XarEngine(ConanFile):
         self.options["assimp/*"].with_mmd = False
         self.options["assimp/*"].with_ndo = False
         self.options["assimp/*"].with_nff = False
-        self.options["assimp/*"].with_obj = True
         self.options["assimp/*"].with_off = False
         self.options["assimp/*"].with_ply = False
         self.options["assimp/*"].with_q3d = False
@@ -93,7 +94,7 @@ class XarEngine(ConanFile):
         self.build_requires("cmake/3.25.0")
 
     def requirements(self):
-        self.requires("assimp/5.4.2")
+        self.requires("assimp/5.4.3")
         self.requires("benchmark/1.9.0")
         self.requires("fmt/11.0.0")
         # self.requires("gperftools/2.16")  # https://github.com/gperftools/gperftools
@@ -101,7 +102,7 @@ class XarEngine(ConanFile):
         self.requires("glm/1.0.1")
         self.requires("gtest/1.15.0")
         self.requires("stb/cci.20240531")
-        self.requires("volk/1.3.268.0")
+        self.requires("volk/1.3.296.0")
 
     def layout(self):
         cmake_layout(self)

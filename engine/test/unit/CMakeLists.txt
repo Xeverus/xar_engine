@@ -19,7 +19,7 @@ target_link_libraries(xar_engine_test_unit
 
 add_custom_command(TARGET xar_engine_test_unit
         POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:xar_engine_impl>
+            $<TARGET_FILE:xar_engine>
             $<TARGET_FILE_DIR:xar_engine_test_unit>)
 
 add_custom_command(TARGET xar_engine_test_unit

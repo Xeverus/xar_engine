@@ -1,4 +1,4 @@
-add_library(xar_engine_test_common)
+add_library(xar_engine_test_common STATIC)
 
 target_sources(xar_engine_test_common
         PUBLIC
@@ -15,4 +15,5 @@ target_link_libraries(xar_engine_test_common
         PUBLIC
             GTest::gmock
             GTest::gtest
-            xar_engine_impl)
+            xar_engine
+            xar_engine_interface)

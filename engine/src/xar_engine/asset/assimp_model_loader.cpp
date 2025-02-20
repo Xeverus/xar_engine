@@ -163,7 +163,7 @@ namespace xar_engine::asset
                                                     aiProcess_JoinIdenticalVertices;
 
                 auto importer = Assimp::Importer{};
-                    _scene = importer.ReadFile(
+                _scene = importer.ReadFile(
                     _path.string(),
                     aiPostProcessSteps);
                 XAR_THROW_IF(
@@ -201,7 +201,6 @@ namespace xar_engine::asset
             }
 
         private:
-            std::unique_ptr<Assimp::Importer> _importer;
             mutable const aiScene* _scene;
             std::filesystem::path _path;
         };
