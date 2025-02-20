@@ -7,15 +7,15 @@ namespace xar_engine::time
 {
     namespace
     {
-        const Nanoseconds startup_time = Time::since_epoch();
+        const Nanoseconds startup_time = since_epoch();
     }
 
-    Nanoseconds Time::since_startup()
+    Nanoseconds since_startup()
     {
         return since_epoch() - startup_time;
     }
 
-    Nanoseconds Time::since_epoch()
+    Nanoseconds since_epoch()
     {
         const auto now = std::chrono::steady_clock::now();
         const auto now_ns = std::chrono::time_point_cast<std::chrono::nanoseconds>(now);

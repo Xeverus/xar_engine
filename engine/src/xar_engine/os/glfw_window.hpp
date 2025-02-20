@@ -21,9 +21,6 @@ namespace xar_engine::os
         void update();
         void close();
 
-        [[nodiscard]]
-        GLFWwindow* get_native() const;
-
         void set_on_run(OnRun&& on_run) override;
         void set_on_update(OnUpdate&& on_update) override;
         void set_on_close(OnClose&& on_close) override;

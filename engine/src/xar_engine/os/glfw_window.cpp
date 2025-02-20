@@ -233,11 +233,6 @@ namespace xar_engine::os
         _on_close();
     }
 
-    GLFWwindow* GlfwWindow::get_native() const
-    {
-        return _native_glfw_window;
-    }
-
     void GlfwWindow::set_on_run(IWindow::OnRun&& on_run)
     {
         _on_run = std::move(on_run);
@@ -316,11 +311,11 @@ namespace xar_engine::os
             GLFW_TRUE);
     }
 
-    std::shared_ptr<graphics::IRenderer> GlfwWindow::make_renderer(graphics::RendererType renderer_type)
+    std::shared_ptr<graphics::IRenderer> GlfwWindow::make_renderer(const graphics::RendererType renderer_type)
     {
         static graphics::vulkan::VulkanInstance vulkan_instance;
-        VkSurfaceKHR vk_surface_khr = nullptr;
 
+        VkSurfaceKHR vk_surface_khr = nullptr;
         const auto result = glfwCreateWindowSurface(
             vulkan_instance.get_native(),
             _native_glfw_window,
