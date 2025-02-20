@@ -24,9 +24,9 @@ namespace xar_engine::graphics::vulkan
             VkSurfaceKHR vk_surface_khr,
             const os::IWindow* os_window);
 
-        void init() override;
+        ~VulkanRenderer() override;
+
         void update() override;
-        void shutdown() override;
 
     private:
         void init_device();

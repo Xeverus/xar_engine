@@ -8,8 +8,6 @@ namespace xar_engine::graphics
     public:
         virtual ~IRenderer();
 
-        virtual void init() = 0;
         virtual void update() = 0;
-        virtual void shutdown() = 0;
     };
 }

@@ -2208,10 +2208,6 @@ namespace xar_engine::graphics::vulkan
         , currentFrame(0)
         , frameCounter(0)
     {
-    }
-
-    void VulkanRenderer::init()
-    {
         init_device();
         init_swapchain();
         init_shaders();
@@ -2231,13 +2227,13 @@ namespace xar_engine::graphics::vulkan
         init_sync_objects();
     }
 
+    VulkanRenderer::~VulkanRenderer()
+    {
+        cleanup_sandbox();
+    }
+
     void VulkanRenderer::update()
     {
         run_frame_sandbox();
-    }
-
-    void VulkanRenderer::shutdown()
-    {
-        cleanup_sandbox();
     }
 }

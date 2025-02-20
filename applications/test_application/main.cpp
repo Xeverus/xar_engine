@@ -11,22 +11,20 @@ int main()
     const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
-    std::shared_ptr<xar_engine::graphics::IRenderer> renderer;
-
-    window->set_on_run(
-        [&]()
-        {
-            renderer = window->make_renderer(xar_engine::graphics::RendererType::VULKAN);
-            renderer->init();
-        });
+    auto renderer = window->make_renderer(xar_engine::graphics::RendererType::VULKAN);
 
     window->set_on_update(
-        [&](){
+        [&]()
+        {
             renderer->update();
         });
 
-    window->set_on_resize_event([](const std::int32_t new_width, const std::int32_t new_height){
-    });
+    window->set_on_resize_event(
+        [](
+            const std::int32_t new_width,
+            const std::int32_t new_height)
+        {
+        });
 
     window->set_on_keyboard_event(
         [&](const xar_engine::input::KeyboardEvent& event)
@@ -89,7 +87,6 @@ int main()
     window->set_on_close(
         [&]()
         {
-            renderer->shutdown();
             application->request_close();
         });
 
