@@ -18,6 +18,7 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/graphics/vulkan_test.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
+        include/xar_engine/math/epsilon.hpp
         include/xar_engine/math/vector.hpp
         include/xar_engine/meta/enum.hpp
         include/xar_engine/meta/overloaded.hpp
@@ -60,6 +61,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/logging/logger.cpp
         src/xar_engine/logging/logger_chain.cpp
         src/xar_engine/logging/stream_logger.cpp
+        src/xar_engine/math/epsilon.cpp
         src/xar_engine/meta/enum_impl.hpp
         src/xar_engine/meta/for_each.hpp
         src/xar_engine/os/application.cpp
