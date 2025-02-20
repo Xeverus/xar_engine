@@ -1,5 +1,7 @@
 #pragma
 
+#include <ostream>
+
 
 #define ENUM_TO_STRING(enum_type)   \
     namespace xar_engine::meta      \

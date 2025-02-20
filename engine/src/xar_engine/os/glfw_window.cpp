@@ -2,6 +2,9 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_renderer.hpp>
+
 
 namespace xar_engine::os
 {
@@ -16,7 +19,9 @@ namespace xar_engine::os
         const IWindow::OnClose empty_on_close = []()
         {
         };
-        const IWindow::OnResize empty_on_resize = [](const int32_t, const int32_t)
+        const IWindow::OnResize empty_on_resize = [](
+            const int32_t,
+            const int32_t)
         {
         };
         const IWindow::OnKeyboardEvent empty_on_keyboard_event = [](const input::KeyboardEvent&)
@@ -311,6 +316,27 @@ namespace xar_engine::os
             GLFW_TRUE);
     }
 
+    std::shared_ptr<graphics::IRenderer> GlfwWindow::make_renderer(graphics::RendererType renderer_type)
+    {
+        static graphics::vulkan::VulkanInstance vulkan_instance;
+        VkSurfaceKHR vk_surface_khr = nullptr;
+
+        const auto result = glfwCreateWindowSurface(
+            vulkan_instance.get_native(),
+            _native_glfw_window,
+            nullptr,
+            &vk_surface_khr);
+        XAR_THROW_IF(
+            result != VK_SUCCESS,
+            error::XarException,
+            "Failed to create window surface");
+
+        return std::make_shared<graphics::vulkan::VulkanRenderer>(
+            vulkan_instance.get_native(),
+            vk_surface_khr,
+            this);
+    }
+
     bool GlfwWindow::close_requested() const
     {
         return glfwWindowShouldClose(_native_glfw_window);
@@ -319,5 +345,20 @@ namespace xar_engine::os
     const std::string& GlfwWindow::get_title() const
     {
         return _parameters.title;
+    }
+
+    math::Vector2i32 GlfwWindow::get_surface_pixel_size() const
+    {
+        std::int32_t width;
+        std::int32_t height;
+        glfwGetFramebufferSize(
+            _native_glfw_window,
+            &width,
+            &height);
+
+        return {
+            width,
+            height
+        };
     }
 }

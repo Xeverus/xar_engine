@@ -1,30 +1,34 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include <volk.h>
-#include <glfw/glfw3.h>
+
+#include <xar_engine/graphics/renderer.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
-
-#include <xar_engine/os/glfw_window.hpp>
+#include <xar_engine/os/window.hpp>
 
 
 namespace xar_engine::graphics::vulkan
 {
-    class Vulkan
+    class VulkanRenderer
+        : public IRenderer
     {
     public:
-        const int MAX_FRAMES_IN_FLIGHT = 2;
+        explicit VulkanRenderer(
+            VkInstance vk_instance,
+            VkSurfaceKHR vk_surface_khr,
+            const os::IWindow* os_window);
 
-    public:
-        explicit Vulkan(os::GlfwWindow* window);
+        void init() override;
+        void update() override;
+        void shutdown() override;
 
-        void init_surface();
+    private:
         void init_device();
         void destroy_swapchain();
         void init_swapchain();
@@ -122,11 +126,12 @@ namespace xar_engine::graphics::vulkan
         VkSampleCountFlagBits getMaxUsableSampleCount();
 
     private:
-        os::GlfwWindow* _glfw_window;
+        const os::IWindow* _os_window;
+        VkSurfaceKHR _vk_surface_khr;
+
         std::unique_ptr<logging::ILogger> _logger;
 
-        VulkanInstance vk_instance;
-        VkSurfaceKHR vk_surface;
+        VkInstance _vk_instance;
         VkPhysicalDevice vk_physical_device;
         VkDevice vk_device;
         VkQueue vk_queue;

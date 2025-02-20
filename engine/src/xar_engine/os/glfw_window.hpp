@@ -3,6 +3,7 @@
 #include <deque>
 #include <optional>
 
+#include <volk.h>
 #include <GLFW/glfw3.h>
 
 #include <xar_engine/os/window.hpp>
@@ -39,11 +40,14 @@ namespace xar_engine::os
 
         void request_close() override;
 
-        [[nodiscard]]
-        bool close_requested() const override;
+        std::shared_ptr<graphics::IRenderer> make_renderer(graphics::RendererType renderer_type) override;
 
         [[nodiscard]]
+        bool close_requested() const override;
+        [[nodiscard]]
         const std::string& get_title() const override;
+        [[nodiscard]]
+        math::Vector2i32 get_surface_pixel_size() const override;
 
     private:
         struct ResizeEvent

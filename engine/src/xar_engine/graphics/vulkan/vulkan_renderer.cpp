@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/vulkan.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_renderer.hpp>
 
 #include <chrono>
 #include <thread>
@@ -24,6 +24,7 @@ namespace xar_engine::graphics::vulkan
 {
     namespace
     {
+        constexpr int MAX_FRAMES_IN_FLIGHT = 2;
         constexpr auto tag = "Vulkan Sandbox";
 
         struct Vertex
@@ -79,39 +80,17 @@ namespace xar_engine::graphics::vulkan
         std::vector<std::uint32_t> indices;
     }
 
-    Vulkan::Vulkan(os::GlfwWindow* window)
-        : vk_instance()
-        , _glfw_window(window)
-        , _logger(std::make_unique<logging::ConsoleLogger>())
-        , currentFrame(0)
-        , frameCounter(0)
-    {
-    }
-
-    void Vulkan::init_surface()
-    {
-        const auto result = glfwCreateWindowSurface(
-            vk_instance.get_native(),
-            _glfw_window->get_native(),
-            nullptr,
-            &vk_surface);
-        XAR_THROW_IF(
-            result != VK_SUCCESS,
-            error::XarException,
-            "Failed to create window surface");
-    }
-
-    void Vulkan::init_device()
+    void VulkanRenderer::init_device()
     {
         // physical device
         std::uint32_t physical_devices_count = 0;
         vkEnumeratePhysicalDevices(
-            vk_instance.get_native(),
+            _vk_instance,
             &physical_devices_count,
             nullptr);
         std::vector<VkPhysicalDevice> physical_devices(physical_devices_count);
         vkEnumeratePhysicalDevices(
-            vk_instance.get_native(),
+            _vk_instance,
             &physical_devices_count,
             physical_devices.data());
 
@@ -159,7 +138,7 @@ namespace xar_engine::graphics::vulkan
                 vkGetPhysicalDeviceSurfaceSupportKHR(
                     physical_device,
                     queue_family_index,
-                    vk_surface,
+                    _vk_surface_khr,
                     &present_support);
                 ++queue_family_index;
 
@@ -250,7 +229,7 @@ namespace xar_engine::graphics::vulkan
             &vk_queue);
     }
 
-    void Vulkan::destroy_swapchain()
+    void VulkanRenderer::destroy_swapchain()
     {
         vkDestroyImageView(
             vk_device,
@@ -293,49 +272,49 @@ namespace xar_engine::graphics::vulkan
             nullptr);
     }
 
-    void Vulkan::init_swapchain()
+    void VulkanRenderer::init_swapchain()
     {
         // physical device
         std::uint32_t physical_devices_count = 0;
         vkEnumeratePhysicalDevices(
-            vk_instance.get_native(),
+            _vk_instance,
             &physical_devices_count,
             nullptr);
         std::vector<VkPhysicalDevice> physical_devices(physical_devices_count);
         vkEnumeratePhysicalDevices(
-            vk_instance.get_native(),
+            _vk_instance,
             &physical_devices_count,
             physical_devices.data());
 
         VkSurfaceCapabilitiesKHR capabilities;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
             physical_devices[0],
-            vk_surface,
+            _vk_surface_khr,
             &capabilities);
 
         std::uint32_t formats_count = 0;
         vkGetPhysicalDeviceSurfaceFormatsKHR(
             physical_devices[0],
-            vk_surface,
+            _vk_surface_khr,
             &formats_count,
             nullptr);
         std::vector<VkSurfaceFormatKHR> formats(formats_count);
         vkGetPhysicalDeviceSurfaceFormatsKHR(
             physical_devices[0],
-            vk_surface,
+            _vk_surface_khr,
             &formats_count,
             formats.data());
 
         std::uint32_t present_modes_count = 0;
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             physical_devices[0],
-            vk_surface,
+            _vk_surface_khr,
             &present_modes_count,
             nullptr);
         std::vector<VkPresentModeKHR> present_modes(present_modes_count);
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             physical_devices[0],
-            vk_surface,
+            _vk_surface_khr,
             &present_modes_count,
             present_modes.data());
 
@@ -359,16 +338,10 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        std::int32_t fb_size_x;
-        std::int32_t fb_size_y;
-        glfwGetFramebufferSize(
-            _glfw_window->get_native(),
-            &fb_size_x,
-            &fb_size_y);
-
+        const auto fb_size = _os_window->get_surface_pixel_size();
         swapchainExtent = {
-            static_cast<std::uint32_t>(fb_size_x),
-            static_cast<std::uint32_t>(fb_size_y),
+            static_cast<std::uint32_t>(fb_size.x),
+            static_cast<std::uint32_t>(fb_size.y),
         };
         swapchainExtent.width = std::clamp(
             swapchainExtent.width,
@@ -385,7 +358,7 @@ namespace xar_engine::graphics::vulkan
 
         VkSwapchainCreateInfoKHR swapchain_info{};
         swapchain_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchain_info.surface = vk_surface;
+        swapchain_info.surface = _vk_surface_khr;
         swapchain_info.minImageCount = image_count;
         swapchain_info.imageFormat = format_to_use.format;
         swapchain_info.imageColorSpace = format_to_use.colorSpace;
@@ -434,7 +407,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_shaders()
+    void VulkanRenderer::init_shaders()
     {
         const auto vert_bytes = xar_engine::file::read_binary_file("assets/triangle.vert.spv");
         const auto frag_bytes = xar_engine::file::read_binary_file("assets/triangle.frag.spv");
@@ -472,7 +445,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_descriptor_set_layout()
+    void VulkanRenderer::init_descriptor_set_layout()
     {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
@@ -505,7 +478,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_graphics_pipeline()
+    void VulkanRenderer::init_graphics_pipeline()
     {
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -665,7 +638,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_vertex_data()
+    void VulkanRenderer::init_vertex_data()
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -716,7 +689,7 @@ namespace xar_engine::graphics::vulkan
             nullptr);
     }
 
-    void Vulkan::init_index_data()
+    void VulkanRenderer::init_index_data()
     {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -767,7 +740,7 @@ namespace xar_engine::graphics::vulkan
             nullptr);
     }
 
-    void Vulkan::init_model()
+    void VulkanRenderer::init_model()
     {
         const auto model = xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj");
 
@@ -790,7 +763,7 @@ namespace xar_engine::graphics::vulkan
             sizeof(indices[0]) * indices.size());
     }
 
-    void Vulkan::init_ubo_data()
+    void VulkanRenderer::init_ubo_data()
     {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -817,7 +790,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_descriptors()
+    void VulkanRenderer::init_descriptors()
     {
         // pool
         std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -902,7 +875,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_cmd_buffers()
+    void VulkanRenderer::init_cmd_buffers()
     {
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -935,7 +908,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_color_msaa()
+    void VulkanRenderer::init_color_msaa()
     {
         VkFormat colorFormat = format_to_use.format;
 
@@ -958,7 +931,7 @@ namespace xar_engine::graphics::vulkan
             1);
     }
 
-    void Vulkan::init_depth()
+    void VulkanRenderer::init_depth()
     {
         VkFormat depthFormat = findDepthFormat();
 
@@ -988,7 +961,7 @@ namespace xar_engine::graphics::vulkan
             1);
     }
 
-    void Vulkan::init_texture()
+    void VulkanRenderer::init_texture()
     {
         const auto image = asset::ImageLoaderFactory().make()->load_image_from_file("assets/viking_room.png");
         mipLevels = static_cast<uint32_t>(std::floor(
@@ -1072,7 +1045,7 @@ namespace xar_engine::graphics::vulkan
             mipLevels);
     }
 
-    void Vulkan::init_texture_view()
+    void VulkanRenderer::init_texture_view()
     {
         textureImageView = createImageView(
             textureImage,
@@ -1081,7 +1054,7 @@ namespace xar_engine::graphics::vulkan
             mipLevels);
     }
 
-    void Vulkan::init_sampler()
+    void VulkanRenderer::init_sampler()
     {
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(
@@ -1116,7 +1089,7 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::init_sync_objects()
+    void VulkanRenderer::init_sync_objects()
     {
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1153,12 +1126,12 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void Vulkan::wait()
+    void VulkanRenderer::wait()
     {
         vkDeviceWaitIdle(vk_device);
     }
 
-    void Vulkan::run_frame_sandbox()
+    void VulkanRenderer::run_frame_sandbox()
     {
         vkWaitForFences(
             vk_device,
@@ -1494,7 +1467,7 @@ namespace xar_engine::graphics::vulkan
         std::this_thread::sleep_for(16ms);
     }
 
-    void Vulkan::cleanup_sandbox()
+    void VulkanRenderer::cleanup_sandbox()
     {
         vkDeviceWaitIdle(vk_device);
 
@@ -1601,16 +1574,16 @@ namespace xar_engine::graphics::vulkan
             vk_device,
             nullptr);
         vkDestroySurfaceKHR(
-            vk_instance.get_native(),
-            vk_surface,
+            _vk_instance,
+            _vk_surface_khr,
             nullptr);
         vkDestroyInstance(
-            vk_instance.get_native(),
+            _vk_instance,
             nullptr);
 #pragma endregion
     }
 
-    std::uint32_t Vulkan::findMemoryType(
+    std::uint32_t VulkanRenderer::findMemoryType(
         uint32_t typeFilter,
         VkMemoryPropertyFlags properties)
     {
@@ -1631,7 +1604,7 @@ namespace xar_engine::graphics::vulkan
                   "Failed to find suitable memory type");
     };
 
-    void Vulkan::createBuffer(
+    void VulkanRenderer::createBuffer(
         VkDeviceSize size,
         VkBufferUsageFlags usage,
         VkMemoryPropertyFlags properties,
@@ -1682,7 +1655,7 @@ namespace xar_engine::graphics::vulkan
             0);
     }
 
-    void Vulkan::copyBuffer(
+    void VulkanRenderer::copyBuffer(
         VkBuffer srcBuffer,
         VkBuffer dstBuffer,
         VkDeviceSize size)
@@ -1701,7 +1674,7 @@ namespace xar_engine::graphics::vulkan
         endSingleTimeCommands(tmpCommandBuffer);
     }
 
-    void Vulkan::updateUniformBuffer(uint32_t currentImageNr)
+    void VulkanRenderer::updateUniformBuffer(uint32_t currentImageNr)
     {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -1746,7 +1719,7 @@ namespace xar_engine::graphics::vulkan
             sizeof(ubo));
     }
 
-    void Vulkan::createImage(
+    void VulkanRenderer::createImage(
         uint32_t width,
         uint32_t height,
         VkFormat format,
@@ -1812,7 +1785,7 @@ namespace xar_engine::graphics::vulkan
             0);
     }
 
-    VkCommandBuffer Vulkan::beginSingleTimeCommands()
+    VkCommandBuffer VulkanRenderer::beginSingleTimeCommands()
     {
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1837,7 +1810,7 @@ namespace xar_engine::graphics::vulkan
         return tmpCommandBuffer;
     }
 
-    void Vulkan::endSingleTimeCommands(VkCommandBuffer tmpCommandBuffer)
+    void VulkanRenderer::endSingleTimeCommands(VkCommandBuffer tmpCommandBuffer)
     {
         vkEndCommandBuffer(tmpCommandBuffer);
 
@@ -1860,7 +1833,7 @@ namespace xar_engine::graphics::vulkan
             &tmpCommandBuffer);
     }
 
-    void Vulkan::transitionImageLayout(
+    void VulkanRenderer::transitionImageLayout(
         VkImage image,
         VkFormat format,
         VkImageLayout oldLayout,
@@ -1951,7 +1924,7 @@ namespace xar_engine::graphics::vulkan
         endSingleTimeCommands(tempCommandBuffer);
     }
 
-    void Vulkan::copyBufferToImage(
+    void VulkanRenderer::copyBufferToImage(
         VkBuffer buffer,
         VkImage image,
         uint32_t width,
@@ -1988,7 +1961,7 @@ namespace xar_engine::graphics::vulkan
         endSingleTimeCommands(tempCommandBuffer);
     }
 
-    VkImageView Vulkan::createImageView(
+    VkImageView VulkanRenderer::createImageView(
         VkImage image,
         VkFormat format,
         VkImageAspectFlags aspectFlags,
@@ -2018,7 +1991,7 @@ namespace xar_engine::graphics::vulkan
         return imageView;
     }
 
-    VkFormat Vulkan::findSupportedFormat(
+    VkFormat VulkanRenderer::findSupportedFormat(
         const std::vector<VkFormat>& candidates,
         VkImageTiling tiling,
         VkFormatFeatureFlags features)
@@ -2044,7 +2017,7 @@ namespace xar_engine::graphics::vulkan
         throw std::runtime_error("failed to find supported format!");
     }
 
-    VkFormat Vulkan::findDepthFormat()
+    VkFormat VulkanRenderer::findDepthFormat()
     {
         return findSupportedFormat(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
@@ -2053,12 +2026,12 @@ namespace xar_engine::graphics::vulkan
         );
     }
 
-    bool Vulkan::hasStencilComponent(VkFormat format)
+    bool VulkanRenderer::hasStencilComponent(VkFormat format)
     {
         return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
-    void Vulkan::generateMipmaps(
+    void VulkanRenderer::generateMipmaps(
         VkImage image,
         VkFormat imageFormat,
         int32_t texWidth,
@@ -2183,7 +2156,7 @@ namespace xar_engine::graphics::vulkan
         endSingleTimeCommands(tempCommandBuffer);
     }
 
-    VkSampleCountFlagBits Vulkan::getMaxUsableSampleCount()
+    VkSampleCountFlagBits VulkanRenderer::getMaxUsableSampleCount()
     {
         VkPhysicalDeviceProperties physicalDeviceProperties;
         vkGetPhysicalDeviceProperties(
@@ -2218,5 +2191,53 @@ namespace xar_engine::graphics::vulkan
         }
 
         return VK_SAMPLE_COUNT_1_BIT;
+    }
+}
+
+
+namespace xar_engine::graphics::vulkan
+{
+    VulkanRenderer::VulkanRenderer(
+        VkInstance vk_instance,
+        VkSurfaceKHR _vk_surface_khr,
+        const os::IWindow* os_window)
+        : _vk_instance(vk_instance)
+        , _vk_surface_khr(_vk_surface_khr)
+        , _os_window(os_window)
+        , _logger(std::make_unique<logging::ConsoleLogger>())
+        , currentFrame(0)
+        , frameCounter(0)
+    {
+    }
+
+    void VulkanRenderer::init()
+    {
+        init_device();
+        init_swapchain();
+        init_shaders();
+        init_descriptor_set_layout();
+        init_graphics_pipeline();
+        init_cmd_buffers();
+        init_color_msaa();
+        init_depth();
+        init_texture();
+        init_texture_view();
+        init_sampler();
+        init_model();
+        init_vertex_data();
+        init_index_data();
+        init_ubo_data();
+        init_descriptors();
+        init_sync_objects();
+    }
+
+    void VulkanRenderer::update()
+    {
+        run_frame_sandbox();
+    }
+
+    void VulkanRenderer::shutdown()
+    {
+        cleanup_sandbox();
     }
 }

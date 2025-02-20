@@ -1,5 +1,3 @@
-#include <xar_engine/graphics/vulkan_test.hpp>
-
 #include <xar_engine/logging/console_logger.hpp>
 #include <xar_engine/logging/logger.hpp>
 
@@ -7,24 +5,24 @@
 
 #include <xar_engine/os/application.hpp>
 
-#include <iostream>
-
 
 int main()
 {
     const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
+    std::shared_ptr<xar_engine::graphics::IRenderer> renderer;
 
     window->set_on_run(
         [&]()
         {
-            xar_engine::graphics::init_vulkan_test(*window);
+            renderer = window->make_renderer(xar_engine::graphics::RendererType::VULKAN);
+            renderer->init();
         });
 
     window->set_on_update(
-        [](){
-            xar_engine::graphics::run_vulkan_test_frame();
+        [&](){
+            renderer->update();
         });
 
     window->set_on_resize_event([](const std::int32_t new_width, const std::int32_t new_height){
@@ -89,9 +87,9 @@ int main()
         });
 
     window->set_on_close(
-        [&application]()
+        [&]()
         {
-            xar_engine::graphics::cleanup_vulkan_test();
+            renderer->shutdown();
             application->request_close();
         });
 
