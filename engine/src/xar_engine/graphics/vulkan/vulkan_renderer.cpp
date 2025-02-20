@@ -82,241 +82,72 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_device()
     {
-        // physical device
-        std::uint32_t physical_devices_count = 0;
-        vkEnumeratePhysicalDevices(
-            _vk_instance,
-            &physical_devices_count,
-            nullptr);
-        std::vector<VkPhysicalDevice> physical_devices(physical_devices_count);
-        vkEnumeratePhysicalDevices(
-            _vk_instance,
-            &physical_devices_count,
-            physical_devices.data());
+        _vulkan_physical_device_list = std::make_unique<VulkanPhysicalDeviceList>(
+            VulkanPhysicalDeviceList::Parameters{
+                _vk_instance
+            });
+        _vulkan_device = std::make_unique<VulkanDevice>(
+            VulkanDevice::Parameters{
+                _vulkan_physical_device_list->get_native(0)
+            });
 
-        // log physical device devices
-        for (const auto physical_device: physical_devices)
-        {
-            VkPhysicalDeviceProperties properties;
-            vkGetPhysicalDeviceProperties(
-                physical_device,
-                &properties);
-
-            VkPhysicalDeviceFeatures features;
-            vkGetPhysicalDeviceFeatures(
-                physical_device,
-                &features);
-            XAR_THROW_IF(
-                !features.samplerAnisotropy,
-                error::XarException,
-                "Sampler anisotropy is not supported");
-
-            XAR_LOG(
-                logging::LogLevel::INFO,
-                *_logger,
-                tag,
-                "{} {} {}",
-                properties.deviceName,
-                properties.apiVersion,
-                properties.driverVersion);
-
-            std::uint32_t queue_families_count = 0;
-            vkGetPhysicalDeviceQueueFamilyProperties(
-                physical_device,
-                &queue_families_count,
-                nullptr);
-            std::vector<VkQueueFamilyProperties> queue_families(queue_families_count);
-            vkGetPhysicalDeviceQueueFamilyProperties(
-                physical_device,
-                &queue_families_count,
-                queue_families.data());
-
-            std::uint32_t queue_family_index = 0;
-            for (const auto& queue_family: queue_families)
-            {
-                VkBool32 present_support = VK_FALSE;
-                vkGetPhysicalDeviceSurfaceSupportKHR(
-                    physical_device,
-                    queue_family_index,
-                    _vk_surface_khr,
-                    &present_support);
-                ++queue_family_index;
-
-                XAR_LOG(
-                    logging::LogLevel::INFO,
-                    *_logger,
-                    tag,
-                    "{} {} {}",
-                    queue_family.queueCount,
-                    (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT),
-                    present_support);
-            }
-
-            std::uint32_t device_extensions_count = 0;
-            vkEnumerateDeviceExtensionProperties(
-                physical_device,
-                nullptr,
-                &device_extensions_count,
-                nullptr);
-            std::vector<VkExtensionProperties> device_extensions(device_extensions_count);
-            vkEnumerateDeviceExtensionProperties(
-                physical_device,
-                nullptr,
-                &device_extensions_count,
-                device_extensions.data());
-            for (const auto& device_extension: device_extensions)
-            {
-                XAR_LOG(
-                    logging::LogLevel::INFO,
-                    *_logger,
-                    tag,
-                    "{} {}",
-                    device_extension.extensionName,
-                    device_extension.specVersion);
-            }
-        }
-
-        graphics_queue_family = 0;  // has VK_QUEUE_GRAPHICS_BIT
-
-        // logical device
-        float queue_priority = 1.0f;
-
-        VkDeviceQueueCreateInfo queue_create_info{};
-        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queue_create_info.queueFamilyIndex = graphics_queue_family;
-        queue_create_info.queueCount = 1;
-        queue_create_info.pQueuePriorities = &queue_priority;
-
-        VkPhysicalDeviceFeatures device_features{};
-        device_features.samplerAnisotropy = VK_TRUE;
-        device_features.sampleRateShading = VK_TRUE;
-
-        std::vector<const char*> physical_device_extension_names = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
-        };
-
-        VkDeviceCreateInfo device_create_info{};
-        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        device_create_info.pQueueCreateInfos = &queue_create_info;
-        device_create_info.queueCreateInfoCount = 1;
-        device_create_info.pEnabledFeatures = &device_features;
-        device_create_info.enabledExtensionCount = physical_device_extension_names.size();
-        device_create_info.ppEnabledExtensionNames = physical_device_extension_names.data();
-        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamic_rendering_feature{};
-        dynamic_rendering_feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
-        dynamic_rendering_feature.dynamicRendering = VK_TRUE;
-
-        device_create_info.pNext = &dynamic_rendering_feature;
-
-        vk_physical_device = physical_devices[0];
         msaaSamples = getMaxUsableSampleCount();
-
-        const auto device_create_result = vkCreateDevice(
-            physical_devices[0],
-            &device_create_info,
-            nullptr,
-            &vk_device);
-        XAR_THROW_IF(
-            device_create_result != VK_SUCCESS,
-            error::XarException,
-            "Vulkan device creation failed");
-
-        vkGetDeviceQueue(
-            vk_device,
-            graphics_queue_family,
-            0,
-            &vk_queue);
     }
 
     void VulkanRenderer::destroy_swapchain()
     {
         vkDestroyImageView(
-            vk_device,
+            _vulkan_device->get_native(),
             colorImageView,
             nullptr);
         vkDestroyImage(
-            vk_device,
+            _vulkan_device->get_native(),
             colorImage,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             colorImageMemory,
             nullptr);
 
         for (auto& image: swapchain_image_views)
         {
             vkDestroyImageView(
-                vk_device,
+                _vulkan_device->get_native(),
                 image,
                 nullptr);
         }
         swapchain_image_views.clear();
 
         vkDestroyImageView(
-            vk_device,
+            _vulkan_device->get_native(),
             depthImageView,
             nullptr);
         vkDestroyImage(
-            vk_device,
+            _vulkan_device->get_native(),
             depthImage,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             depthImageMemory,
             nullptr);
 
         vkDestroySwapchainKHR(
-            vk_device,
+            _vulkan_device->get_native(),
             vk_swapchain,
             nullptr);
     }
 
     void VulkanRenderer::init_swapchain()
     {
-        // physical device
-        std::uint32_t physical_devices_count = 0;
-        vkEnumeratePhysicalDevices(
-            _vk_instance,
-            &physical_devices_count,
-            nullptr);
-        std::vector<VkPhysicalDevice> physical_devices(physical_devices_count);
-        vkEnumeratePhysicalDevices(
-            _vk_instance,
-            &physical_devices_count,
-            physical_devices.data());
-
-        VkSurfaceCapabilitiesKHR capabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-            physical_devices[0],
-            _vk_surface_khr,
-            &capabilities);
-
-        std::uint32_t formats_count = 0;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(
-            physical_devices[0],
-            _vk_surface_khr,
-            &formats_count,
-            nullptr);
-        std::vector<VkSurfaceFormatKHR> formats(formats_count);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(
-            physical_devices[0],
-            _vk_surface_khr,
-            &formats_count,
-            formats.data());
-
-        std::uint32_t present_modes_count = 0;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physical_devices[0],
-            _vk_surface_khr,
-            &present_modes_count,
-            nullptr);
-        std::vector<VkPresentModeKHR> present_modes(present_modes_count);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(
-            physical_devices[0],
-            _vk_surface_khr,
-            &present_modes_count,
-            present_modes.data());
+        const auto formats = _vulkan_physical_device_list->get_surface_formats(
+            0,
+            _vk_surface_khr);
+        const auto present_modes = _vulkan_physical_device_list->get_present_modes(
+            0,
+            _vk_surface_khr);
+        const auto capabilities = _vulkan_physical_device_list->get_surface_capabilities(
+            0,
+            _vk_surface_khr);
 
         for (const auto& format: formats)
         {
@@ -373,7 +204,7 @@ namespace xar_engine::graphics::vulkan
         swapchain_info.oldSwapchain = VK_NULL_HANDLE;
 
         const auto swapchain_result = vkCreateSwapchainKHR(
-            vk_device,
+            _vulkan_device->get_native(),
             &swapchain_info,
             nullptr,
             &vk_swapchain);
@@ -385,13 +216,13 @@ namespace xar_engine::graphics::vulkan
         // get swapchain images p 84
         std::uint32_t swapchain_images_count = 0;
         vkGetSwapchainImagesKHR(
-            vk_device,
+            _vulkan_device->get_native(),
             vk_swapchain,
             &swapchain_images_count,
             nullptr);
         swapchain_images.resize(swapchain_images_count);
         vkGetSwapchainImagesKHR(
-            vk_device,
+            _vulkan_device->get_native(),
             vk_swapchain,
             &swapchain_images_count,
             swapchain_images.data());
@@ -409,40 +240,17 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_shaders()
     {
-        const auto vert_bytes = xar_engine::file::read_binary_file("assets/triangle.vert.spv");
-        const auto frag_bytes = xar_engine::file::read_binary_file("assets/triangle.frag.spv");
+        _vertex_shader = std::make_unique<VulkanShader>(
+            VulkanShader::Parameters{
+                _vulkan_device->get_native(),
+                xar_engine::file::read_binary_file("assets/triangle.vert.spv")
+            });
 
-        VkShaderModuleCreateInfo vertInfo{};
-        vertInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        vertInfo.codeSize = vert_bytes.size();
-        vertInfo.pCode = reinterpret_cast<const std::uint32_t*>(vert_bytes.data());
-
-        if (vkCreateShaderModule(
-            vk_device,
-            &vertInfo,
-            nullptr,
-            &vertShaderModule) != VK_SUCCESS)
-        {
-            XAR_THROW(
-                error::XarException,
-                "vert shader failed");
-        }
-
-        VkShaderModuleCreateInfo fragInfo{};
-        fragInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        fragInfo.codeSize = frag_bytes.size();
-        fragInfo.pCode = reinterpret_cast<const std::uint32_t*>(frag_bytes.data());
-
-        if (vkCreateShaderModule(
-            vk_device,
-            &fragInfo,
-            nullptr,
-            &fragShaderModule) != VK_SUCCESS)
-        {
-            XAR_THROW(
-                error::XarException,
-                "frag shader failed");
-        }
+        _fragment_shader = std::make_unique<VulkanShader>(
+            VulkanShader::Parameters{
+                _vulkan_device->get_native(),
+                xar_engine::file::read_binary_file("assets/triangle.frag.spv")
+            });
     }
 
     void VulkanRenderer::init_descriptor_set_layout()
@@ -469,7 +277,7 @@ namespace xar_engine::graphics::vulkan
         layoutInfo.pBindings = bindings.data();
 
         if (vkCreateDescriptorSetLayout(
-            vk_device,
+            _vulkan_device->get_native(),
             &layoutInfo,
             nullptr,
             &descriptorSetLayout) != VK_SUCCESS)
@@ -483,13 +291,13 @@ namespace xar_engine::graphics::vulkan
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.module = _vertex_shader->get_native();
         vertShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
         fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = fragShaderModule;
+        fragShaderStageInfo.module = _fragment_shader->get_native();
         fragShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
@@ -581,7 +389,7 @@ namespace xar_engine::graphics::vulkan
         pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange; // Optional
         if (vkCreatePipelineLayout(
-            vk_device,
+            _vulkan_device->get_native(),
             &pipelineLayoutInfo,
             nullptr,
             &pipelineLayout) != VK_SUCCESS)
@@ -626,7 +434,7 @@ namespace xar_engine::graphics::vulkan
         pipelineInfo.pNext = &pipeline_create;
 
         if (vkCreateGraphicsPipelines(
-            vk_device,
+            _vulkan_device->get_native(),
             VK_NULL_HANDLE,
             1,
             &pipelineInfo,
@@ -653,7 +461,7 @@ namespace xar_engine::graphics::vulkan
 
         void* data;
         vkMapMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory,
             0,
             bufferSize,
@@ -664,7 +472,7 @@ namespace xar_engine::graphics::vulkan
             vertices.data(),
             (size_t) bufferSize);
         vkUnmapMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory);
 
         createBuffer(
@@ -680,11 +488,11 @@ namespace xar_engine::graphics::vulkan
             bufferSize);
 
         vkDestroyBuffer(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBuffer,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory,
             nullptr);
     }
@@ -704,7 +512,7 @@ namespace xar_engine::graphics::vulkan
 
         void* data;
         vkMapMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory,
             0,
             bufferSize,
@@ -715,7 +523,7 @@ namespace xar_engine::graphics::vulkan
             indices.data(),
             (size_t) bufferSize);
         vkUnmapMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory);
 
         createBuffer(
@@ -731,11 +539,11 @@ namespace xar_engine::graphics::vulkan
             bufferSize);
 
         vkDestroyBuffer(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBuffer,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory,
             nullptr);
     }
@@ -781,7 +589,7 @@ namespace xar_engine::graphics::vulkan
                 uniformBuffersMemory[i]);
 
             vkMapMemory(
-                vk_device,
+                _vulkan_device->get_native(),
                 uniformBuffersMemory[i],
                 0,
                 bufferSize,
@@ -806,7 +614,7 @@ namespace xar_engine::graphics::vulkan
         poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
         if (vkCreateDescriptorPool(
-            vk_device,
+            _vulkan_device->get_native(),
             &poolInfo,
             nullptr,
             &descriptorPool) != VK_SUCCESS)
@@ -826,7 +634,7 @@ namespace xar_engine::graphics::vulkan
 
         descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
         if (vkAllocateDescriptorSets(
-            vk_device,
+            _vulkan_device->get_native(),
             &allocInfo,
             descriptorSets.data()) != VK_SUCCESS)
         {
@@ -867,7 +675,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
             vkUpdateDescriptorSets(
-                vk_device,
+                _vulkan_device->get_native(),
                 static_cast<std::uint32_t>(descriptorWrites.size()),
                 descriptorWrites.data(),
                 0,
@@ -880,9 +688,9 @@ namespace xar_engine::graphics::vulkan
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = graphics_queue_family;
+        poolInfo.queueFamilyIndex = _vulkan_device->get_graphics_family_index();
         if (vkCreateCommandPool(
-            vk_device,
+            _vulkan_device->get_native(),
             &poolInfo,
             nullptr,
             &commandPool) != VK_SUCCESS)
@@ -899,7 +707,7 @@ namespace xar_engine::graphics::vulkan
 
         commandBuffer.resize(MAX_FRAMES_IN_FLIGHT);
         if (vkAllocateCommandBuffers(
-            vk_device,
+            _vulkan_device->get_native(),
             &allocInfo,
             commandBuffer.data()) != VK_SUCCESS)
         {
@@ -983,7 +791,7 @@ namespace xar_engine::graphics::vulkan
 
         void* data;
         vkMapMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory,
             0,
             imageSize,
@@ -994,7 +802,7 @@ namespace xar_engine::graphics::vulkan
             image.bytes.data(),
             static_cast<size_t>(imageSize));
         vkUnmapMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory);
 
         createImage(
@@ -1029,11 +837,11 @@ namespace xar_engine::graphics::vulkan
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);*/
 
         vkDestroyBuffer(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBuffer,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             stagingBufferMemory,
             nullptr);
 
@@ -1056,11 +864,6 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_sampler()
     {
-        VkPhysicalDeviceProperties properties{};
-        vkGetPhysicalDeviceProperties(
-            vk_physical_device,
-            &properties);
-
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -1069,7 +872,7 @@ namespace xar_engine::graphics::vulkan
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.anisotropyEnable = VK_TRUE;
-        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+        samplerInfo.maxAnisotropy = _vulkan_physical_device_list->get_device_properties(0).limits.maxSamplerAnisotropy;
         samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
         samplerInfo.unnormalizedCoordinates = VK_FALSE;
         samplerInfo.compareEnable = VK_FALSE;
@@ -1080,7 +883,7 @@ namespace xar_engine::graphics::vulkan
         samplerInfo.maxLod = static_cast<float>(mipLevels);
 
         if (vkCreateSampler(
-            vk_device,
+            _vulkan_device->get_native(),
             &samplerInfo,
             nullptr,
             &textureSampler) != VK_SUCCESS)
@@ -1104,17 +907,17 @@ namespace xar_engine::graphics::vulkan
         for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
             if (vkCreateSemaphore(
-                vk_device,
+                _vulkan_device->get_native(),
                 &semaphoreInfo,
                 nullptr,
                 &imageAvailableSemaphore[i]) != VK_SUCCESS ||
                 vkCreateSemaphore(
-                    vk_device,
+                    _vulkan_device->get_native(),
                     &semaphoreInfo,
                     nullptr,
                     &renderFinishedSemaphore[i]) != VK_SUCCESS ||
                 vkCreateFence(
-                    vk_device,
+                    _vulkan_device->get_native(),
                     &fenceInfo,
                     nullptr,
                     &inFlightFence[i]) != VK_SUCCESS)
@@ -1128,25 +931,25 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::wait()
     {
-        vkDeviceWaitIdle(vk_device);
+        _vulkan_device->wait_idle();
     }
 
     void VulkanRenderer::run_frame_sandbox()
     {
         vkWaitForFences(
-            vk_device,
+            _vulkan_device->get_native(),
             1,
             &inFlightFence[currentFrame],
             VK_TRUE,
             UINT64_MAX);
         vkResetFences(
-            vk_device,
+            _vulkan_device->get_native(),
             1,
             &inFlightFence[currentFrame]);
 
         uint32_t imageIndex;
         const auto acquire_img_result = vkAcquireNextImageKHR(
-            vk_device,
+            _vulkan_device->get_native(),
             vk_swapchain,
             UINT64_MAX,
             imageAvailableSemaphore[currentFrame],
@@ -1183,7 +986,7 @@ namespace xar_engine::graphics::vulkan
 
         // Only reset the fence if we are submitting work
         vkResetFences(
-            vk_device,
+            _vulkan_device->get_native(),
             1,
             &inFlightFence[currentFrame]);
 
@@ -1400,7 +1203,7 @@ namespace xar_engine::graphics::vulkan
             submitInfo.pSignalSemaphores = signalSemaphores;
 
             if (vkQueueSubmit(
-                vk_queue,
+                _vulkan_device->get_graphics_queue(),
                 1,
                 &submitInfo,
                 inFlightFence[currentFrame]) != VK_SUCCESS)
@@ -1419,7 +1222,7 @@ namespace xar_engine::graphics::vulkan
             presentInfo.pImageIndices = &imageIndex;
             presentInfo.pResults = nullptr; // Optional
             const auto present_result = vkQueuePresentKHR(
-                vk_queue,
+                _vulkan_device->get_graphics_queue(),
                 &presentInfo);
 
             if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR)
@@ -1469,109 +1272,103 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::cleanup_sandbox()
     {
-        vkDeviceWaitIdle(vk_device);
+        _vulkan_device->wait_idle();
 
         for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
         {
             vkDestroyFence(
-                vk_device,
+                _vulkan_device->get_native(),
                 inFlightFence[i],
                 nullptr);
             vkDestroySemaphore(
-                vk_device,
+                _vulkan_device->get_native(),
                 renderFinishedSemaphore[i],
                 nullptr);
             vkDestroySemaphore(
-                vk_device,
+                _vulkan_device->get_native(),
                 imageAvailableSemaphore[i],
                 nullptr);
         }
 
         vkDestroyCommandPool(
-            vk_device,
+            _vulkan_device->get_native(),
             commandPool,
             nullptr);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             vkDestroyBuffer(
-                vk_device,
+                _vulkan_device->get_native(),
                 uniformBuffers[i],
                 nullptr);
             vkFreeMemory(
-                vk_device,
+                _vulkan_device->get_native(),
                 uniformBuffersMemory[i],
                 nullptr);
         }
 
         vkDestroyDescriptorPool(
-            vk_device,
+            _vulkan_device->get_native(),
             descriptorPool,
             nullptr);
 
         // here because we may want to reuse it
         vkDestroyDescriptorSetLayout(
-            vk_device,
+            _vulkan_device->get_native(),
             descriptorSetLayout,
             nullptr);
 
         vkDestroyPipeline(
-            vk_device,
+            _vulkan_device->get_native(),
             graphicsPipeline,
             nullptr);
 
         vkDestroyPipelineLayout(
-            vk_device,
+            _vulkan_device->get_native(),
             pipelineLayout,
             nullptr);
 
-        vkDestroyShaderModule(
-            vk_device,
-            fragShaderModule,
-            nullptr);
-        vkDestroyShaderModule(
-            vk_device,
-            vertShaderModule,
-            nullptr);
+        _fragment_shader.reset();
+        _vertex_shader.reset();
 
         vkDestroyBuffer(
-            vk_device,
+            _vulkan_device->get_native(),
             indexBuffer,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             indexBufferMemory,
             nullptr);
         vkDestroyBuffer(
-            vk_device,
+            _vulkan_device->get_native(),
             vertexBuffer,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             vertexBufferMemory,
             nullptr);
 
         vkDestroySampler(
-            vk_device,
+            _vulkan_device->get_native(),
             textureSampler,
             nullptr);
         vkDestroyImageView(
-            vk_device,
+            _vulkan_device->get_native(),
             textureImageView,
             nullptr);
         vkDestroyImage(
-            vk_device,
+            _vulkan_device->get_native(),
             textureImage,
             nullptr);
         vkFreeMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             textureImageMemory,
             nullptr);
 
         destroy_swapchain();
 
         vkDestroyDevice(
-            vk_device,
+            _vulkan_device->get_native(),
             nullptr);
         vkDestroySurfaceKHR(
             _vk_instance,
@@ -1589,7 +1386,7 @@ namespace xar_engine::graphics::vulkan
     {
         VkPhysicalDeviceMemoryProperties memProperties;
         vkGetPhysicalDeviceMemoryProperties(
-            vk_physical_device,
+            _vulkan_physical_device_list->get_native(0),
             &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
@@ -1618,7 +1415,7 @@ namespace xar_engine::graphics::vulkan
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateBuffer(
-            vk_device,
+            _vulkan_device->get_native(),
             &bufferInfo,
             nullptr,
             &buffer) != VK_SUCCESS)
@@ -1628,7 +1425,7 @@ namespace xar_engine::graphics::vulkan
 
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements(
-            vk_device,
+            _vulkan_device->get_native(),
             buffer,
             &memRequirements);
 
@@ -1640,7 +1437,7 @@ namespace xar_engine::graphics::vulkan
             properties);
 
         if (vkAllocateMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             &allocInfo,
             nullptr,
             &bufferMemory) != VK_SUCCESS)
@@ -1649,7 +1446,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         vkBindBufferMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             buffer,
             bufferMemory,
             0);
@@ -1748,7 +1545,7 @@ namespace xar_engine::graphics::vulkan
         imageInfo.flags = 0; // Optional
 
         if (vkCreateImage(
-            vk_device,
+            _vulkan_device->get_native(),
             &imageInfo,
             nullptr,
             &image) != VK_SUCCESS)
@@ -1758,7 +1555,7 @@ namespace xar_engine::graphics::vulkan
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(
-            vk_device,
+            _vulkan_device->get_native(),
             image,
             &memRequirements);
 
@@ -1770,7 +1567,7 @@ namespace xar_engine::graphics::vulkan
             properties);
 
         if (vkAllocateMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             &allocInfo,
             nullptr,
             &imageMemory) != VK_SUCCESS)
@@ -1779,7 +1576,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         vkBindImageMemory(
-            vk_device,
+            _vulkan_device->get_native(),
             image,
             imageMemory,
             0);
@@ -1795,7 +1592,7 @@ namespace xar_engine::graphics::vulkan
 
         VkCommandBuffer tmpCommandBuffer;
         vkAllocateCommandBuffers(
-            vk_device,
+            _vulkan_device->get_native(),
             &allocInfo,
             &tmpCommandBuffer);
 
@@ -1820,14 +1617,14 @@ namespace xar_engine::graphics::vulkan
         submitInfo.pCommandBuffers = &tmpCommandBuffer;
 
         vkQueueSubmit(
-            vk_queue,
+            _vulkan_device->get_graphics_queue(),
             1,
             &submitInfo,
             VK_NULL_HANDLE);
-        vkQueueWaitIdle(vk_queue);
+        vkQueueWaitIdle(_vulkan_device->get_graphics_queue());
 
         vkFreeCommandBuffers(
-            vk_device,
+            _vulkan_device->get_native(),
             commandPool,
             1,
             &tmpCommandBuffer);
@@ -1980,7 +1777,7 @@ namespace xar_engine::graphics::vulkan
 
         VkImageView imageView;
         if (vkCreateImageView(
-            vk_device,
+            _vulkan_device->get_native(),
             &viewInfo,
             nullptr,
             &imageView) != VK_SUCCESS)
@@ -2000,7 +1797,7 @@ namespace xar_engine::graphics::vulkan
         {
             VkFormatProperties props;
             vkGetPhysicalDeviceFormatProperties(
-                vk_physical_device,
+                _vulkan_physical_device_list->get_native(0),
                 format,
                 &props);
 
@@ -2040,7 +1837,7 @@ namespace xar_engine::graphics::vulkan
     {
         VkFormatProperties formatProperties;
         vkGetPhysicalDeviceFormatProperties(
-            vk_physical_device,
+            _vulkan_physical_device_list->get_native(0),
             imageFormat,
             &formatProperties);
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
@@ -2158,10 +1955,7 @@ namespace xar_engine::graphics::vulkan
 
     VkSampleCountFlagBits VulkanRenderer::getMaxUsableSampleCount()
     {
-        VkPhysicalDeviceProperties physicalDeviceProperties;
-        vkGetPhysicalDeviceProperties(
-            vk_physical_device,
-            &physicalDeviceProperties);
+        const auto& physicalDeviceProperties = _vulkan_physical_device_list->get_device_properties(0);
 
         VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
                                     physicalDeviceProperties.limits.framebufferDepthSampleCounts;

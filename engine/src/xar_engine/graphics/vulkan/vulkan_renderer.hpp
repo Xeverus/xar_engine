@@ -7,6 +7,9 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/renderer.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 
@@ -126,23 +129,22 @@ namespace xar_engine::graphics::vulkan
         VkSampleCountFlagBits getMaxUsableSampleCount();
 
     private:
+        std::unique_ptr<VulkanPhysicalDeviceList> _vulkan_physical_device_list;
+        std::unique_ptr<VulkanDevice> _vulkan_device;
+        std::unique_ptr<VulkanShader> _vertex_shader;
+        std::unique_ptr<VulkanShader> _fragment_shader;
+
         const os::IWindow* _os_window;
         VkSurfaceKHR _vk_surface_khr;
 
         std::unique_ptr<logging::ILogger> _logger;
 
         VkInstance _vk_instance;
-        VkPhysicalDevice vk_physical_device;
-        VkDevice vk_device;
-        VkQueue vk_queue;
-        uint32_t graphics_queue_family;
         VkSurfaceFormatKHR format_to_use;
         VkSwapchainKHR vk_swapchain;
         VkExtent2D swapchainExtent;
         std::vector<VkImage> swapchain_images;
         std::vector<VkImageView> swapchain_image_views;
-        VkShaderModule vertShaderModule;
-        VkShaderModule fragShaderModule;
 
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout descriptorSetLayout;
