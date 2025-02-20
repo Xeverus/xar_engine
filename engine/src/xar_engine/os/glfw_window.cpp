@@ -313,7 +313,7 @@ namespace xar_engine::os
 
     std::shared_ptr<graphics::IRenderer> GlfwWindow::make_renderer(const graphics::RendererType renderer_type)
     {
-        static graphics::vulkan::VulkanInstance vulkan_instance;
+        const auto& vulkan_instance = graphics::vulkan::VulkanInstanceSingleton::get_instance();
 
         VkSurfaceKHR vk_surface_khr = nullptr;
         const auto result = glfwCreateWindowSurface(

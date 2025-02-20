@@ -66,6 +66,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/math/epsilon.cpp
         src/xar_engine/meta/enum_impl.hpp
         src/xar_engine/meta/for_each.hpp
+        src/xar_engine/meta/singleton.hpp
         src/xar_engine/os/application.cpp
         src/xar_engine/os/glfw_application.cpp
         src/xar_engine/os/glfw_application.hpp
