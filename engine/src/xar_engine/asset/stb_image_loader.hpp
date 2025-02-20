@@ -2,6 +2,7 @@
 
 #include <xar_engine/asset/image_loader.hpp>
 
+
 namespace xar_engine::asset
 {
     class StbImageLoader : public IImageLoader

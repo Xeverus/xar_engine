@@ -13,7 +13,7 @@
 int main()
 {
     const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();
-    const auto application = xar_engine::os::ApplicationFactory::make({"Test Application"});
+    const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
 
     window->set_on_run(

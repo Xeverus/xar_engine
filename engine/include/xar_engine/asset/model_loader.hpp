@@ -16,9 +16,19 @@ namespace xar_engine::asset
         virtual Model load_model_from_file(const std::filesystem::path& path) const = 0;
     };
 
-    class ModelLoaderFactory
+    class IModelLoaderFactory
     {
     public:
-        static std::unique_ptr<IModelLoader> make_loader();
+        virtual ~IModelLoaderFactory();
+
+        [[nodiscard]]
+        virtual std::unique_ptr<IModelLoader> make() const = 0;
+    };
+
+    class ModelLoaderFactory : public IModelLoaderFactory
+    {
+    public:
+        [[nodiscard]]
+        std::unique_ptr<IModelLoader> make() const override;
     };
 }

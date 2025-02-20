@@ -8,7 +8,7 @@ namespace
     TEST(image_loader_factory,
          make_loader__returns_existing_object)
     {
-        const auto loader = xar_engine::asset::ImageLoaderFactory::make_loader();
+        const auto loader = xar_engine::asset::ImageLoaderFactory().make();
         EXPECT_NE(loader,
                   nullptr);
     }

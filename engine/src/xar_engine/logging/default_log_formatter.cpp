@@ -4,6 +4,7 @@
 
 #include <xar_engine/time/time.hpp>
 
+
 namespace xar_engine::logging
 {
     std::string DefaultLogFormatter::format(

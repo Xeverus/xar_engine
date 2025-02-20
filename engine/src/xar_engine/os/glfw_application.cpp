@@ -6,6 +6,7 @@
 
 #include <xar_engine/os/glfw_window.hpp>
 
+
 namespace xar_engine::os
 {
     namespace

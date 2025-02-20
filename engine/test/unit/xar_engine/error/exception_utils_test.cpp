@@ -3,6 +3,7 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+
 namespace
 {
     TEST(exception_utils, format_message_without_args)
@@ -10,7 +11,7 @@ namespace
         constexpr auto* const expected_value =
             "Reason: 1 != 2\n"
             "File: " __FILE__ "\n"
-            "Line: 17\n"
+            "Line: 18\n"
             "Message: Hello World 123!";
 
         EXPECT_STREQ(
@@ -25,7 +26,7 @@ namespace
         constexpr auto* const expected_value =
             "Reason: 1 != 2\n"
             "File: " __FILE__ "\n"
-            "Line: 32\n"
+            "Line: 33\n"
             "Message: Hello World 123!";
 
         EXPECT_STREQ(

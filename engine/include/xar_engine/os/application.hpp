@@ -5,6 +5,7 @@
 
 #include <xar_engine/os/window.hpp>
 
+
 namespace xar_engine::os
 {
     class IApplication
@@ -41,9 +42,19 @@ namespace xar_engine::os
         std::string name;
     };
 
-    class ApplicationFactory
+    class IApplicationFactory
     {
     public:
-        static std::unique_ptr<IApplication> make(IApplication::Parameters parameters);
+        virtual ~IApplicationFactory();
+
+        [[nodiscard]]
+        virtual std::unique_ptr<IApplication> make(IApplication::Parameters parameters) const = 0;
+    };
+
+    class ApplicationFactory : public IApplicationFactory
+    {
+    public:
+        [[nodiscard]]
+        std::unique_ptr<IApplication> make(IApplication::Parameters parameters) const override;
     };
 }

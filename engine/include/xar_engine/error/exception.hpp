@@ -3,6 +3,7 @@
 #include <exception>
 #include <string>
 
+
 namespace xar_engine::error
 {
     class XarException : public std::exception

@@ -436,8 +436,8 @@ namespace xar_engine::graphics::vulkan
 
     void Vulkan::init_shaders()
     {
-        const auto vert_bytes = xar_engine::file::File::read_binary_file("assets/triangle.vert.spv");
-        const auto frag_bytes = xar_engine::file::File::read_binary_file("assets/triangle.frag.spv");
+        const auto vert_bytes = xar_engine::file::read_binary_file("assets/triangle.vert.spv");
+        const auto frag_bytes = xar_engine::file::read_binary_file("assets/triangle.frag.spv");
 
         VkShaderModuleCreateInfo vertInfo{};
         vertInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -769,7 +769,7 @@ namespace xar_engine::graphics::vulkan
 
     void Vulkan::init_model()
     {
-        const auto model = xar_engine::asset::ModelLoaderFactory::make_loader()->load_model_from_file("assets/viking_room.obj");
+        const auto model = xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj");
 
         vertices.resize(model.meshes.back().positions.size());
         for (auto i = 0; i < model.meshes.back().positions.size(); ++i)
@@ -990,7 +990,7 @@ namespace xar_engine::graphics::vulkan
 
     void Vulkan::init_texture()
     {
-        const auto image = asset::ImageLoaderFactory::make_loader()->load_image_from_file("assets/viking_room.png");
+        const auto image = asset::ImageLoaderFactory().make()->load_image_from_file("assets/viking_room.png");
         mipLevels = static_cast<uint32_t>(std::floor(
             std::log2(
                 std::max(

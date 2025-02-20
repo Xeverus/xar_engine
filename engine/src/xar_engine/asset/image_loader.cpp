@@ -7,7 +7,11 @@ namespace xar_engine::asset
 {
     IImageLoader::~IImageLoader() = default;
 
-    std::unique_ptr<IImageLoader> ImageLoaderFactory::make_loader()
+
+    IImageLoaderFactory::~IImageLoaderFactory() = default;
+
+
+    std::unique_ptr<IImageLoader> ImageLoaderFactory::make() const
     {
         return std::make_unique<StbImageLoader>();
     }

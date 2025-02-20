@@ -7,6 +7,7 @@
 
 #include <xar_engine/os/window.hpp>
 
+
 namespace xar_engine::os
 {
     class GlfwWindow : public IWindow

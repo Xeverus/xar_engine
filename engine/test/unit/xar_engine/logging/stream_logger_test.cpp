@@ -5,6 +5,7 @@
 #include <xar_engine/logging/log_formatter_mock.hpp>
 #include <xar_engine/logging/stream_logger.hpp>
 
+
 namespace
 {
     TEST(stream_logger, empty_formatter__no_crash)

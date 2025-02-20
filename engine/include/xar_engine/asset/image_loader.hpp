@@ -16,9 +16,19 @@ namespace xar_engine::asset
         virtual Image load_image_from_file(const std::filesystem::path& path) const = 0;
     };
 
-    class ImageLoaderFactory
+    class IImageLoaderFactory
     {
     public:
-        static std::unique_ptr<IImageLoader> make_loader();
+        virtual ~IImageLoaderFactory();
+
+        [[nodiscard]]
+        virtual std::unique_ptr<IImageLoader> make() const = 0;
+    };
+
+    class ImageLoaderFactory : public IImageLoaderFactory
+    {
+    public:
+        [[nodiscard]]
+        std::unique_ptr<IImageLoader> make() const override;
     };
 }

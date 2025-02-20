@@ -5,6 +5,7 @@
 
 #include <xar_engine/input/button.hpp>
 
+
 namespace xar_engine::input
 {
     struct KeyboardKeyEvent
@@ -20,6 +21,7 @@ namespace xar_engine::input
     using KeyboardEvent = std::variant<
         KeyboardKeyEvent
     >;
+
 
     struct MouseButtonEvent
     {

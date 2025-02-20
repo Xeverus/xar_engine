@@ -4,6 +4,7 @@
 
 #include <xar_engine/meta/enum.hpp>
 
+
 namespace xar_engine::input
 {
     enum class ButtonCode

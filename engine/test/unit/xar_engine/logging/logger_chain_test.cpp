@@ -3,6 +3,7 @@
 #include <xar_engine/logging/logger_chain.hpp>
 #include <xar_engine/logging/logger_mock.hpp>
 
+
 namespace
 {
     TEST(logger_chain, empty_list__no_crash)

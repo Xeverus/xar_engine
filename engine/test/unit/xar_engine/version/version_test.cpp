@@ -2,6 +2,7 @@
 
 #include <xar_engine/version/version.hpp>
 
+
 namespace
 {
     TEST(version, returns_correct_version)

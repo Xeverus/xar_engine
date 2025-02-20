@@ -2,7 +2,7 @@
 
 #include <xar_engine/asset/assimp_model_loader.hpp>
 
-#include <xar_engine/math/vector_math.hpp>
+#include <xar_engine/math/vector.hpp>
 
 
 namespace
@@ -10,7 +10,7 @@ namespace
     TEST(model_loader_factory,
          make_loader__returns_existing_object)
     {
-        const auto loader = xar_engine::asset::ModelLoaderFactory::make_loader();
+        const auto loader = xar_engine::asset::ModelLoaderFactory().make();
         EXPECT_NE(loader,
                   nullptr);
     }

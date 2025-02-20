@@ -7,6 +7,7 @@
 #include <xar_engine/logging/log_formatter.hpp>
 #include <xar_engine/logging/logger.hpp>
 
+
 namespace xar_engine::logging
 {
     class FileLogger : public ILogger

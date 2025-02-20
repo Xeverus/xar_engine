@@ -4,12 +4,13 @@
 
 #include <xar_engine/os/application.hpp>
 
+
 namespace
 {
     TEST(application,
          input__keyboard)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make({"input test"});
+        const auto application = xar_engine::os::ApplicationFactory().make({"input test"});
         ASSERT_NE(application,
                   nullptr);
 
@@ -92,7 +93,7 @@ namespace
     TEST(application,
          input__mouse)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make({"input test"});
+        const auto application = xar_engine::os::ApplicationFactory().make({"input test"});
         ASSERT_NE(application,
                   nullptr);
 

@@ -6,6 +6,7 @@
 
 #include <xar_engine/os/application.hpp>
 
+
 enum class ActionType
 {
     APPLICATION_ON_RUN,
@@ -52,7 +53,7 @@ namespace
     TEST(application,
          lifecycle__no_windows)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make({"lifecycle__no_windows"});
+        const auto application = xar_engine::os::ApplicationFactory().make({"lifecycle__no_windows"});
         ASSERT_NE(application,
                   nullptr);
 
@@ -103,7 +104,7 @@ namespace
     TEST(application,
          lifecycle__with_single_window)
     {
-        const auto application = xar_engine::os::ApplicationFactory::make({"lifecycle__with_single_window"});
+        const auto application = xar_engine::os::ApplicationFactory().make({"lifecycle__with_single_window"});
         ASSERT_NE(application,
                   nullptr);
 
@@ -183,7 +184,7 @@ namespace
          lifecycle__with_three_windows)
     {
         const auto app_id = std::string{"lifecycle__with_three_windows"};
-        const auto application = xar_engine::os::ApplicationFactory::make({app_id});
+        const auto application = xar_engine::os::ApplicationFactory().make({app_id});
         ASSERT_NE(application,
                   nullptr);
 
@@ -291,7 +292,7 @@ namespace
     {
         const auto app_id = std::string{"lifecycle__single_window_recreated"};
 
-        const auto application = xar_engine::os::ApplicationFactory::make({app_id});
+        const auto application = xar_engine::os::ApplicationFactory().make({app_id});
         ASSERT_NE(application,
                   nullptr);
 

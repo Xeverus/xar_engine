@@ -1,5 +1,6 @@
 #include <xar_engine/logging/logger_chain.hpp>
 
+
 namespace xar_engine::logging
 {
     LoggerChain::LoggerChain(std::vector<std::unique_ptr<ILogger>> loggers)

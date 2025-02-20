@@ -4,6 +4,7 @@
 
 #include <xar_engine/logging/log_level.hpp>
 
+
 namespace xar_engine::logging
 {
     class ILogger
