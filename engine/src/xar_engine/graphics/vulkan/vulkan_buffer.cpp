@@ -33,6 +33,8 @@ namespace xar_engine::graphics::vulkan
     VulkanBuffer::VulkanBuffer(const VulkanBuffer::Parameters& parameters)
         : _vk_buffer(nullptr)
         , _vk_device_memory(nullptr)
+        , _vk_device(parameters.vk_device)
+        , _byte_size(0)
     {
         auto buffer_info = VkBufferCreateInfo{};
         buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -64,6 +66,9 @@ namespace xar_engine::graphics::vulkan
             memory_requirements.memoryTypeBits,
             parameters.vk_memory_properties);
 
+        // TODO(): Or original size?
+        _byte_size = memory_requirements.size;
+
         const auto vk_allocate_memory_result = vkAllocateMemory(
             parameters.vk_device,
             &alloc_info,
@@ -85,11 +90,44 @@ namespace xar_engine::graphics::vulkan
     {
         if (_vk_buffer)
         {
-
+            vkDestroyBuffer(
+                _vk_device,
+                _vk_buffer,
+                nullptr);
         }
         if (_vk_device_memory)
         {
-
+            vkFreeMemory(
+                _vk_device,
+                _vk_device_memory,
+                nullptr);
         }
+    }
+
+    void* VulkanBuffer::map()
+    {
+        void* mapped_data = nullptr;
+
+        vkMapMemory(
+            _vk_device,
+            _vk_device_memory,
+            0,
+            _byte_size,
+            0,
+            &mapped_data);
+
+        return mapped_data;
+    }
+
+    void VulkanBuffer::unmap()
+    {
+        vkUnmapMemory(
+            _vk_device,
+            _vk_device_memory);
+    }
+
+    VkBuffer VulkanBuffer::get_native() const
+    {
+        return _vk_buffer;
     }
 }

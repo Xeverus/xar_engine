@@ -7,6 +7,7 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/renderer.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
@@ -61,13 +62,6 @@ namespace xar_engine::graphics::vulkan
         std::uint32_t findMemoryType(
             uint32_t typeFilter,
             VkMemoryPropertyFlags properties);
-
-        void createBuffer(
-            VkDeviceSize size,
-            VkBufferUsageFlags usage,
-            VkMemoryPropertyFlags properties,
-            VkBuffer& buffer,
-            VkDeviceMemory& bufferMemory);
 
         void copyBuffer(
             VkBuffer srcBuffer,
@@ -153,13 +147,10 @@ namespace xar_engine::graphics::vulkan
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
-        VkBuffer vertexBuffer;
-        VkDeviceMemory vertexBufferMemory;
-        VkBuffer indexBuffer;
-        VkDeviceMemory indexBufferMemory;
-        std::vector<VkBuffer> uniformBuffers;
-        std::vector<VkDeviceMemory> uniformBuffersMemory;
-        std::vector<void*> uniformBuffersMapped;
+        std::unique_ptr<VulkanBuffer> _vertex_buffer;
+        std::unique_ptr<VulkanBuffer> _index_buffer;
+        std::vector<std::unique_ptr<VulkanBuffer>> _uniform_buffers;
+        std::vector<void*> _uniform_buffers_mapped;
 
         VkCommandPool commandPool;
         std::vector<VkCommandBuffer> commandBuffer;

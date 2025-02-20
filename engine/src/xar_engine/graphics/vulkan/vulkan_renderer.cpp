@@ -450,102 +450,66 @@ namespace xar_engine::graphics::vulkan
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        createBuffer(
+        auto staging_buffer = VulkanBuffer{{
+            _vulkan_device->get_native(),
+            _vulkan_physical_device_list->get_native(0),
             bufferSize,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer,
-            stagingBufferMemory);
+        }};
 
-        void* data;
-        vkMapMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory,
-            0,
-            bufferSize,
-            0,
-            &data);
+        void* const data = staging_buffer.map();
         memcpy(
             data,
             vertices.data(),
             (size_t) bufferSize);
-        vkUnmapMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory);
+        staging_buffer.unmap();
 
-        createBuffer(
+        _vertex_buffer = std::make_unique<VulkanBuffer>(VulkanBuffer::Parameters{
+            _vulkan_device->get_native(),
+            _vulkan_physical_device_list->get_native(0),
             bufferSize,
             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            vertexBuffer,
-            vertexBufferMemory);
+        });
 
         copyBuffer(
-            stagingBuffer,
-            vertexBuffer,
+            staging_buffer.get_native(),
+            _vertex_buffer->get_native(),
             bufferSize);
-
-        vkDestroyBuffer(
-            _vulkan_device->get_native(),
-            stagingBuffer,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory,
-            nullptr);
     }
 
     void VulkanRenderer::init_index_data()
     {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        createBuffer(
-            bufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer,
-            stagingBufferMemory);
+        auto staging_buffer = VulkanBuffer{{
+           _vulkan_device->get_native(),
+           _vulkan_physical_device_list->get_native(0),
+           bufferSize,
+           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+       }};
 
-        void* data;
-        vkMapMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory,
-            0,
-            bufferSize,
-            0,
-            &data);
+        void* const data = staging_buffer.map();
         memcpy(
             data,
             indices.data(),
             (size_t) bufferSize);
-        vkUnmapMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory);
+        staging_buffer.unmap();
 
-        createBuffer(
+        _index_buffer = std::make_unique<VulkanBuffer>(VulkanBuffer::Parameters{
+            _vulkan_device->get_native(),
+            _vulkan_physical_device_list->get_native(0),
             bufferSize,
             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            indexBuffer,
-            indexBufferMemory);
+        });
 
         copyBuffer(
-            stagingBuffer,
-            indexBuffer,
+            staging_buffer.get_native(),
+            _index_buffer->get_native(),
             bufferSize);
-
-        vkDestroyBuffer(
-            _vulkan_device->get_native(),
-            stagingBuffer,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory,
-            nullptr);
     }
 
     void VulkanRenderer::init_model()
@@ -575,26 +539,19 @@ namespace xar_engine::graphics::vulkan
     {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-        uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-        uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-        uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+        _uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+        _uniform_buffers_mapped.resize(MAX_FRAMES_IN_FLIGHT);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            createBuffer(
+            _uniform_buffers[i] = std::make_unique<VulkanBuffer>(VulkanBuffer::Parameters{
+                _vulkan_device->get_native(),
+                _vulkan_physical_device_list->get_native(0),
                 bufferSize,
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                uniformBuffers[i],
-                uniformBuffersMemory[i]);
-
-            vkMapMemory(
-                _vulkan_device->get_native(),
-                uniformBuffersMemory[i],
-                0,
-                bufferSize,
-                0,
-                &uniformBuffersMapped[i]);
+            });
+            _uniform_buffers_mapped[i] = _uniform_buffers[i]->map();
         }
     }
 
@@ -644,7 +601,7 @@ namespace xar_engine::graphics::vulkan
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = uniformBuffers[i];
+            bufferInfo.buffer = _uniform_buffers[i]->get_native();
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
@@ -780,30 +737,21 @@ namespace xar_engine::graphics::vulkan
 
         VkDeviceSize imageSize = asset::image::get_byte_size(image);
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        createBuffer(
-            imageSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer,
-            stagingBufferMemory);
 
-        void* data;
-        vkMapMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory,
-            0,
-            imageSize,
-            0,
-            &data);
+        auto staging_buffer = VulkanBuffer{{
+           _vulkan_device->get_native(),
+           _vulkan_physical_device_list->get_native(0),
+           imageSize,
+           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+       }};
+
+        void* const data = staging_buffer.map();
         memcpy(
             data,
             image.bytes.data(),
             static_cast<size_t>(imageSize));
-        vkUnmapMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory);
+        staging_buffer.unmap();
 
         createImage(
             image.pixel_width,
@@ -825,7 +773,7 @@ namespace xar_engine::graphics::vulkan
             mipLevels);
 
         copyBufferToImage(
-            stagingBuffer,
+            staging_buffer.get_native(),
             textureImage,
             image.pixel_width,
             image.pixel_height);
@@ -835,15 +783,6 @@ namespace xar_engine::graphics::vulkan
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);*/
-
-        vkDestroyBuffer(
-            _vulkan_device->get_native(),
-            stagingBuffer,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            stagingBufferMemory,
-            nullptr);
 
         generateMipmaps(
             textureImage,
@@ -1115,7 +1054,7 @@ namespace xar_engine::graphics::vulkan
                 1,
                 &scissor);
 
-            VkBuffer vertexBuffers[] = {vertexBuffer};
+            VkBuffer vertexBuffers[] = {_vertex_buffer->get_native()};
             VkDeviceSize offsets[] = {0};
             vkCmdBindVertexBuffers(
                 commandBuffer[currentFrame],
@@ -1125,7 +1064,7 @@ namespace xar_engine::graphics::vulkan
                 offsets);
             vkCmdBindIndexBuffer(
                 commandBuffer[currentFrame],
-                indexBuffer,
+                _index_buffer->get_native(),
                 0,
                 VK_INDEX_TYPE_UINT32);
 
@@ -1297,14 +1236,7 @@ namespace xar_engine::graphics::vulkan
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            vkDestroyBuffer(
-                _vulkan_device->get_native(),
-                uniformBuffers[i],
-                nullptr);
-            vkFreeMemory(
-                _vulkan_device->get_native(),
-                uniformBuffersMemory[i],
-                nullptr);
+            _uniform_buffers[i].reset();
         }
 
         vkDestroyDescriptorPool(
@@ -1331,22 +1263,8 @@ namespace xar_engine::graphics::vulkan
         _fragment_shader.reset();
         _vertex_shader.reset();
 
-        vkDestroyBuffer(
-            _vulkan_device->get_native(),
-            indexBuffer,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            indexBufferMemory,
-            nullptr);
-        vkDestroyBuffer(
-            _vulkan_device->get_native(),
-            vertexBuffer,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            vertexBufferMemory,
-            nullptr);
+        _index_buffer.reset();
+        _vertex_buffer.reset();
 
         vkDestroySampler(
             _vulkan_device->get_native(),
@@ -1400,57 +1318,6 @@ namespace xar_engine::graphics::vulkan
         XAR_THROW(error::XarException,
                   "Failed to find suitable memory type");
     };
-
-    void VulkanRenderer::createBuffer(
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags properties,
-        VkBuffer& buffer,
-        VkDeviceMemory& bufferMemory)
-    {
-        VkBufferCreateInfo bufferInfo{};
-        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = size;
-        bufferInfo.usage = usage;
-        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        if (vkCreateBuffer(
-            _vulkan_device->get_native(),
-            &bufferInfo,
-            nullptr,
-            &buffer) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create buffer!");
-        }
-
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(
-            _vulkan_device->get_native(),
-            buffer,
-            &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(
-            memRequirements.memoryTypeBits,
-            properties);
-
-        if (vkAllocateMemory(
-            _vulkan_device->get_native(),
-            &allocInfo,
-            nullptr,
-            &bufferMemory) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to allocate buffer memory!");
-        }
-
-        vkBindBufferMemory(
-            _vulkan_device->get_native(),
-            buffer,
-            bufferMemory,
-            0);
-    }
 
     void VulkanRenderer::copyBuffer(
         VkBuffer srcBuffer,
@@ -1511,7 +1378,7 @@ namespace xar_engine::graphics::vulkan
         ubo.proj[1][1] *= -1;
 
         memcpy(
-            uniformBuffersMapped[currentImageNr],
+            _uniform_buffers_mapped[currentImageNr],
             &ubo,
             sizeof(ubo));
     }
