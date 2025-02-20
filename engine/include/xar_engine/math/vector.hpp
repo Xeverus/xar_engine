@@ -33,9 +33,18 @@ namespace xar_engine::math
     };
 
 
-    using Vector2f = Vector<float, 2>;
-    using Vector3f = Vector<float, 3>;
-    using Vector4f = Vector<float, 4>;
+    template <typename T>
+    using Vector2 = Vector<T, 2>;
+
+    template <typename T>
+    using Vector3 = Vector<T, 3>;
+
+    template <typename T>
+    using Vector4 = Vector<T, 4>;
+
+    using Vector2f = Vector2<float>;
+    using Vector3f = Vector3<float>;
+    using Vector4f = Vector4<float>;
 
     static_assert(sizeof(Vector2f) == sizeof(float) * 2);
     static_assert(sizeof(Vector3f) == sizeof(float) * 3);
