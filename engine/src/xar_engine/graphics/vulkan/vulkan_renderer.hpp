@@ -83,15 +83,6 @@ namespace xar_engine::graphics::vulkan
 
         VkFormat findDepthFormat();
 
-        bool hasStencilComponent(VkFormat format);
-
-        void generateMipmaps(
-            VkImage image,
-            VkFormat imageFormat,
-            int32_t texWidth,
-            int32_t texHeight,
-            uint32_t mipLevels);
-
         VkSampleCountFlagBits getMaxUsableSampleCount();
 
     private:

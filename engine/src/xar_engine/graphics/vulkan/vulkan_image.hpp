@@ -20,6 +20,10 @@ namespace xar_engine::graphics::vulkan
             VkCommandBuffer vk_command_buffer,
             VkImageLayout new_vk_image_layout);
 
+        void generate_mipmaps(
+            VkCommandBuffer vk_command_buffer,
+            VkPhysicalDevice vk_physical_device);
+
         [[nodiscard]]
         VkImage get_native() const;
 
@@ -28,8 +32,9 @@ namespace xar_engine::graphics::vulkan
         VkImage _vk_image;
         VkDeviceMemory _vk_image_memory;
 
-        VkFormat _vk_image_format;
+        VkFormat _vk_format;
         VkImageLayout _vk_image_layout;
+        math::Vector3i32 _dimension;
         std::uint32_t _mip_levels;
     };
 
