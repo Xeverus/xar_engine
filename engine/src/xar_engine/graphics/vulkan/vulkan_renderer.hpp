@@ -15,6 +15,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_swap_chain.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 
@@ -97,11 +98,9 @@ namespace xar_engine::graphics::vulkan
         std::unique_ptr<logging::ILogger> _logger;
 
         VkInstance _vk_instance;
-        VkSurfaceFormatKHR format_to_use;
-        VkSwapchainKHR vk_swapchain;
-        VkExtent2D swapchainExtent;
-        std::vector<VkImage> swapchain_images;
-        std::vector<VulkanImageView> _swap_chain_image_views;
+
+        std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
+        std::vector<VulkanImageView> _vulkan_swap_chain_image_views;
 
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout descriptorSetLayout;

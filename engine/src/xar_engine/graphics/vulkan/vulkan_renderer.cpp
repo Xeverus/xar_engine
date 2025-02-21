@@ -99,15 +99,12 @@ namespace xar_engine::graphics::vulkan
         _vulkan_color_image_view.reset();
         _vulkan_color_image.reset();
 
-        _swap_chain_image_views.clear();
+        _vulkan_swap_chain_image_views.clear();
 
         _vulkan_depth_image_view.reset();
         _vulkan_depth_image.reset();
 
-        vkDestroySwapchainKHR(
-            _vulkan_device->get_native(),
-            vk_swapchain,
-            nullptr);
+        _vulkan_swap_chain.reset();
     }
 
     void VulkanRenderer::init_swapchain()
@@ -115,13 +112,7 @@ namespace xar_engine::graphics::vulkan
         const auto formats = _vulkan_physical_device_list->get_surface_formats(
             0,
             _vk_surface_khr);
-        const auto present_modes = _vulkan_physical_device_list->get_present_modes(
-            0,
-            _vk_surface_khr);
-        const auto capabilities = _vulkan_physical_device_list->get_surface_capabilities(
-            0,
-            _vk_surface_khr);
-
+        VkSurfaceFormatKHR format_to_use;
         for (const auto& format: formats)
         {
             if (format.format == VK_FORMAT_R8G8B8A8_SRGB &&
@@ -132,6 +123,9 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
+        const auto present_modes = _vulkan_physical_device_list->get_present_modes(
+            0,
+            _vk_surface_khr);
         VkPresentModeKHR present_mode_to_use;
         for (const auto& present_mode: present_modes)
         {
@@ -142,68 +136,21 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        const auto fb_size = _os_window->get_surface_pixel_size();
-        swapchainExtent = {
-            static_cast<std::uint32_t>(fb_size.x),
-            static_cast<std::uint32_t>(fb_size.y),
-        };
-        swapchainExtent.width = std::clamp(
-            swapchainExtent.width,
-            capabilities.minImageExtent.width,
-            capabilities.maxImageExtent.width);
-        swapchainExtent.height = std::clamp(
-            swapchainExtent.height,
-            capabilities.minImageExtent.height,
-            capabilities.maxImageExtent.height);
-        std::uint32_t image_count = capabilities.minImageCount + 1;
-        image_count = capabilities.maxImageCount == 0 ? image_count : std::min(
-            image_count,
-            capabilities.maxImageCount);
-
-        VkSwapchainCreateInfoKHR swapchain_info{};
-        swapchain_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchain_info.surface = _vk_surface_khr;
-        swapchain_info.minImageCount = image_count;
-        swapchain_info.imageFormat = format_to_use.format;
-        swapchain_info.imageColorSpace = format_to_use.colorSpace;
-        swapchain_info.imageExtent = swapchainExtent;
-        swapchain_info.imageArrayLayers = 1;
-        swapchain_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        swapchain_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapchain_info.preTransform = capabilities.currentTransform;
-        swapchain_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        swapchain_info.presentMode = present_mode_to_use;
-        swapchain_info.clipped = VK_TRUE;
-        swapchain_info.oldSwapchain = VK_NULL_HANDLE;
-
-        const auto swapchain_result = vkCreateSwapchainKHR(
+        _vulkan_swap_chain = std::make_unique<VulkanSwapChain>(VulkanSwapChain::Parameters{
             _vulkan_device->get_native(),
-            &swapchain_info,
-            nullptr,
-            &vk_swapchain);
-        XAR_THROW_IF(
-            swapchain_result != VK_SUCCESS,
-            error::XarException,
-            "Vulkan swapchain creation failed");
+            _vk_surface_khr,
+            _vulkan_physical_device_list->get_surface_capabilities(
+                0,
+                _vk_surface_khr),
+            _os_window->get_surface_pixel_size(),
+            present_mode_to_use,
+            format_to_use
+        });
 
-        // get swapchain images p 84
-        std::uint32_t swapchain_images_count = 0;
-        vkGetSwapchainImagesKHR(
-            _vulkan_device->get_native(),
-            vk_swapchain,
-            &swapchain_images_count,
-            nullptr);
-        swapchain_images.resize(swapchain_images_count);
-        vkGetSwapchainImagesKHR(
-            _vulkan_device->get_native(),
-            vk_swapchain,
-            &swapchain_images_count,
-            swapchain_images.data());
-
-        _swap_chain_image_views.reserve(swapchain_images.size());
-        for (auto& swap_chain_image: swapchain_images)
+        _vulkan_swap_chain_image_views.reserve(_vulkan_swap_chain->get_swap_chain_images().size());
+        for (auto& swap_chain_image : _vulkan_swap_chain->get_swap_chain_images())
         {
-            _swap_chain_image_views.emplace_back(
+            _vulkan_swap_chain_image_views.emplace_back(
                 VulkanImageView::Parameters{
                     _vulkan_device->get_native(),
                     swap_chain_image,
@@ -212,6 +159,8 @@ namespace xar_engine::graphics::vulkan
                     1,
                 });
         }
+
+        (void)_vulkan_device;
     }
 
     void VulkanRenderer::init_shaders()
@@ -287,7 +236,7 @@ namespace xar_engine::graphics::vulkan
                 Vertex::getAttributeDescriptions(),
                 {pushConstantRange},
                 msaaSamples,
-                format_to_use.format,
+                _vulkan_swap_chain->get_format(),
                 findDepthFormat(),
             });
     }
@@ -509,10 +458,10 @@ namespace xar_engine::graphics::vulkan
                 _vulkan_device->get_native(),
                 _vulkan_physical_device_list->get_native(0),
                 {
-                    static_cast<std::int32_t>(swapchainExtent.width), static_cast<std::int32_t>(swapchainExtent.height),
+                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width), static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
                     1
                 },
-                format_to_use.format,
+                _vulkan_swap_chain->get_format(),
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -524,7 +473,7 @@ namespace xar_engine::graphics::vulkan
             VulkanImageView::Parameters{
                 _vulkan_device->get_native(),
                 _vulkan_color_image->get_native(),
-                format_to_use.format,
+                _vulkan_swap_chain->get_format(),
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 1,
             });
@@ -539,7 +488,7 @@ namespace xar_engine::graphics::vulkan
                 _vulkan_device->get_native(),
                 _vulkan_physical_device_list->get_native(0),
                 {
-                    static_cast<std::int32_t>(swapchainExtent.width), static_cast<std::int32_t>(swapchainExtent.height),
+                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width), static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
                     1
                 },
                 findDepthFormat(),
@@ -726,7 +675,7 @@ namespace xar_engine::graphics::vulkan
         uint32_t imageIndex;
         const auto acquire_img_result = vkAcquireNextImageKHR(
             _vulkan_device->get_native(),
-            vk_swapchain,
+            _vulkan_swap_chain->get_native(),
             UINT64_MAX,
             imageAvailableSemaphore[currentFrame],
             VK_NULL_HANDLE,
@@ -795,7 +744,7 @@ namespace xar_engine::graphics::vulkan
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                 .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .image = swapchain_images[imageIndex],
+                .image = _vulkan_swap_chain->get_swap_chain_images()[imageIndex],
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -830,7 +779,7 @@ namespace xar_engine::graphics::vulkan
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
             vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfoColor.resolveImageView = _swap_chain_image_views[imageIndex].get_native();
+            vkRenderingAttachmentInfoColor.resolveImageView = _vulkan_swap_chain_image_views[imageIndex].get_native();
 
             VkClearValue clearDepthColor{};
             clearDepthColor.depthStencil = {1.0f, 0};
@@ -848,7 +797,7 @@ namespace xar_engine::graphics::vulkan
             renderingInfo.colorAttachmentCount = 1;
             renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
             renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
-            renderingInfo.renderArea = VkRect2D{VkOffset2D{}, swapchainExtent};
+            renderingInfo.renderArea = VkRect2D{VkOffset2D{}, _vulkan_swap_chain->get_extent()};
             renderingInfo.layerCount = 1;
 
             vkCmdBeginRenderingKHR(
@@ -872,8 +821,8 @@ namespace xar_engine::graphics::vulkan
             VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;
-            viewport.width = (float) swapchainExtent.width;
-            viewport.height = (float) swapchainExtent.height;
+            viewport.width = (float) _vulkan_swap_chain->get_extent().width;
+            viewport.height = (float) _vulkan_swap_chain->get_extent().height;
             viewport.minDepth = 0.0f;
             viewport.maxDepth = 1.0f;
             vkCmdSetViewport(
@@ -884,7 +833,7 @@ namespace xar_engine::graphics::vulkan
 
             VkRect2D scissor{};
             scissor.offset = {0, 0};
-            scissor.extent = swapchainExtent;
+            scissor.extent = _vulkan_swap_chain->get_extent();
             vkCmdSetScissor(
                 _vk_command_buffers[currentFrame],
                 0,
@@ -930,7 +879,7 @@ namespace xar_engine::graphics::vulkan
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .image = swapchain_images[imageIndex],
+                .image = _vulkan_swap_chain->get_swap_chain_images()[imageIndex],
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -988,7 +937,7 @@ namespace xar_engine::graphics::vulkan
                           "failed to submit draw command buffer!");
             }
 
-            VkSwapchainKHR swapChains[] = {vk_swapchain};
+            VkSwapchainKHR swapChains[] = {_vulkan_swap_chain->get_native()};
             VkPresentInfoKHR presentInfo{};
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             presentInfo.waitSemaphoreCount = 1;
@@ -1101,9 +1050,7 @@ namespace xar_engine::graphics::vulkan
 
         destroy_swapchain();
 
-        vkDestroyDevice(
-            _vulkan_device->get_native(),
-            nullptr);
+        _vulkan_device.reset();
         vkDestroySurfaceKHR(
             _vk_instance,
             _vk_surface_khr,
@@ -1166,7 +1113,7 @@ namespace xar_engine::graphics::vulkan
 
         ubo.proj = glm::perspective(
             glm::radians(45.0f),
-            swapchainExtent.width / (float) swapchainExtent.height,
+            _vulkan_swap_chain->get_extent().width / (float)(_vulkan_swap_chain->get_extent().height),
             0.1f,
             10.0f);
 
