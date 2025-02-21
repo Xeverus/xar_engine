@@ -111,7 +111,7 @@ namespace xar_engine::graphics::vulkan
     {
         const auto formats = _vulkan_physical_device_list->get_surface_formats(
             0,
-            _vk_surface_khr);
+            _vulkan_surface->get_native());
         VkSurfaceFormatKHR format_to_use;
         for (const auto& format: formats)
         {
@@ -125,7 +125,7 @@ namespace xar_engine::graphics::vulkan
 
         const auto present_modes = _vulkan_physical_device_list->get_present_modes(
             0,
-            _vk_surface_khr);
+            _vulkan_surface->get_native());
         VkPresentModeKHR present_mode_to_use;
         for (const auto& present_mode: present_modes)
         {
@@ -136,19 +136,20 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        _vulkan_swap_chain = std::make_unique<VulkanSwapChain>(VulkanSwapChain::Parameters{
-            _vulkan_device->get_native(),
-            _vk_surface_khr,
-            _vulkan_physical_device_list->get_surface_capabilities(
-                0,
-                _vk_surface_khr),
-            _os_window->get_surface_pixel_size(),
-            present_mode_to_use,
-            format_to_use
-        });
+        _vulkan_swap_chain = std::make_unique<VulkanSwapChain>(
+            VulkanSwapChain::Parameters{
+                _vulkan_device->get_native(),
+                _vulkan_surface->get_native(),
+                _vulkan_physical_device_list->get_surface_capabilities(
+                    0,
+                    _vulkan_surface->get_native()),
+                _os_window->get_surface_pixel_size(),
+                present_mode_to_use,
+                format_to_use
+            });
 
         _vulkan_swap_chain_image_views.reserve(_vulkan_swap_chain->get_swap_chain_images().size());
-        for (auto& swap_chain_image : _vulkan_swap_chain->get_swap_chain_images())
+        for (auto& swap_chain_image: _vulkan_swap_chain->get_swap_chain_images())
         {
             _vulkan_swap_chain_image_views.emplace_back(
                 VulkanImageView::Parameters{
@@ -160,7 +161,7 @@ namespace xar_engine::graphics::vulkan
                 });
         }
 
-        (void)_vulkan_device;
+        (void) _vulkan_device;
     }
 
     void VulkanRenderer::init_shaders()
@@ -357,27 +358,13 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_descriptors()
     {
-        // pool
-        std::array<VkDescriptorPoolSize, 2> poolSizes{};
-        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-        VkDescriptorPoolCreateInfo poolInfo{};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<std::int32_t>(poolSizes.size());
-        poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-        if (vkCreateDescriptorPool(
-            _vulkan_device->get_native(),
-            &poolInfo,
-            nullptr,
-            &descriptorPool) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
+        _vulkan_descriptor_pool = std::make_unique<VulkanDescriptorPool>(
+            VulkanDescriptorPool::Parameters{
+                _vulkan_device->get_native(),
+                MAX_FRAMES_IN_FLIGHT,
+                MAX_FRAMES_IN_FLIGHT,
+                MAX_FRAMES_IN_FLIGHT,
+            });
 
         // sets
         std::vector<VkDescriptorSetLayout> layouts(
@@ -385,7 +372,7 @@ namespace xar_engine::graphics::vulkan
             descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = descriptorPool;
+        allocInfo.descriptorPool = _vulkan_descriptor_pool->get_native();
         allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
         allocInfo.pSetLayouts = layouts.data();
 
@@ -458,7 +445,8 @@ namespace xar_engine::graphics::vulkan
                 _vulkan_device->get_native(),
                 _vulkan_physical_device_list->get_native(0),
                 {
-                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width), static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
+                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width),
+                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
                     1
                 },
                 _vulkan_swap_chain->get_format(),
@@ -488,7 +476,8 @@ namespace xar_engine::graphics::vulkan
                 _vulkan_device->get_native(),
                 _vulkan_physical_device_list->get_native(0),
                 {
-                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width), static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
+                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width),
+                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
                     1
                 },
                 findDepthFormat(),
@@ -589,11 +578,12 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_sampler()
     {
-        _vulkan_sampler = std::make_unique<VulkanSampler>(VulkanSampler::Parameters{
-            _vulkan_device->get_native(),
-            _vulkan_physical_device_list->get_device_properties(0).limits.maxSamplerAnisotropy,
-            static_cast<float>(mipLevels),
-        });
+        _vulkan_sampler = std::make_unique<VulkanSampler>(
+            VulkanSampler::Parameters{
+                _vulkan_device->get_native(),
+                _vulkan_physical_device_list->get_device_properties(0).limits.maxSamplerAnisotropy,
+                static_cast<float>(mipLevels),
+            });
     }
 
     void VulkanRenderer::init_sync_objects()
@@ -1001,10 +991,7 @@ namespace xar_engine::graphics::vulkan
             _vulkan_uniform_buffers[i].reset();
         }
 
-        vkDestroyDescriptorPool(
-            _vulkan_device->get_native(),
-            descriptorPool,
-            nullptr);
+        _vulkan_descriptor_pool.reset();
 
         // here because we may want to reuse it
         vkDestroyDescriptorSetLayout(
@@ -1027,10 +1014,8 @@ namespace xar_engine::graphics::vulkan
         destroy_swapchain();
 
         _vulkan_device.reset();
-        vkDestroySurfaceKHR(
-            _vk_instance,
-            _vk_surface_khr,
-            nullptr);
+        _vulkan_surface.reset();
+
         vkDestroyInstance(
             _vk_instance,
             nullptr);
@@ -1089,7 +1074,7 @@ namespace xar_engine::graphics::vulkan
 
         ubo.proj = glm::perspective(
             glm::radians(45.0f),
-            _vulkan_swap_chain->get_extent().width / (float)(_vulkan_swap_chain->get_extent().height),
+            _vulkan_swap_chain->get_extent().width / (float) (_vulkan_swap_chain->get_extent().height),
             0.1f,
             10.0f);
 
@@ -1213,10 +1198,15 @@ namespace xar_engine::graphics::vulkan
 {
     VulkanRenderer::VulkanRenderer(
         VkInstance vk_instance,
-        VkSurfaceKHR _vk_surface_khr,
+        VkSurfaceKHR vk_surface_khr,
         const os::IWindow* os_window)
         : _vk_instance(vk_instance)
-        , _vk_surface_khr(_vk_surface_khr)
+        , _vulkan_surface(
+            std::make_unique<VulkanSurface>(
+                VulkanSurface::Parameters{
+                    vk_instance,
+                    vk_surface_khr,
+                }))
         , _os_window(os_window)
         , _logger(std::make_unique<logging::ConsoleLogger>())
         , currentFrame(0)

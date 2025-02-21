@@ -14,6 +14,7 @@ namespace xar_engine::graphics::vulkan
 
     public:
         explicit VulkanDevice(const Parameters& parameters);
+        ~VulkanDevice();
 
 
         void wait_idle() const;

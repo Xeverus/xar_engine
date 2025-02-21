@@ -60,6 +60,13 @@ namespace xar_engine::graphics::vulkan
             &_vk_graphics_queue);
     }
 
+    VulkanDevice::~VulkanDevice()
+    {
+        vkDestroyDevice(
+            _vk_device,
+            nullptr);
+    }
+
     void VulkanDevice::wait_idle() const
     {
         vkDeviceWaitIdle(_vk_device);
