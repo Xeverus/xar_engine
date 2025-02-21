@@ -51,6 +51,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/renderer.cpp
         src/xar_engine/graphics/vulkan/vulkan_buffer.cpp
         src/xar_engine/graphics/vulkan/vulkan_buffer.hpp
+        src/xar_engine/graphics/vulkan/vulkan_command_buffer_pool.cpp
+        src/xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp
         src/xar_engine/graphics/vulkan/vulkan_device.cpp
         src/xar_engine/graphics/vulkan/vulkan_device.hpp
         src/xar_engine/graphics/vulkan/vulkan_image.cpp

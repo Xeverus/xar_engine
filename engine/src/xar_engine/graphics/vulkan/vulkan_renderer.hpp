@@ -8,6 +8,7 @@
 
 #include <xar_engine/graphics/renderer.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
@@ -61,19 +62,12 @@ namespace xar_engine::graphics::vulkan
         void cleanup_sandbox();
 
     private:
-        std::uint32_t findMemoryType(
-            uint32_t typeFilter,
-            VkMemoryPropertyFlags properties);
-
         void copyBuffer(
             VkBuffer srcBuffer,
             VkBuffer dstBuffer,
             VkDeviceSize size);
 
         void updateUniformBuffer(uint32_t currentImage);
-
-        VkCommandBuffer beginSingleTimeCommands();
-        void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
         void transitionImageLayout(
             VkImage image,
@@ -109,8 +103,8 @@ namespace xar_engine::graphics::vulkan
     private:
         std::unique_ptr<VulkanPhysicalDeviceList> _vulkan_physical_device_list;
         std::unique_ptr<VulkanDevice> _vulkan_device;
-        std::unique_ptr<VulkanShader> _vertex_shader;
-        std::unique_ptr<VulkanShader> _fragment_shader;
+        std::unique_ptr<VulkanShader> _vulkan_vertex_shader;
+        std::unique_ptr<VulkanShader> _vulkan_fragment_shader;
 
         const os::IWindow* _os_window;
         VkSurfaceKHR _vk_surface_khr;
@@ -131,24 +125,24 @@ namespace xar_engine::graphics::vulkan
         VkPipelineLayout pipelineLayout;
         VkPipeline graphicsPipeline;
 
-        std::unique_ptr<VulkanBuffer> _vertex_buffer;
-        std::unique_ptr<VulkanBuffer> _index_buffer;
-        std::vector<std::unique_ptr<VulkanBuffer>> _uniform_buffers;
+        std::unique_ptr<VulkanBuffer> _vulkan_vertex_buffer;
+        std::unique_ptr<VulkanBuffer> _vulkan_index_buffer;
+        std::vector<std::unique_ptr<VulkanBuffer>> _vulkan_uniform_buffers;
         std::vector<void*> _uniform_buffers_mapped;
 
-        VkCommandPool commandPool;
-        std::vector<VkCommandBuffer> commandBuffer;
+        std::unique_ptr<VulkanCommandBufferPool> _vulkan_command_pool;
+        std::vector<VkCommandBuffer> _vk_command_buffers;
 
         uint32_t mipLevels;
-        std::unique_ptr<VulkanImage> _texture_image;
-        std::unique_ptr<VulkanImageView> _texture_image_view;
+        std::unique_ptr<VulkanImage> _vulkan_texture_image;
+        std::unique_ptr<VulkanImageView> _vulkan_texture_image_view;
         VkSampler textureSampler;
 
-        std::unique_ptr<VulkanImage> _depth_image;
-        std::unique_ptr<VulkanImageView> _depth_image_view;
+        std::unique_ptr<VulkanImage> _vulkan_depth_image;
+        std::unique_ptr<VulkanImageView> _vulkan_depth_image_view;
 
-        std::unique_ptr<VulkanImage> _color_image;
-        std::unique_ptr<VulkanImageView> _color_image_view;
+        std::unique_ptr<VulkanImage> _vulkan_color_image;
+        std::unique_ptr<VulkanImageView> _vulkan_color_image_view;
 
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;
