@@ -9,6 +9,8 @@
 #include <xar_engine/graphics/renderer.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_image.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
 
@@ -70,18 +72,6 @@ namespace xar_engine::graphics::vulkan
 
         void updateUniformBuffer(uint32_t currentImage);
 
-        void createImage(
-            uint32_t width,
-            uint32_t height,
-            VkFormat format,
-            VkImageTiling tiling,
-            VkImageUsageFlags usage,
-            VkMemoryPropertyFlags properties,
-            VkImage& image,
-            VkDeviceMemory& imageMemory,
-            uint32_t mipLevels,
-            VkSampleCountFlagBits numSamples);
-
         VkCommandBuffer beginSingleTimeCommands();
         void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
@@ -97,12 +87,6 @@ namespace xar_engine::graphics::vulkan
             VkImage image,
             uint32_t width,
             uint32_t height);
-
-        VkImageView createImageView(
-            VkImage image,
-            VkFormat format,
-            VkImageAspectFlags aspectFlags,
-            uint32_t mipLevels);
 
         VkFormat findSupportedFormat(
             const std::vector<VkFormat>& candidates,
@@ -138,7 +122,7 @@ namespace xar_engine::graphics::vulkan
         VkSwapchainKHR vk_swapchain;
         VkExtent2D swapchainExtent;
         std::vector<VkImage> swapchain_images;
-        std::vector<VkImageView> swapchain_image_views;
+        std::vector<VulkanImageView> _swap_chain_image_views;
 
         VkDescriptorPool descriptorPool;
         VkDescriptorSetLayout descriptorSetLayout;
@@ -156,18 +140,15 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkCommandBuffer> commandBuffer;
 
         uint32_t mipLevels;
-        VkImage textureImage;
-        VkImageView textureImageView;
-        VkDeviceMemory textureImageMemory;
+        std::unique_ptr<VulkanImage> _texture_image;
+        std::unique_ptr<VulkanImageView> _texture_image_view;
         VkSampler textureSampler;
 
-        VkImage depthImage;
-        VkDeviceMemory depthImageMemory;
-        VkImageView depthImageView;
+        std::unique_ptr<VulkanImage> _depth_image;
+        std::unique_ptr<VulkanImageView> _depth_image_view;
 
-        VkImage colorImage;
-        VkDeviceMemory colorImageMemory;
-        VkImageView colorImageView;
+        std::unique_ptr<VulkanImage> _color_image;
+        std::unique_ptr<VulkanImageView> _color_image_view;
 
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;

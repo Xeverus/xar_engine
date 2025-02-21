@@ -49,10 +49,14 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/file/file.hpp
         src/xar_engine/graphics/renderer_type.cpp
         src/xar_engine/graphics/renderer.cpp
-        src/xar_engine/graphics/vulkan/vulkan_device.cpp
-        src/xar_engine/graphics/vulkan/vulkan_device.hpp
         src/xar_engine/graphics/vulkan/vulkan_buffer.cpp
         src/xar_engine/graphics/vulkan/vulkan_buffer.hpp
+        src/xar_engine/graphics/vulkan/vulkan_device.cpp
+        src/xar_engine/graphics/vulkan/vulkan_device.hpp
+        src/xar_engine/graphics/vulkan/vulkan_image.cpp
+        src/xar_engine/graphics/vulkan/vulkan_image.hpp
+        src/xar_engine/graphics/vulkan/vulkan_image_view.cpp
+        src/xar_engine/graphics/vulkan/vulkan_image_view.hpp
         src/xar_engine/graphics/vulkan/vulkan_instance.cpp
         src/xar_engine/graphics/vulkan/vulkan_instance.hpp
         src/xar_engine/graphics/vulkan/vulkan_physical_device_list.cpp

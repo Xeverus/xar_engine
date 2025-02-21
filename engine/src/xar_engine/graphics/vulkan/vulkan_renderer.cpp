@@ -96,40 +96,13 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::destroy_swapchain()
     {
-        vkDestroyImageView(
-            _vulkan_device->get_native(),
-            colorImageView,
-            nullptr);
-        vkDestroyImage(
-            _vulkan_device->get_native(),
-            colorImage,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            colorImageMemory,
-            nullptr);
+        _color_image_view.reset();
+        _color_image.reset();
 
-        for (auto& image: swapchain_image_views)
-        {
-            vkDestroyImageView(
-                _vulkan_device->get_native(),
-                image,
-                nullptr);
-        }
-        swapchain_image_views.clear();
+        _swap_chain_image_views.clear();
 
-        vkDestroyImageView(
-            _vulkan_device->get_native(),
-            depthImageView,
-            nullptr);
-        vkDestroyImage(
-            _vulkan_device->get_native(),
-            depthImage,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            depthImageMemory,
-            nullptr);
+        _depth_image_view.reset();
+        _depth_image.reset();
 
         vkDestroySwapchainKHR(
             _vulkan_device->get_native(),
@@ -227,14 +200,16 @@ namespace xar_engine::graphics::vulkan
             &swapchain_images_count,
             swapchain_images.data());
 
-        swapchain_image_views.resize(swapchain_images.size());
-        for (auto i = 0; i < swapchain_image_views.size(); ++i)
+        _swap_chain_image_views.reserve(swapchain_images.size());
+        for (auto i = 0; i < swapchain_images.size(); ++i)
         {
-            swapchain_image_views[i] = createImageView(
+            _swap_chain_image_views.emplace_back(VulkanImageView::Parameters{
+                _vulkan_device->get_native(),
                 swapchain_images[i],
                 format_to_use.format,
                 VK_IMAGE_ASPECT_COLOR_BIT,
-                1);
+                1,
+            });
         }
     }
 
@@ -607,7 +582,7 @@ namespace xar_engine::graphics::vulkan
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = textureImageView;
+            imageInfo.imageView = _texture_image_view->get_native();
             imageInfo.sampler = textureSampler;
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
@@ -675,51 +650,53 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_color_msaa()
     {
-        VkFormat colorFormat = format_to_use.format;
-
-        createImage(
-            swapchainExtent.width,
-            swapchainExtent.height,
-            colorFormat,
+        _color_image = std::make_unique<VulkanImage>(VulkanImage::Parameters{
+            _vulkan_device->get_native(),
+            _vulkan_physical_device_list->get_native(0),
+            {static_cast<std::int32_t>(swapchainExtent.width), static_cast<std::int32_t>(swapchainExtent.height), 1},
+            format_to_use.format,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            colorImage,
-            colorImageMemory,
             1,
-            msaaSamples);
+            msaaSamples,
+        });
 
-        colorImageView = createImageView(
-            colorImage,
-            colorFormat,
+        _color_image_view = std::make_unique<VulkanImageView>(VulkanImageView::Parameters{
+            _vulkan_device->get_native(),
+            _color_image->get_native(),
+            format_to_use.format,
             VK_IMAGE_ASPECT_COLOR_BIT,
-            1);
+            1,
+        });
     }
 
     void VulkanRenderer::init_depth()
     {
         VkFormat depthFormat = findDepthFormat();
 
-        createImage(
-            swapchainExtent.width,
-            swapchainExtent.height,
-            depthFormat,
+        _depth_image = std::make_unique<VulkanImage>(VulkanImage::Parameters{
+            _vulkan_device->get_native(),
+            _vulkan_physical_device_list->get_native(0),
+            {static_cast<std::int32_t>(swapchainExtent.width), static_cast<std::int32_t>(swapchainExtent.height), 1},
+            findDepthFormat(),
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            depthImage,
-            depthImageMemory,
             1,
-            msaaSamples);
+            msaaSamples,
+        });
 
-        depthImageView = createImageView(
-            depthImage,
-            depthFormat,
+        _depth_image_view = std::make_unique<VulkanImageView>(VulkanImageView::Parameters{
+            _vulkan_device->get_native(),
+            _depth_image->get_native(),
+            findDepthFormat(),
             VK_IMAGE_ASPECT_DEPTH_BIT,
-            1);
+            1,
+        });
 
         transitionImageLayout(
-            depthImage,
+            _depth_image->get_native(),
             depthFormat,
             VK_IMAGE_LAYOUT_UNDEFINED,
             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
@@ -753,20 +730,20 @@ namespace xar_engine::graphics::vulkan
             static_cast<size_t>(imageSize));
         staging_buffer.unmap();
 
-        createImage(
-            image.pixel_width,
-            image.pixel_height,
+        _texture_image = std::make_unique<VulkanImage>(VulkanImage::Parameters{
+            _vulkan_device->get_native(),
+            _vulkan_physical_device_list->get_native(0),
+            {image.pixel_width, image.pixel_height, 1},
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_TILING_OPTIMAL,
             VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            textureImage,
-            textureImageMemory,
             mipLevels,
-            VK_SAMPLE_COUNT_1_BIT);
+            VK_SAMPLE_COUNT_1_BIT,
+        });
 
         transitionImageLayout(
-            textureImage,
+            _texture_image->get_native(),
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_LAYOUT_UNDEFINED,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -774,18 +751,12 @@ namespace xar_engine::graphics::vulkan
 
         copyBufferToImage(
             staging_buffer.get_native(),
-            textureImage,
+            _texture_image->get_native(),
             image.pixel_width,
             image.pixel_height);
 
-        /*transitionImageLayout(
-            textureImage,
-            VK_FORMAT_R8G8B8A8_SRGB,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);*/
-
         generateMipmaps(
-            textureImage,
+            _texture_image->get_native(),
             VK_FORMAT_R8G8B8A8_SRGB,
             image.pixel_width,
             image.pixel_height,
@@ -794,11 +765,13 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_texture_view()
     {
-        textureImageView = createImageView(
-            textureImage,
+        _texture_image_view = std::make_unique<VulkanImageView>(VulkanImageView::Parameters{
+            _vulkan_device->get_native(),
+            _texture_image->get_native(),
             VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_ASPECT_COLOR_BIT,
-            mipLevels);
+            mipLevels,
+        });
     }
 
     void VulkanRenderer::init_sampler()
@@ -987,13 +960,13 @@ namespace xar_engine::graphics::vulkan
             VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
             vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
             vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
-            vkRenderingAttachmentInfoColor.imageView = colorImageView;
+            vkRenderingAttachmentInfoColor.imageView = _color_image_view->get_native();
             vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
             vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfoColor.resolveImageView = swapchain_image_views[imageIndex];
+            vkRenderingAttachmentInfoColor.resolveImageView = _swap_chain_image_views[imageIndex].get_native();
 
             VkClearValue clearDepthColor{};
             clearDepthColor.depthStencil = {1.0f, 0};
@@ -1001,7 +974,7 @@ namespace xar_engine::graphics::vulkan
             VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
             vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
             vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
-            vkRenderingAttachmentInfoDepth.imageView = depthImageView;
+            vkRenderingAttachmentInfoDepth.imageView = _depth_image_view->get_native();
             vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -1270,18 +1243,8 @@ namespace xar_engine::graphics::vulkan
             _vulkan_device->get_native(),
             textureSampler,
             nullptr);
-        vkDestroyImageView(
-            _vulkan_device->get_native(),
-            textureImageView,
-            nullptr);
-        vkDestroyImage(
-            _vulkan_device->get_native(),
-            textureImage,
-            nullptr);
-        vkFreeMemory(
-            _vulkan_device->get_native(),
-            textureImageMemory,
-            nullptr);
+        _texture_image_view.reset();
+        _texture_image.reset();
 
         destroy_swapchain();
 
@@ -1381,72 +1344,6 @@ namespace xar_engine::graphics::vulkan
             _uniform_buffers_mapped[currentImageNr],
             &ubo,
             sizeof(ubo));
-    }
-
-    void VulkanRenderer::createImage(
-        uint32_t width,
-        uint32_t height,
-        VkFormat format,
-        VkImageTiling tiling,
-        VkImageUsageFlags usage,
-        VkMemoryPropertyFlags properties,
-        VkImage& image,
-        VkDeviceMemory& imageMemory,
-        uint32_t requestedMipLevels,
-        VkSampleCountFlagBits numSamples)
-    {
-        VkImageCreateInfo imageInfo{};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = static_cast<uint32_t>(width);
-        imageInfo.extent.height = static_cast<uint32_t>(height);
-        imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = requestedMipLevels;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = format;
-        imageInfo.tiling = tiling;
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = usage;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageInfo.samples = numSamples;
-        imageInfo.flags = 0; // Optional
-
-        if (vkCreateImage(
-            _vulkan_device->get_native(),
-            &imageInfo,
-            nullptr,
-            &image) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create image!");
-        }
-
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(
-            _vulkan_device->get_native(),
-            image,
-            &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(
-            memRequirements.memoryTypeBits,
-            properties);
-
-        if (vkAllocateMemory(
-            _vulkan_device->get_native(),
-            &allocInfo,
-            nullptr,
-            &imageMemory) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to allocate image memory!");
-        }
-
-        vkBindImageMemory(
-            _vulkan_device->get_native(),
-            image,
-            imageMemory,
-            0);
     }
 
     VkCommandBuffer VulkanRenderer::beginSingleTimeCommands()
@@ -1623,36 +1520,6 @@ namespace xar_engine::graphics::vulkan
         );
 
         endSingleTimeCommands(tempCommandBuffer);
-    }
-
-    VkImageView VulkanRenderer::createImageView(
-        VkImage image,
-        VkFormat format,
-        VkImageAspectFlags aspectFlags,
-        uint32_t mipLevels)
-    {
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = image;
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = format;
-        viewInfo.subresourceRange.aspectMask = aspectFlags;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = mipLevels;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        VkImageView imageView;
-        if (vkCreateImageView(
-            _vulkan_device->get_native(),
-            &viewInfo,
-            nullptr,
-            &imageView) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create texture image view!");
-        }
-
-        return imageView;
     }
 
     VkFormat VulkanRenderer::findSupportedFormat(

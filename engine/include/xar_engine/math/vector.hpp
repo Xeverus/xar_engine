@@ -62,6 +62,15 @@ namespace xar_engine::math
     static_assert(sizeof(Vector4i32) == sizeof(std::int32_t) * 4);
 
 
+    using Vector2u32 = Vector<std::uint32_t, 2>;
+    using Vector3u32 = Vector<std::uint32_t, 3>;
+    using Vector4u32 = Vector<std::uint32_t, 4>;
+
+    static_assert(sizeof(Vector2u32) == sizeof(std::uint32_t) * 2);
+    static_assert(sizeof(Vector3u32) == sizeof(std::uint32_t) * 3);
+    static_assert(sizeof(Vector4u32) == sizeof(std::uint32_t) * 4);
+
+
     template <typename T>
     bool operator==(
         const Vector2<T>& left,
