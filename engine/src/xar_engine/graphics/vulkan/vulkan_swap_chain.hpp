@@ -14,9 +14,22 @@ namespace xar_engine::graphics::vulkan
     public:
         struct Parameters;
 
+        struct BeginFrameResult;
+        struct EndFrameResult;
+
     public:
         explicit VulkanSwapChain(const Parameters& parameters);
         ~VulkanSwapChain();
+
+
+        BeginFrameResult begin_frame(std::uint32_t frame_index);
+
+        EndFrameResult end_frame(
+            std::uint32_t frame_index,
+            std::uint32_t image_index,
+            VkQueue vk_queue,
+            VkCommandBuffer vk_command_buffer);
+
 
         [[nodiscard]]
         const std::vector<VkImage>& get_swap_chain_images() const;
@@ -38,6 +51,10 @@ namespace xar_engine::graphics::vulkan
         VkSurfaceFormatKHR _vk_surface_format_khr;
 
         std::vector<VkImage> _vk_swap_chain_images;
+
+        std::vector<VkSemaphore> imageAvailableSemaphore;
+        std::vector<VkSemaphore> renderFinishedSemaphore;
+        std::vector<VkFence> inFlightFence;
     };
 
     struct VulkanSwapChain::Parameters
@@ -48,5 +65,17 @@ namespace xar_engine::graphics::vulkan
         math::Vector2i32 dimension;
         VkPresentModeKHR present_mode_khr;
         VkSurfaceFormatKHR surface_format_khr;
+        std::int32_t buffering_level;
+    };
+
+    struct VulkanSwapChain::BeginFrameResult
+    {
+        VkResult vk_result;
+        std::uint32_t image_index;
+    };
+
+    struct VulkanSwapChain::EndFrameResult
+    {
+        VkResult vk_result;
     };
 }

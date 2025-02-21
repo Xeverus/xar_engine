@@ -144,7 +144,8 @@ namespace xar_engine::graphics::vulkan
                     _vulkan_surface->get_native()),
                 _os_window->get_surface_pixel_size(),
                 present_mode_to_use,
-                format_to_use
+                format_to_use,
+                MAX_FRAMES_IN_FLIGHT,
             });
 
         _vulkan_swap_chain_image_views.reserve(_vulkan_swap_chain->get_swap_chain_images().size());
@@ -583,76 +584,23 @@ namespace xar_engine::graphics::vulkan
             });
     }
 
-    void VulkanRenderer::init_sync_objects()
-    {
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-        imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-        renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-        inFlightFence.resize(MAX_FRAMES_IN_FLIGHT);
-        for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-        {
-            if (vkCreateSemaphore(
-                _vulkan_device->get_native(),
-                &semaphoreInfo,
-                nullptr,
-                &imageAvailableSemaphore[i]) != VK_SUCCESS ||
-                vkCreateSemaphore(
-                    _vulkan_device->get_native(),
-                    &semaphoreInfo,
-                    nullptr,
-                    &renderFinishedSemaphore[i]) != VK_SUCCESS ||
-                vkCreateFence(
-                    _vulkan_device->get_native(),
-                    &fenceInfo,
-                    nullptr,
-                    &inFlightFence[i]) != VK_SUCCESS)
-            {
-                XAR_THROW(error::XarException,
-                          "failed to create semaphore nr {}!",
-                          i);
-            }
-        }
-    }
-
     void VulkanRenderer::run_frame_sandbox()
     {
-        vkWaitForFences(
-            _vulkan_device->get_native(),
-            1,
-            &inFlightFence[currentFrame],
-            VK_TRUE,
-            UINT64_MAX);
-        vkResetFences(
-            _vulkan_device->get_native(),
-            1,
-            &inFlightFence[currentFrame]);
-
-        uint32_t imageIndex;
-        const auto acquire_img_result = vkAcquireNextImageKHR(
-            _vulkan_device->get_native(),
-            _vulkan_swap_chain->get_native(),
-            UINT64_MAX,
-            imageAvailableSemaphore[currentFrame],
-            VK_NULL_HANDLE,
-            &imageIndex);
-        if (acquire_img_result == VK_ERROR_OUT_OF_DATE_KHR)
+        const auto begin_frame_result = _vulkan_swap_chain->begin_frame(currentFrame);
+        if (begin_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
                 *_logger,
                 tag,
                 "Acquire failed because Swapchain is out of date");
+
             _vulkan_device->wait_idle();
             destroy_swapchain();
             init_swapchain();
             init_color_msaa();
             init_depth();
+
             XAR_LOG(
                 logging::LogLevel::DEBUG,
                 *_logger,
@@ -660,7 +608,7 @@ namespace xar_engine::graphics::vulkan
                 "Acquire failed because Swapchain is out of date but swapchain was recreated");
             return;
         }
-        else if (acquire_img_result != VK_SUCCESS && acquire_img_result != VK_SUBOPTIMAL_KHR)
+        else if (begin_frame_result.vk_result != VK_SUCCESS && begin_frame_result.vk_result != VK_SUBOPTIMAL_KHR)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -669,12 +617,6 @@ namespace xar_engine::graphics::vulkan
                 "Acquire failed because Swapchain");
             return;
         }
-
-        // Only reset the fence if we are submitting work
-        vkResetFences(
-            _vulkan_device->get_native(),
-            1,
-            &inFlightFence[currentFrame]);
 
         // Record CMD buffer
         {
@@ -705,7 +647,7 @@ namespace xar_engine::graphics::vulkan
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                 .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .image = _vulkan_swap_chain->get_swap_chain_images()[imageIndex],
+                .image = _vulkan_swap_chain->get_swap_chain_images()[begin_frame_result.image_index],
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -740,7 +682,7 @@ namespace xar_engine::graphics::vulkan
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
             vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfoColor.resolveImageView = _vulkan_swap_chain_image_views[imageIndex].get_native();
+            vkRenderingAttachmentInfoColor.resolveImageView = _vulkan_swap_chain_image_views[begin_frame_result.image_index].get_native();
 
             VkClearValue clearDepthColor{};
             clearDepthColor.depthStencil = {1.0f, 0};
@@ -840,7 +782,7 @@ namespace xar_engine::graphics::vulkan
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .image = _vulkan_swap_chain->get_swap_chain_images()[imageIndex],
+                .image = _vulkan_swap_chain->get_swap_chain_images()[begin_frame_result.image_index],
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -872,72 +814,39 @@ namespace xar_engine::graphics::vulkan
             updateUniformBuffer(currentFrame);
         }
 
-        // Submit buffer
+        const auto end_frame_result = _vulkan_swap_chain->end_frame(
+            currentFrame,
+            begin_frame_result.image_index,
+            _vulkan_device->get_graphics_queue(),
+            _vk_command_buffers[currentFrame]);
+        if (end_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR || end_frame_result.vk_result == VK_SUBOPTIMAL_KHR)
         {
-            VkSemaphore waitSemaphores[] = {imageAvailableSemaphore[currentFrame]};
-            VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-            VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[currentFrame]};
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                *_logger,
+                tag,
+                "Present failed because Swapchain is out of date");
 
-            VkSubmitInfo submitInfo{};
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.waitSemaphoreCount = 1;
-            submitInfo.pWaitSemaphores = waitSemaphores;
-            submitInfo.pWaitDstStageMask = waitStages;
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &_vk_command_buffers[currentFrame];
-            submitInfo.signalSemaphoreCount = 1;
-            submitInfo.pSignalSemaphores = signalSemaphores;
+            _vulkan_device->wait_idle();
+            destroy_swapchain();
+            init_swapchain();
+            init_color_msaa();
+            init_depth();
 
-            if (vkQueueSubmit(
-                _vulkan_device->get_graphics_queue(),
-                1,
-                &submitInfo,
-                inFlightFence[currentFrame]) != VK_SUCCESS)
-            {
-                XAR_THROW(error::XarException,
-                          "failed to submit draw command buffer!");
-            }
-
-            VkSwapchainKHR swapChains[] = {_vulkan_swap_chain->get_native()};
-            VkPresentInfoKHR presentInfo{};
-            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            presentInfo.waitSemaphoreCount = 1;
-            presentInfo.pWaitSemaphores = signalSemaphores;
-            presentInfo.swapchainCount = 1;
-            presentInfo.pSwapchains = swapChains;
-            presentInfo.pImageIndices = &imageIndex;
-            presentInfo.pResults = nullptr; // Optional
-            const auto present_result = vkQueuePresentKHR(
-                _vulkan_device->get_graphics_queue(),
-                &presentInfo);
-
-            if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR)
-            {
-                XAR_LOG(
-                    logging::LogLevel::ERROR,
-                    *_logger,
-                    tag,
-                    "Present failed because Swapchain is out of date");
-                _vulkan_device->wait_idle();
-                destroy_swapchain();
-                init_swapchain();
-                init_color_msaa();
-                init_depth();
-                XAR_LOG(
-                    logging::LogLevel::DEBUG,
-                    *_logger,
-                    tag,
-                    "Present failed because Swapchain is out of date but swapchain was recreated");
-            }
-            else if (present_result != VK_SUCCESS)
-            {
-                XAR_LOG(
-                    logging::LogLevel::ERROR,
-                    *_logger,
-                    tag,
-                    "Acquire failed because Swapchain");
-                return;
-            }
+            XAR_LOG(
+                logging::LogLevel::DEBUG,
+                *_logger,
+                tag,
+                "Present failed because Swapchain is out of date but swapchain was recreated");
+        }
+        else if (end_frame_result.vk_result != VK_SUCCESS)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                *_logger,
+                tag,
+                "Acquire failed because Swapchain");
+            return;
         }
 
         XAR_LOG(
@@ -959,22 +868,6 @@ namespace xar_engine::graphics::vulkan
     void VulkanRenderer::cleanup_sandbox()
     {
         _vulkan_device->wait_idle();
-
-        for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-        {
-            vkDestroyFence(
-                _vulkan_device->get_native(),
-                inFlightFence[i],
-                nullptr);
-            vkDestroySemaphore(
-                _vulkan_device->get_native(),
-                renderFinishedSemaphore[i],
-                nullptr);
-            vkDestroySemaphore(
-                _vulkan_device->get_native(),
-                imageAvailableSemaphore[i],
-                nullptr);
-        }
 
         _vulkan_command_pool.reset();
 
@@ -1161,7 +1054,6 @@ namespace xar_engine::graphics::vulkan
         init_index_data();
         init_ubo_data();
         init_descriptors();
-        init_sync_objects();
     }
 
     VulkanRenderer::~VulkanRenderer()

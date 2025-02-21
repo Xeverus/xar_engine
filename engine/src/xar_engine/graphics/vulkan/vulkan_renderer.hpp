@@ -58,7 +58,6 @@ namespace xar_engine::graphics::vulkan
         void init_texture();
         void init_texture_view();
         void init_sampler();
-        void init_sync_objects();
 
         void run_frame_sandbox();
 
@@ -77,11 +76,6 @@ namespace xar_engine::graphics::vulkan
             VkImage image,
             uint32_t width,
             uint32_t height);
-
-        VkFormat findSupportedFormat(
-            const std::vector<VkFormat>& candidates,
-            VkImageTiling tiling,
-            VkFormatFeatureFlags features);
 
         VkFormat findDepthFormat();
 
@@ -125,10 +119,6 @@ namespace xar_engine::graphics::vulkan
 
         std::unique_ptr<VulkanImage> _vulkan_color_image;
         std::unique_ptr<VulkanImageView> _vulkan_color_image_view;
-
-        std::vector<VkSemaphore> imageAvailableSemaphore;
-        std::vector<VkSemaphore> renderFinishedSemaphore;
-        std::vector<VkFence> inFlightFence;
 
         uint32_t frameCounter;
         uint32_t currentFrame;
