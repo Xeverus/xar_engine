@@ -90,8 +90,7 @@ namespace xar_engine::graphics::vulkan
             VulkanDevice::Parameters{
                 _vulkan_physical_device_list->get_native(0)
             });
-
-        msaaSamples = getMaxUsableSampleCount();
+        msaaSamples = _vulkan_physical_device_list->get_max_sample_count(0);
     }
 
     void VulkanRenderer::destroy_swapchain()
@@ -160,8 +159,6 @@ namespace xar_engine::graphics::vulkan
                     1,
                 });
         }
-
-        (void) _vulkan_device;
     }
 
     void VulkanRenderer::init_shaders()
@@ -623,11 +620,6 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    void VulkanRenderer::wait()
-    {
-        _vulkan_device->wait_idle();
-    }
-
     void VulkanRenderer::run_frame_sandbox()
     {
         vkWaitForFences(
@@ -656,7 +648,7 @@ namespace xar_engine::graphics::vulkan
                 *_logger,
                 tag,
                 "Acquire failed because Swapchain is out of date");
-            wait();
+            _vulkan_device->wait_idle();
             destroy_swapchain();
             init_swapchain();
             init_color_msaa();
@@ -926,7 +918,7 @@ namespace xar_engine::graphics::vulkan
                     *_logger,
                     tag,
                     "Present failed because Swapchain is out of date");
-                wait();
+                _vulkan_device->wait_idle();
                 destroy_swapchain();
                 init_swapchain();
                 init_color_msaa();
@@ -1123,73 +1115,14 @@ namespace xar_engine::graphics::vulkan
         _vulkan_command_pool->submit_one_time_buffer(tempCommandBuffer);
     }
 
-    VkFormat VulkanRenderer::findSupportedFormat(
-        const std::vector<VkFormat>& candidates,
-        VkImageTiling tiling,
-        VkFormatFeatureFlags features)
-    {
-        for (VkFormat format: candidates)
-        {
-            VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(
-                _vulkan_physical_device_list->get_native(0),
-                format,
-                &props);
-
-            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
-            {
-                return format;
-            }
-            else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
-            {
-                return format;
-            }
-        }
-
-        throw std::runtime_error("failed to find supported format!");
-    }
-
     VkFormat VulkanRenderer::findDepthFormat()
     {
-        return findSupportedFormat(
+        return _vulkan_physical_device_list->findSupportedFormat(
+            0,
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
-    }
-
-    VkSampleCountFlagBits VulkanRenderer::getMaxUsableSampleCount()
-    {
-        const auto& physicalDeviceProperties = _vulkan_physical_device_list->get_device_properties(0);
-
-        VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
-                                    physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-        if (counts & VK_SAMPLE_COUNT_64_BIT)
-        {
-            return VK_SAMPLE_COUNT_64_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_32_BIT)
-        {
-            return VK_SAMPLE_COUNT_32_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_16_BIT)
-        {
-            return VK_SAMPLE_COUNT_16_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_8_BIT)
-        {
-            return VK_SAMPLE_COUNT_8_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_4_BIT)
-        {
-            return VK_SAMPLE_COUNT_4_BIT;
-        }
-        if (counts & VK_SAMPLE_COUNT_2_BIT)
-        {
-            return VK_SAMPLE_COUNT_2_BIT;
-        }
-
-        return VK_SAMPLE_COUNT_1_BIT;
     }
 }
 

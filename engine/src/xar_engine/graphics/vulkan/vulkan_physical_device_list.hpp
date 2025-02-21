@@ -23,6 +23,7 @@ namespace xar_engine::graphics::vulkan
         [[nodiscard]]
         VkPhysicalDevice get_native(std::uint32_t index) const;
 
+
         [[nodiscard]]
         const VkPhysicalDeviceProperties& get_device_properties(std::uint32_t index) const;
 
@@ -34,6 +35,17 @@ namespace xar_engine::graphics::vulkan
 
         [[nodiscard]]
         const std::vector<VkExtensionProperties>& get_extension_properties(std::uint32_t index) const;
+
+
+        [[nodiscard]]
+        VkSampleCountFlagBits get_max_sample_count(std::uint32_t index) const;
+
+        [[nodiscard]]
+        VkFormat findSupportedFormat(
+            std::uint32_t index,
+            const std::vector<VkFormat>& candidates,
+            VkImageTiling tiling,
+            VkFormatFeatureFlags features) const;
 
 
         [[nodiscard]]

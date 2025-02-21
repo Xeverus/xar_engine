@@ -1,5 +1,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
 
+#include <xar_engine/error/exception_utils.hpp>
+
 
 namespace xar_engine::graphics::vulkan
 {
@@ -108,6 +110,89 @@ namespace xar_engine::graphics::vulkan
         return _vk_physical_devices[index];
     }
 
+    const VkPhysicalDeviceProperties& VulkanPhysicalDeviceList::get_device_properties(std::uint32_t index) const
+    {
+        return _vk_physical_device_properties[index];
+    }
+
+    const VkPhysicalDeviceFeatures& VulkanPhysicalDeviceList::get_device_features(std::uint32_t index) const
+    {
+        return _vk_physical_device_features[index];
+    }
+
+    const std::vector<VkQueueFamilyProperties>& VulkanPhysicalDeviceList::get_queue_family_properties(std::uint32_t index) const
+    {
+        return _vk_queue_family_properties[index];
+    }
+
+    const std::vector<VkExtensionProperties>& VulkanPhysicalDeviceList::get_extension_properties(std::uint32_t index) const
+    {
+        return _vk_extension_properties[index];
+    }
+
+    VkSampleCountFlagBits VulkanPhysicalDeviceList::get_max_sample_count(const std::uint32_t index) const
+    {
+        const auto& physicalDeviceProperties = get_device_properties(index);
+
+        VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                    physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+        if (counts & VK_SAMPLE_COUNT_64_BIT)
+        {
+            return VK_SAMPLE_COUNT_64_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_32_BIT)
+        {
+            return VK_SAMPLE_COUNT_32_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_16_BIT)
+        {
+            return VK_SAMPLE_COUNT_16_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_8_BIT)
+        {
+            return VK_SAMPLE_COUNT_8_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_4_BIT)
+        {
+            return VK_SAMPLE_COUNT_4_BIT;
+        }
+        if (counts & VK_SAMPLE_COUNT_2_BIT)
+        {
+            return VK_SAMPLE_COUNT_2_BIT;
+        }
+
+        return VK_SAMPLE_COUNT_1_BIT;
+    }
+
+    VkFormat VulkanPhysicalDeviceList::findSupportedFormat(
+        const std::uint32_t index,
+        const std::vector<VkFormat>& candidates,
+        const VkImageTiling tiling,
+        const VkFormatFeatureFlags features) const
+    {
+        for (VkFormat format: candidates)
+        {
+            VkFormatProperties props;
+            vkGetPhysicalDeviceFormatProperties(
+                get_native(index),
+                format,
+                &props);
+
+            if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+            {
+                return format;
+            }
+            else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+            {
+                return format;
+            }
+        }
+
+        XAR_THROW(
+            error::XarException,
+            "failed to find supported format!");
+    }
+
     VkSurfaceCapabilitiesKHR VulkanPhysicalDeviceList::get_surface_capabilities(
         const std::uint32_t index,
         VkSurfaceKHR vk_surface) const
@@ -161,25 +246,5 @@ namespace xar_engine::graphics::vulkan
             present_modes.data());
 
         return present_modes;
-    }
-
-    const VkPhysicalDeviceProperties& VulkanPhysicalDeviceList::get_device_properties(std::uint32_t index) const
-    {
-        return _vk_physical_device_properties[index];
-    }
-
-    const VkPhysicalDeviceFeatures& VulkanPhysicalDeviceList::get_device_features(std::uint32_t index) const
-    {
-        return _vk_physical_device_features[index];
-    }
-
-    const std::vector<VkQueueFamilyProperties>& VulkanPhysicalDeviceList::get_queue_family_properties(std::uint32_t index) const
-    {
-        return _vk_queue_family_properties[index];
-    }
-
-    const std::vector<VkExtensionProperties>& VulkanPhysicalDeviceList::get_extension_properties(std::uint32_t index) const
-    {
-        return _vk_extension_properties[index];
     }
 }

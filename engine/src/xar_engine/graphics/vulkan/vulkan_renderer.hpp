@@ -62,8 +62,6 @@ namespace xar_engine::graphics::vulkan
 
         void run_frame_sandbox();
 
-        void wait();
-
         void cleanup_sandbox();
 
     private:
@@ -86,8 +84,6 @@ namespace xar_engine::graphics::vulkan
             VkFormatFeatureFlags features);
 
         VkFormat findDepthFormat();
-
-        VkSampleCountFlagBits getMaxUsableSampleCount();
 
     private:
         std::unique_ptr<VulkanPhysicalDeviceList> _vulkan_physical_device_list;
