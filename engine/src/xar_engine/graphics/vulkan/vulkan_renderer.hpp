@@ -70,13 +70,6 @@ namespace xar_engine::graphics::vulkan
 
         void updateUniformBuffer(uint32_t currentImage);
 
-        void transitionImageLayout(
-            VkImage image,
-            VkFormat format,
-            VkImageLayout oldLayout,
-            VkImageLayout newLayout,
-            uint32_t mipLevels);
-
         void copyBufferToImage(
             VkBuffer buffer,
             VkImage image,

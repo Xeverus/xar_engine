@@ -16,6 +16,10 @@ namespace xar_engine::graphics::vulkan
         explicit VulkanImage(const Parameters& parameters);
         ~VulkanImage();
 
+        void transition_layout(
+            VkCommandBuffer vk_command_buffer,
+            VkImageLayout new_vk_image_layout);
+
         [[nodiscard]]
         VkImage get_native() const;
 
@@ -23,6 +27,10 @@ namespace xar_engine::graphics::vulkan
         VkDevice _vk_device;
         VkImage _vk_image;
         VkDeviceMemory _vk_image_memory;
+
+        VkFormat _vk_image_format;
+        VkImageLayout _vk_image_layout;
+        std::uint32_t _mip_levels;
     };
 
     struct VulkanImage::Parameters
