@@ -10,6 +10,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
@@ -122,8 +123,7 @@ namespace xar_engine::graphics::vulkan
         VkDescriptorSetLayout descriptorSetLayout;
         std::vector<VkDescriptorSet> descriptorSets;
 
-        VkPipelineLayout pipelineLayout;
-        VkPipeline graphicsPipeline;
+        std::unique_ptr<VulkanGraphicsPipeline> _vulkan_graphics_pipeline;
 
         std::unique_ptr<VulkanBuffer> _vulkan_vertex_buffer;
         std::unique_ptr<VulkanBuffer> _vulkan_index_buffer;
