@@ -67,6 +67,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp
         src/xar_engine/graphics/vulkan/vulkan_renderer.cpp
         src/xar_engine/graphics/vulkan/vulkan_renderer.hpp
+        src/xar_engine/graphics/vulkan/vulkan_sampler.cpp
+        src/xar_engine/graphics/vulkan/vulkan_sampler.hpp
         src/xar_engine/graphics/vulkan/vulkan_shader.cpp
         src/xar_engine/graphics/vulkan/vulkan_shader.hpp
         src/xar_engine/graphics/vulkan/vulkan_surface.cpp

@@ -14,6 +14,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_swap_chain.hpp>
 
@@ -119,7 +120,7 @@ namespace xar_engine::graphics::vulkan
         uint32_t mipLevels;
         std::unique_ptr<VulkanImage> _vulkan_texture_image;
         std::unique_ptr<VulkanImageView> _vulkan_texture_image_view;
-        VkSampler textureSampler;
+        std::unique_ptr<VulkanSampler> _vulkan_sampler;
 
         std::unique_ptr<VulkanImage> _vulkan_depth_image;
         std::unique_ptr<VulkanImageView> _vulkan_depth_image_view;

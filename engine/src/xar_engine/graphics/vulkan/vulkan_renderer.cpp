@@ -408,7 +408,7 @@ namespace xar_engine::graphics::vulkan
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = _vulkan_texture_image_view->get_native();
-            imageInfo.sampler = textureSampler;
+            imageInfo.sampler = _vulkan_sampler->get_native();
 
             std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -589,32 +589,11 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_sampler()
     {
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = VK_TRUE;
-        samplerInfo.maxAnisotropy = _vulkan_physical_device_list->get_device_properties(0).limits.maxSamplerAnisotropy;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.minLod = 0;
-        samplerInfo.maxLod = static_cast<float>(mipLevels);
-
-        if (vkCreateSampler(
+        _vulkan_sampler = std::make_unique<VulkanSampler>(VulkanSampler::Parameters{
             _vulkan_device->get_native(),
-            &samplerInfo,
-            nullptr,
-            &textureSampler) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create texture sampler!");
-        }
+            _vulkan_physical_device_list->get_device_properties(0).limits.maxSamplerAnisotropy,
+            static_cast<float>(mipLevels),
+        });
     }
 
     void VulkanRenderer::init_sync_objects()
@@ -1041,10 +1020,7 @@ namespace xar_engine::graphics::vulkan
         _vulkan_index_buffer.reset();
         _vulkan_vertex_buffer.reset();
 
-        vkDestroySampler(
-            _vulkan_device->get_native(),
-            textureSampler,
-            nullptr);
+        _vulkan_sampler.reset();
         _vulkan_texture_image_view.reset();
         _vulkan_texture_image.reset();
 
