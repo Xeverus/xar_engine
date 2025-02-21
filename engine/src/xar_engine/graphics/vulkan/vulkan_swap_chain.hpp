@@ -4,6 +4,8 @@
 
 #include <volk.h>
 
+#include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
+
 #include <xar_engine/math/vector.hpp>
 
 
@@ -30,9 +32,6 @@ namespace xar_engine::graphics::vulkan
 
 
         [[nodiscard]]
-        const std::vector<VkImage>& get_swap_chain_images() const;
-
-        [[nodiscard]]
         VkExtent2D get_extent() const;
 
         [[nodiscard]]
@@ -51,7 +50,8 @@ namespace xar_engine::graphics::vulkan
         std::uint32_t _frame_index;
         std::uint32_t _image_index;
 
-        std::vector<VkImage> _vk_swap_chain_images;
+        std::vector<VkImage> _vk_images;
+        std::vector<VulkanImageView> _vulkan_image_views;
 
         std::vector<VkSemaphore> imageAvailableSemaphore;
         std::vector<VkSemaphore> renderFinishedSemaphore;
@@ -72,7 +72,8 @@ namespace xar_engine::graphics::vulkan
     struct VulkanSwapChain::BeginFrameResult
     {
         VkResult vk_result;
-        std::uint32_t image_index;
+        VkImage image;
+        VkImageView image_view;
     };
 
     struct VulkanSwapChain::EndFrameResult

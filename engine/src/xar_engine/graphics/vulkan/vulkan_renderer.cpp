@@ -147,19 +147,6 @@ namespace xar_engine::graphics::vulkan
                 format_to_use,
                 MAX_FRAMES_IN_FLIGHT,
             });
-
-        _vulkan_swap_chain_image_views.reserve(_vulkan_swap_chain->get_swap_chain_images().size());
-        for (auto& swap_chain_image: _vulkan_swap_chain->get_swap_chain_images())
-        {
-            _vulkan_swap_chain_image_views.emplace_back(
-                VulkanImageView::Parameters{
-                    _vulkan_device->get_native(),
-                    swap_chain_image,
-                    format_to_use.format,
-                    VK_IMAGE_ASPECT_COLOR_BIT,
-                    1,
-                });
-        }
     }
 
     void VulkanRenderer::init_shaders()
@@ -645,7 +632,7 @@ namespace xar_engine::graphics::vulkan
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                 .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .image = _vulkan_swap_chain->get_swap_chain_images()[begin_frame_result.image_index],
+                .image = begin_frame_result.image,
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -680,7 +667,7 @@ namespace xar_engine::graphics::vulkan
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
             vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfoColor.resolveImageView = _vulkan_swap_chain_image_views[begin_frame_result.image_index].get_native();
+            vkRenderingAttachmentInfoColor.resolveImageView = begin_frame_result.image_view;
 
             VkClearValue clearDepthColor{};
             clearDepthColor.depthStencil = {1.0f, 0};
@@ -780,7 +767,7 @@ namespace xar_engine::graphics::vulkan
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .image = _vulkan_swap_chain->get_swap_chain_images()[begin_frame_result.image_index],
+                .image = begin_frame_result.image,
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,

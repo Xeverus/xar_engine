@@ -67,12 +67,12 @@ namespace xar_engine::graphics::vulkan
             &swap_chain_images_count,
             nullptr);
 
-        _vk_swap_chain_images.resize(swap_chain_images_count);
+        _vk_images.resize(swap_chain_images_count);
         vkGetSwapchainImagesKHR(
             _vk_device,
             _vk_swap_chain,
             &swap_chain_images_count,
-            _vk_swap_chain_images.data());
+            _vk_images.data());
 
         // sync
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -111,6 +111,19 @@ namespace xar_engine::graphics::vulkan
                 error::XarException,
                 "failed to create sync object set nr {}!",
                 i);
+        }
+
+        _vulkan_image_views.reserve(_vk_images.size());
+        for (auto& vk_image: _vk_images)
+        {
+            _vulkan_image_views.emplace_back(
+                VulkanImageView::Parameters{
+                    _vk_device,
+                    vk_image,
+                    parameters.surface_format_khr.format,
+                    VK_IMAGE_ASPECT_COLOR_BIT,
+                    1,
+                });
         }
     }
 
@@ -168,7 +181,7 @@ namespace xar_engine::graphics::vulkan
                 &inFlightFence[_frame_index]);
         }
 
-        return {acquire_img_result, _image_index};
+        return {acquire_img_result, _vk_images[_image_index], _vulkan_image_views[_image_index].get_native()};
     }
 
     VulkanSwapChain::EndFrameResult VulkanSwapChain::end_frame(
@@ -213,11 +226,6 @@ namespace xar_engine::graphics::vulkan
             &presentInfo);
 
         return {present_result};
-    }
-
-    const std::vector<VkImage>& VulkanSwapChain::get_swap_chain_images() const
-    {
-        return _vk_swap_chain_images;
     }
 
     VkExtent2D VulkanSwapChain::get_extent() const
