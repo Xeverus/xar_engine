@@ -14,6 +14,8 @@ namespace xar_engine::graphics::vulkan
         , _vk_surface_khr(parameters.vk_surface_khr)
         , _vk_extent({})
         , _vk_surface_format_khr(parameters.surface_format_khr)
+        , _frame_index{0}
+        , _image_index{0}
     {
         _vk_extent = {
             static_cast<std::uint32_t>(parameters.dimension.x),
@@ -136,54 +138,46 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    VulkanSwapChain::BeginFrameResult VulkanSwapChain::begin_frame(std::uint32_t frame_index)
+    VulkanSwapChain::BeginFrameResult VulkanSwapChain::begin_frame()
     {
         vkWaitForFences(
             _vk_device,
             1,
-            &inFlightFence[frame_index],
+            &inFlightFence[_frame_index],
             VK_TRUE,
             UINT64_MAX);
         vkResetFences(
             _vk_device,
             1,
-            &inFlightFence[frame_index]);
+            &inFlightFence[_frame_index]);
 
-        uint32_t imageIndex;
+        _image_index = uint32_t{0};
         const auto acquire_img_result = vkAcquireNextImageKHR(
             _vk_device,
             get_native(),
             UINT64_MAX,
-            imageAvailableSemaphore[frame_index],
+            imageAvailableSemaphore[_frame_index],
             VK_NULL_HANDLE,
-            &imageIndex);
-        if (acquire_img_result == VK_ERROR_OUT_OF_DATE_KHR)
+            &_image_index);
+
+        if (acquire_img_result == VK_SUCCESS)
         {
-            return {acquire_img_result, imageIndex};
-        }
-        else if (acquire_img_result != VK_SUCCESS && acquire_img_result != VK_SUBOPTIMAL_KHR)
-        {
-            return {acquire_img_result, imageIndex};
+            vkResetFences(
+                _vk_device,
+                1,
+                &inFlightFence[_frame_index]);
         }
 
-        // Only reset the fence if we are submitting work
-        vkResetFences(
-            _vk_device,
-            1,
-            &inFlightFence[frame_index]);
-
-        return {acquire_img_result, imageIndex};
+        return {acquire_img_result, _image_index};
     }
 
     VulkanSwapChain::EndFrameResult VulkanSwapChain::end_frame(
-        const std::uint32_t frame_index,
-        const std::uint32_t image_index,
         VkQueue vk_queue,
         VkCommandBuffer vk_command_buffer)
     {
-        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore[frame_index]};
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore[_frame_index]};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[frame_index]};
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[_frame_index]};
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -195,15 +189,15 @@ namespace xar_engine::graphics::vulkan
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(
+        const auto submit_result = vkQueueSubmit(
             vk_queue,
             1,
             &submitInfo,
-            inFlightFence[frame_index]) != VK_SUCCESS)
-        {
-            XAR_THROW(error::XarException,
-                      "failed to submit draw command buffer!");
-        }
+            inFlightFence[_frame_index]);
+        XAR_THROW_IF(
+            submit_result != VK_SUCCESS,
+            error::XarException,
+            "failed to submit draw command buffer!");
 
         VkSwapchainKHR swapChains[] = {get_native()};
         VkPresentInfoKHR presentInfo{};
@@ -212,8 +206,8 @@ namespace xar_engine::graphics::vulkan
         presentInfo.pWaitSemaphores = signalSemaphores;
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
-        presentInfo.pImageIndices = &image_index;
-        presentInfo.pResults = nullptr; // Optional
+        presentInfo.pImageIndices = &_image_index;
+        presentInfo.pResults = nullptr;
         const auto present_result = vkQueuePresentKHR(
             vk_queue,
             &presentInfo);

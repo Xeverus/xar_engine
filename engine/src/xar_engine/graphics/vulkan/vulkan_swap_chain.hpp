@@ -22,11 +22,9 @@ namespace xar_engine::graphics::vulkan
         ~VulkanSwapChain();
 
 
-        BeginFrameResult begin_frame(std::uint32_t frame_index);
+        BeginFrameResult begin_frame();
 
         EndFrameResult end_frame(
-            std::uint32_t frame_index,
-            std::uint32_t image_index,
             VkQueue vk_queue,
             VkCommandBuffer vk_command_buffer);
 
@@ -49,6 +47,9 @@ namespace xar_engine::graphics::vulkan
         VkSurfaceKHR _vk_surface_khr;
         VkExtent2D _vk_extent;
         VkSurfaceFormatKHR _vk_surface_format_khr;
+
+        std::uint32_t _frame_index;
+        std::uint32_t _image_index;
 
         std::vector<VkImage> _vk_swap_chain_images;
 

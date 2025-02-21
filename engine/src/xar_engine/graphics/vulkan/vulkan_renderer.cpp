@@ -467,8 +467,6 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_depth()
     {
-        VkFormat depthFormat = findDepthFormat();
-
         _vulkan_depth_image = std::make_unique<VulkanImage>(
             VulkanImage::Parameters{
                 _vulkan_device->get_native(),
@@ -586,7 +584,7 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::run_frame_sandbox()
     {
-        const auto begin_frame_result = _vulkan_swap_chain->begin_frame(currentFrame);
+        const auto begin_frame_result = _vulkan_swap_chain->begin_frame();
         if (begin_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR)
         {
             XAR_LOG(
@@ -815,8 +813,6 @@ namespace xar_engine::graphics::vulkan
         }
 
         const auto end_frame_result = _vulkan_swap_chain->end_frame(
-            currentFrame,
-            begin_frame_result.image_index,
             _vulkan_device->get_graphics_queue(),
             _vk_command_buffers[currentFrame]);
         if (end_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR || end_frame_result.vk_result == VK_SUBOPTIMAL_KHR)
