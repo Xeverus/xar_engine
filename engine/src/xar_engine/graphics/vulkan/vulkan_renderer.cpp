@@ -340,24 +340,15 @@ namespace xar_engine::graphics::vulkan
                 MAX_FRAMES_IN_FLIGHT,
             });
 
-        // sets
         std::vector<VkDescriptorSetLayout> layouts(
             MAX_FRAMES_IN_FLIGHT,
             _vulkan_descriptor_set_layout->get_native());
-        VkDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = _vulkan_descriptor_pool->get_native();
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-        allocInfo.pSetLayouts = layouts.data();
 
-        descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-        if (vkAllocateDescriptorSets(
-            _vulkan_device->get_native(),
-            &allocInfo,
-            descriptorSets.data()) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to allocate descriptor sets!");
-        }
+        _vulkan_descriptor_sets = std::make_unique<VulkanDescriptorSet>(VulkanDescriptorSet::Parameters{
+           _vulkan_device->get_native(),
+           _vulkan_descriptor_pool->get_native(),
+           std::move(layouts),
+        });
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
@@ -371,9 +362,9 @@ namespace xar_engine::graphics::vulkan
             imageInfo.imageView = _vulkan_texture_image_view->get_native();
             imageInfo.sampler = _vulkan_sampler->get_native();
 
-            std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+            std::vector<VkWriteDescriptorSet> descriptorWrites(2);
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = descriptorSets[i];
+            descriptorWrites[0].dstSet = _vulkan_descriptor_sets->get_native()[i];
             descriptorWrites[0].dstBinding = 0;
             descriptorWrites[0].dstArrayElement = 0;
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -383,7 +374,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = descriptorSets[i];
+            descriptorWrites[1].dstSet = _vulkan_descriptor_sets->get_native()[i];
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -392,12 +383,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[1].pImageInfo = &imageInfo; // Optional
             descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
-            vkUpdateDescriptorSets(
-                _vulkan_device->get_native(),
-                static_cast<std::uint32_t>(descriptorWrites.size()),
-                descriptorWrites.data(),
-                0,
-                nullptr);
+            _vulkan_descriptor_sets->write(descriptorWrites);
         }
     }
 
@@ -737,7 +723,7 @@ namespace xar_engine::graphics::vulkan
                 _vulkan_graphics_pipeline->get_native_pipeline_layout(),
                 0,
                 1,
-                &descriptorSets[currentFrame],
+                &_vulkan_descriptor_sets->get_native()[currentFrame],
                 0,
                 nullptr);
 
