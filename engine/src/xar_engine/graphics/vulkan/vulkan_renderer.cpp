@@ -180,21 +180,11 @@ namespace xar_engine::graphics::vulkan
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
-
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<std::uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
-
-        if (vkCreateDescriptorSetLayout(
-            _vulkan_device->get_native(),
-            &layoutInfo,
-            nullptr,
-            &descriptorSetLayout) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create descriptor set layout!");
-        }
+        _vulkan_descriptor_set_layout = std::make_unique<VulkanDescriptorSetLayout>(
+            VulkanDescriptorSetLayout::Parameters{
+                _vulkan_device->get_native(),
+                {uboLayoutBinding, samplerLayoutBinding},
+            });
     }
 
     void VulkanRenderer::init_graphics_pipeline()
@@ -217,7 +207,7 @@ namespace xar_engine::graphics::vulkan
                         VK_SHADER_STAGE_FRAGMENT_BIT,
                         "main")
                 },
-                descriptorSetLayout,
+                _vulkan_descriptor_set_layout->get_native(),
                 Vertex::getBindingDescription(),
                 Vertex::getAttributeDescriptions(),
                 {pushConstantRange},
@@ -354,7 +344,7 @@ namespace xar_engine::graphics::vulkan
         // sets
         std::vector<VkDescriptorSetLayout> layouts(
             MAX_FRAMES_IN_FLIGHT,
-            descriptorSetLayout);
+            _vulkan_descriptor_set_layout->get_native());
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = _vulkan_descriptor_pool->get_native();
@@ -861,11 +851,7 @@ namespace xar_engine::graphics::vulkan
 
         _vulkan_descriptor_pool.reset();
 
-        // here because we may want to reuse it
-        vkDestroyDescriptorSetLayout(
-            _vulkan_device->get_native(),
-            descriptorSetLayout,
-            nullptr);
+        _vulkan_descriptor_set_layout.reset();
 
         _vulkan_graphics_pipeline.reset();
 
