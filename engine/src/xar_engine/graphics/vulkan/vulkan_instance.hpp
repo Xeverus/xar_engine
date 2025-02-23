@@ -1,8 +1,8 @@
 #pragma once
 
-#include <volk.h>
+#include <memory>
 
-#include <xar_engine/meta/singleton.hpp>
+#include <volk.h>
 
 
 namespace xar_engine::graphics::vulkan
@@ -24,7 +24,4 @@ namespace xar_engine::graphics::vulkan
     private:
         VkInstance _vk_instance;
     };
-
-
-    using VulkanInstanceSingleton = meta::Singleton<VulkanInstance>;
 }

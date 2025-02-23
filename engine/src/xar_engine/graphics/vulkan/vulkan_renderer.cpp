@@ -84,7 +84,7 @@ namespace xar_engine::graphics::vulkan
     {
         _vulkan_physical_device_list = std::make_unique<VulkanPhysicalDeviceList>(
             VulkanPhysicalDeviceList::Parameters{
-                _vk_instance
+                _vulkan_instance->get_native(),
             });
         _vulkan_device = std::make_unique<VulkanDevice>(
             VulkanDevice::Parameters{
@@ -869,11 +869,6 @@ namespace xar_engine::graphics::vulkan
 
         _vulkan_device.reset();
         _vulkan_surface.reset();
-
-        vkDestroyInstance(
-            _vk_instance,
-            nullptr);
-#pragma endregion
     }
 
     void VulkanRenderer::copyBuffer(
@@ -992,14 +987,14 @@ namespace xar_engine::graphics::vulkan
 namespace xar_engine::graphics::vulkan
 {
     VulkanRenderer::VulkanRenderer(
-        VkInstance vk_instance,
+        std::shared_ptr<VulkanInstance> vulkan_instance,
         VkSurfaceKHR vk_surface_khr,
         const os::IWindow* os_window)
-        : _vk_instance(vk_instance)
+        : _vulkan_instance(std::move(vulkan_instance))
         , _vulkan_surface(
             std::make_unique<VulkanSurface>(
                 VulkanSurface::Parameters{
-                    vk_instance,
+                    vulkan_instance->get_native(),
                     vk_surface_khr,
                 }))
         , _os_window(os_window)

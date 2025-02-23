@@ -15,6 +15,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
@@ -33,7 +34,7 @@ namespace xar_engine::graphics::vulkan
     {
     public:
         explicit VulkanRenderer(
-            VkInstance vk_instance,
+            std::shared_ptr<VulkanInstance> vulkan_instance,
             VkSurfaceKHR vk_surface_khr,
             const os::IWindow* os_window);
 
@@ -91,7 +92,7 @@ namespace xar_engine::graphics::vulkan
 
         std::unique_ptr<logging::ILogger> _logger;
 
-        VkInstance _vk_instance;
+        std::shared_ptr<VulkanInstance> _vulkan_instance;
 
         std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
         std::vector<VulkanImageView> _vulkan_swap_chain_image_views;
