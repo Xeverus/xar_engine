@@ -98,11 +98,10 @@ namespace xar_engine::graphics::vulkan
         _vulkan_color_image_view.reset();
         _vulkan_color_image.reset();
 
-        _vulkan_swap_chain_image_views.clear();
-
         _vulkan_depth_image_view.reset();
         _vulkan_depth_image.reset();
 
+        _vulkan_swap_chain_image_views.clear();
         _vulkan_swap_chain.reset();
     }
 
@@ -841,34 +840,6 @@ namespace xar_engine::graphics::vulkan
     void VulkanRenderer::cleanup_sandbox()
     {
         _vulkan_device->wait_idle();
-
-        _vulkan_command_pool.reset();
-
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            _vulkan_uniform_buffers[i].reset();
-        }
-
-        _vulkan_descriptor_pool.reset();
-
-        _vulkan_descriptor_set_layout.reset();
-
-        _vulkan_graphics_pipeline.reset();
-
-        _vulkan_fragment_shader.reset();
-        _vulkan_vertex_shader.reset();
-
-        _vulkan_index_buffer.reset();
-        _vulkan_vertex_buffer.reset();
-
-        _vulkan_sampler.reset();
-        _vulkan_texture_image_view.reset();
-        _vulkan_texture_image.reset();
-
-        destroy_swapchain();
-
-        _vulkan_device.reset();
-        _vulkan_surface.reset();
     }
 
     void VulkanRenderer::copyBuffer(
@@ -994,7 +965,7 @@ namespace xar_engine::graphics::vulkan
         , _vulkan_surface(
             std::make_unique<VulkanSurface>(
                 VulkanSurface::Parameters{
-                    vulkan_instance->get_native(),
+                    _vulkan_instance->get_native(),
                     vk_surface_khr,
                 }))
         , _os_window(os_window)

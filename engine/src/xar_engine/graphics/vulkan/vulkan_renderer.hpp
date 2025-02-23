@@ -82,46 +82,44 @@ namespace xar_engine::graphics::vulkan
         VkFormat findDepthFormat();
 
     private:
-        std::unique_ptr<VulkanPhysicalDeviceList> _vulkan_physical_device_list;
-        std::unique_ptr<VulkanDevice> _vulkan_device;
-        std::unique_ptr<VulkanShader> _vulkan_vertex_shader;
-        std::unique_ptr<VulkanShader> _vulkan_fragment_shader;
-
-        const os::IWindow* _os_window;
-        std::unique_ptr<VulkanSurface> _vulkan_surface;
-
         std::unique_ptr<logging::ILogger> _logger;
+        const os::IWindow* _os_window;
 
         std::shared_ptr<VulkanInstance> _vulkan_instance;
+        std::unique_ptr<VulkanSurface> _vulkan_surface;
+        std::unique_ptr<VulkanPhysicalDeviceList> _vulkan_physical_device_list;
+        std::unique_ptr<VulkanDevice> _vulkan_device;
 
         std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
         std::vector<VulkanImageView> _vulkan_swap_chain_image_views;
+        std::unique_ptr<VulkanImage> _vulkan_depth_image;
+        std::unique_ptr<VulkanImageView> _vulkan_depth_image_view;
+        std::unique_ptr<VulkanImage> _vulkan_color_image;
+        std::unique_ptr<VulkanImageView> _vulkan_color_image_view;
 
-        std::unique_ptr<VulkanDescriptorPool> _vulkan_descriptor_pool;
-        std::unique_ptr<VulkanDescriptorSetLayout> _vulkan_descriptor_set_layout;
-        std::vector<VkDescriptorSet> descriptorSets;
-
-        std::unique_ptr<VulkanGraphicsPipeline> _vulkan_graphics_pipeline;
-
-        std::unique_ptr<VulkanBuffer> _vulkan_vertex_buffer;
-        std::unique_ptr<VulkanBuffer> _vulkan_index_buffer;
-        std::vector<std::unique_ptr<VulkanBuffer>> _vulkan_uniform_buffers;
-        std::vector<void*> _uniform_buffers_mapped;
-
-        std::unique_ptr<VulkanCommandBufferPool> _vulkan_command_pool;
-        std::vector<VkCommandBuffer> _vk_command_buffers;
-
-        uint32_t mipLevels;
         std::unique_ptr<VulkanImage> _vulkan_texture_image;
         std::unique_ptr<VulkanImageView> _vulkan_texture_image_view;
         std::unique_ptr<VulkanSampler> _vulkan_sampler;
 
-        std::unique_ptr<VulkanImage> _vulkan_depth_image;
-        std::unique_ptr<VulkanImageView> _vulkan_depth_image_view;
+        std::unique_ptr<VulkanBuffer> _vulkan_vertex_buffer;
+        std::unique_ptr<VulkanBuffer> _vulkan_index_buffer;
 
-        std::unique_ptr<VulkanImage> _vulkan_color_image;
-        std::unique_ptr<VulkanImageView> _vulkan_color_image_view;
+        std::unique_ptr<VulkanShader> _vulkan_vertex_shader;
+        std::unique_ptr<VulkanShader> _vulkan_fragment_shader;
 
+        std::unique_ptr<VulkanGraphicsPipeline> _vulkan_graphics_pipeline;
+
+        std::unique_ptr<VulkanDescriptorSetLayout> _vulkan_descriptor_set_layout;
+        std::unique_ptr<VulkanDescriptorPool> _vulkan_descriptor_pool;
+        std::vector<VkDescriptorSet> descriptorSets;
+
+        std::vector<std::unique_ptr<VulkanBuffer>> _vulkan_uniform_buffers;
+        std::vector<void*> _uniform_buffers_mapped;
+
+        std::vector<VkCommandBuffer> _vk_command_buffers;
+        std::unique_ptr<VulkanCommandBufferPool> _vulkan_command_pool;
+
+        uint32_t mipLevels;
         uint32_t frameCounter;
         uint32_t currentFrame;
 
