@@ -7,6 +7,7 @@ target_sources(xar_engine_test_unit
             xar_engine/error/exception_utils_test.cpp
             xar_engine/logging/file_logger_test.cpp
             xar_engine/logging/logger_chain_test.cpp
+            xar_engine/logging/logging_macros_test.cpp
             xar_engine/logging/stream_logger_test.cpp
             xar_engine/math/epsilon_test.cpp
             xar_engine/meta/enum_test.cpp

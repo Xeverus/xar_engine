@@ -551,7 +551,6 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
-                *_logger,
                 tag,
                 "Acquire failed because Swapchain is out of date");
 
@@ -563,7 +562,6 @@ namespace xar_engine::graphics::vulkan
 
             XAR_LOG(
                 logging::LogLevel::DEBUG,
-                *_logger,
                 tag,
                 "Acquire failed because Swapchain is out of date but swapchain was recreated");
             return;
@@ -572,7 +570,6 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
-                *_logger,
                 tag,
                 "Acquire failed because Swapchain");
             return;
@@ -781,7 +778,6 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
-                *_logger,
                 tag,
                 "Present failed because Swapchain is out of date");
 
@@ -793,7 +789,6 @@ namespace xar_engine::graphics::vulkan
 
             XAR_LOG(
                 logging::LogLevel::DEBUG,
-                *_logger,
                 tag,
                 "Present failed because Swapchain is out of date but swapchain was recreated");
         }
@@ -801,7 +796,6 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
-                *_logger,
                 tag,
                 "Acquire failed because Swapchain");
             return;
@@ -809,7 +803,6 @@ namespace xar_engine::graphics::vulkan
 
         XAR_LOG(
             xar_engine::logging::LogLevel::DEBUG,
-            *_logger,
             tag,
             "Frame buffer nr {}, frames in total {}",
             currentFrame,

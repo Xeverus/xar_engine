@@ -42,7 +42,6 @@ namespace xar_engine::graphics::vulkan
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
-                *logger,
                 tag,
                 "{}",
                 pCallbackData->pMessage);
@@ -69,7 +68,6 @@ namespace xar_engine::graphics::vulkan
             {
                 XAR_LOG(
                     logging::LogLevel::INFO,
-                    *logger,
                     tag,
                     "{} {}",
                     extension.extensionName,
@@ -101,7 +99,6 @@ namespace xar_engine::graphics::vulkan
             {
                 XAR_LOG(
                     logging::LogLevel::INFO,
-                    *logger,
                     tag,
                     "{} {}",
                     validation_layer.layerName,

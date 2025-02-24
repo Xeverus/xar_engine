@@ -8,7 +8,6 @@
 
 int main()
 {
-    const auto logger = std::make_unique<xar_engine::logging::ConsoleLogger>();
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
     auto renderer = window->make_renderer(xar_engine::graphics::RendererType::VULKAN);
@@ -35,7 +34,6 @@ int main()
                     {
                         XAR_LOG(
                             xar_engine::logging::LogLevel::DEBUG,
-                            *logger,
                             "TestApp",
                             "key code={}, state={}",
                             xar_engine::meta::enum_to_string(event.code),
@@ -54,7 +52,6 @@ int main()
                     {
                         XAR_LOG(
                             xar_engine::logging::LogLevel::DEBUG,
-                            *logger,
                             "TestApp",
                             "button code={}, state={}",
                             xar_engine::meta::enum_to_string(event.code),
@@ -64,7 +61,6 @@ int main()
                     {
                         XAR_LOG(
                             xar_engine::logging::LogLevel::INFO,
-                            *logger,
                             "TestApp",
                             "motion x={}, y={}",
                             event.position_x,
@@ -74,7 +70,6 @@ int main()
                     {
                         XAR_LOG(
                             xar_engine::logging::LogLevel::WARNING,
-                            *logger,
                             "TestApp",
                             "scroll x={}, y={}",
                             event.delta_x,
