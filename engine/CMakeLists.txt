@@ -23,7 +23,6 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/math/vector.hpp
         include/xar_engine/meta/enum.hpp
         include/xar_engine/meta/overloaded.hpp
-        include/xar_engine/meta/singleton.hpp
         include/xar_engine/logging/console_logger.hpp
         include/xar_engine/logging/default_log_formatter.hpp
         include/xar_engine/logging/file_logger.hpp
@@ -98,12 +97,15 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/meta/for_each.hpp
         src/xar_engine/meta/ref_counting_singleton.cpp
         src/xar_engine/meta/ref_counting_singleton.hpp
+        src/xar_engine/meta/singleton.hpp
         src/xar_engine/os/application.cpp
         src/xar_engine/os/glfw_application.cpp
         src/xar_engine/os/glfw_application.hpp
         src/xar_engine/os/glfw_window.cpp
         src/xar_engine/os/glfw_window.hpp
         src/xar_engine/os/service_register.cpp
+        src/xar_engine/os/service_register_impl.cpp
+        src/xar_engine/os/service_register_impl.hpp
         src/xar_engine/os/window.cpp
         src/xar_engine/time/time.cpp
         src/xar_engine/time/time.hpp

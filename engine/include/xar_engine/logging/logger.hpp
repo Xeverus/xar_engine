@@ -4,8 +4,6 @@
 
 #include <xar_engine/logging/log_level.hpp>
 
-#include <xar_engine/meta/singleton.hpp>
-
 #include <xar_engine/os/service_register.hpp>
 
 
@@ -21,6 +19,7 @@ namespace xar_engine::logging
             const std::string& tag,
             const std::string& message) = 0;
     };
+}
 
 
 #define XAR_LOG_LEVEL xar_engine::logging::LogLevel::DEBUG
@@ -34,7 +33,6 @@ namespace xar_engine::logging
         }                                                 \
     }                                                     \
     while(false)
-}
 
 #define XAR_LOG(logging_level, tag, message, ...) \
-    XAR_LOG_LOCAL(logging_level, ::xar_engine::meta::Singleton::get_instance<::xar_engine::os::ServiceRegister>().get_global_logger(), tag, message, ##__VA_ARGS__)
+    XAR_LOG_LOCAL(logging_level, ::xar_engine::os::IServiceRegister::get_instance().get_global_logger(), tag, message, ##__VA_ARGS__)

@@ -8,20 +8,20 @@ namespace xar_engine::logging
     class ILogger;
 }
 
+
 namespace xar_engine::os
 {
-    class ServiceRegister
+    class IServiceRegister
     {
     public:
-        ServiceRegister();
-        ~ServiceRegister();
+        static IServiceRegister& get_instance();
+
+    public:
+        virtual ~IServiceRegister();
 
         [[nodiscard]]
-        logging::ILogger& get_global_logger() const;
+        virtual logging::ILogger& get_global_logger() const = 0;
 
-        void set_global_logger(std::unique_ptr<logging::ILogger> global_logger);
-
-    private:
-        std::unique_ptr<logging::ILogger> _global_logger;
+        virtual void set_global_logger(std::unique_ptr<logging::ILogger> global_logger) = 0;
     };
 }
