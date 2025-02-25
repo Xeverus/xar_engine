@@ -6,6 +6,7 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/vulkan/image_view.hpp>
+#include <xar_engine/graphics/vulkan/surface.hpp>
 
 #include <xar_engine/math/vector.hpp>
 
@@ -51,7 +52,8 @@ namespace xar_engine::graphics::vulkan
     struct VulkanSwapChain::Parameters
     {
         Device device;
-        VkSurfaceKHR vk_surface_khr;
+        VulkanSurface surface;
+
         math::Vector2i32 dimension;
         VkPresentModeKHR present_mode_khr;
         VkSurfaceFormatKHR surface_format_khr;

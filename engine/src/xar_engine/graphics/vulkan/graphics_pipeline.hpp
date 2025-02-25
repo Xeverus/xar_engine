@@ -1,10 +1,13 @@
 #pragma once
 
-#include <volk.h>
-
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
+
+#include <volk.h>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -15,7 +18,9 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanGraphicsPipeline();
         explicit VulkanGraphicsPipeline(const Parameters& parameters);
+
         ~VulkanGraphicsPipeline();
 
         [[nodiscard]]
@@ -25,14 +30,15 @@ namespace xar_engine::graphics::vulkan
         VkPipeline get_native_pipeline() const;
 
     private:
-        VkDevice _vk_device;
-        VkPipelineLayout _vk_pipeline_layout;
-        VkPipeline _vk_pipeline;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanGraphicsPipeline::Parameters
     {
-        VkDevice vk_device;
+        Device device;
 
         std::vector<std::tuple<VkShaderModule, VkShaderStageFlagBits, std::string>> vk_shader_with_entry_points;
         VkDescriptorSetLayout vk_descriptor_set_layout;

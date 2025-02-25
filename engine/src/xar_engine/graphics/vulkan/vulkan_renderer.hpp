@@ -13,7 +13,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_descriptor_set.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.hpp>
 #include <xar_engine/graphics/vulkan/device.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
+#include <xar_engine/graphics/vulkan/graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/image.hpp>
 #include <xar_engine/graphics/vulkan/image_view.hpp>
 #include <xar_engine/graphics/vulkan/instance.hpp>
@@ -108,7 +108,7 @@ namespace xar_engine::graphics::vulkan
         VulkanShader _vertex_shader;
         VulkanShader _fragment_shader;
 
-        std::unique_ptr<VulkanGraphicsPipeline> _vulkan_graphics_pipeline;
+        VulkanGraphicsPipeline _vulkan_graphics_pipeline;
 
         std::unique_ptr<VulkanDescriptorSetLayout> _vulkan_descriptor_set_layout;
         std::unique_ptr<VulkanDescriptorPool> _vulkan_descriptor_pool;

@@ -1,14 +1,28 @@
-#include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
+#include <xar_engine/graphics/vulkan/graphics_pipeline.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
 
 namespace xar_engine::graphics::vulkan
 {
-    VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanGraphicsPipeline::Parameters& parameters)
-        : _vk_device(parameters.vk_device)
-        , _vk_pipeline_layout(nullptr)
-        , _vk_pipeline(nullptr)
+    struct VulkanGraphicsPipeline::State
+    {
+    public:
+        explicit State(const Parameters& parameters);
+
+        ~State();
+
+    public:
+        Device device;
+
+        VkPipelineLayout vk_pipeline_layout;
+        VkPipeline vk_pipeline;
+    };
+
+    VulkanGraphicsPipeline::State::State(const Parameters& parameters)
+        : device(parameters.device)
+        , vk_pipeline_layout(nullptr)
+        , vk_pipeline(nullptr)
     {
         auto shader_stage_create_infos = std::vector<VkPipelineShaderStageCreateInfo>();
         for (const auto& [shader, stage, entry_point]: parameters.vk_shader_with_entry_points)
@@ -101,10 +115,10 @@ namespace xar_engine::graphics::vulkan
         pipelineLayoutInfo.pushConstantRangeCount = static_cast<std::uint32_t>(parameters.vk_push_constants.size()); // Optional
         pipelineLayoutInfo.pPushConstantRanges = parameters.vk_push_constants.data(); // Optional
         const auto create_pipeline_layout_result = vkCreatePipelineLayout(
-            _vk_device,
+            device.get_native(),
             &pipelineLayoutInfo,
             nullptr,
-            &_vk_pipeline_layout);
+            &vk_pipeline_layout);
         XAR_THROW_IF(
             create_pipeline_layout_result != VK_SUCCESS,
             error::XarException,
@@ -131,7 +145,7 @@ namespace xar_engine::graphics::vulkan
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
 
-        pipelineInfo.layout = _vk_pipeline_layout;
+        pipelineInfo.layout = vk_pipeline_layout;
 
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
         pipelineInfo.basePipelineIndex = -1; // Optional
@@ -146,37 +160,51 @@ namespace xar_engine::graphics::vulkan
         pipelineInfo.pNext = &pipeline_create;
 
         const auto create_graphics_pipeline_result = vkCreateGraphicsPipelines(
-            _vk_device,
+            device.get_native(),
             VK_NULL_HANDLE,
             1,
             &pipelineInfo,
             nullptr,
-            &_vk_pipeline);
+            &vk_pipeline);
         XAR_THROW_IF(
             create_graphics_pipeline_result != VK_SUCCESS,
             error::XarException,
             "failed to create graphics pipeline!");
     }
 
-    VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
+    VulkanGraphicsPipeline::State::~State()
     {
         vkDestroyPipeline(
-            _vk_device,
-            _vk_pipeline,
+            device.get_native(),
+            vk_pipeline,
             nullptr);
+
         vkDestroyPipelineLayout(
-            _vk_device,
-            _vk_pipeline_layout,
+            device.get_native(),
+            vk_pipeline_layout,
             nullptr);
     }
 
+
+    VulkanGraphicsPipeline::VulkanGraphicsPipeline()
+        : _state(nullptr)
+    {
+    }
+
+    VulkanGraphicsPipeline::VulkanGraphicsPipeline(const VulkanGraphicsPipeline::Parameters& parameters)
+        : _state(std::make_shared<State>(parameters))
+    {
+    }
+
+    VulkanGraphicsPipeline::~VulkanGraphicsPipeline() = default;
+
     VkPipelineLayout VulkanGraphicsPipeline::get_native_pipeline_layout() const
     {
-        return _vk_pipeline_layout;
+        return _state->vk_pipeline_layout;
     }
 
     VkPipeline VulkanGraphicsPipeline::get_native_pipeline() const
     {
-        return _vk_pipeline;
+        return _state->vk_pipeline;
     }
 }

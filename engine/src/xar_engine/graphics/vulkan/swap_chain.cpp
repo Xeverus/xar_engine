@@ -17,9 +17,9 @@ namespace xar_engine::graphics::vulkan
 
     public:
         Device device;
+        VulkanSurface surface;
 
         VkSwapchainKHR vk_swap_chain;
-        VkSurfaceKHR vk_surface_khr;
         VkExtent2D vk_extent;
         VkSurfaceFormatKHR vk_surface_format_khr;
 
@@ -37,8 +37,8 @@ namespace xar_engine::graphics::vulkan
 
     VulkanSwapChain::State::State(const Parameters& parameters)
         : device{parameters.device}
+        , surface{parameters.surface}
         , vk_swap_chain{nullptr}
-        , vk_surface_khr{parameters.vk_surface_khr}
         , vk_extent{}
         , vk_surface_format_khr{parameters.surface_format_khr}
         , buffering_level{static_cast<std::uint32_t>(parameters.buffering_level)}
@@ -50,7 +50,7 @@ namespace xar_engine::graphics::vulkan
         , renderFinishedSemaphore{}
         , inFlightFence{}
     {
-        const auto vk_surface_capabilities_khr = parameters.device.get_physical_device().get_surface_capabilities(parameters.vk_surface_khr);
+        const auto vk_surface_capabilities_khr = parameters.device.get_physical_device().get_surface_capabilities(parameters.surface.get_native());
 
         vk_extent = {
             static_cast<std::uint32_t>(parameters.dimension.x),
@@ -71,7 +71,7 @@ namespace xar_engine::graphics::vulkan
 
         VkSwapchainCreateInfoKHR swapchain_info{};
         swapchain_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchain_info.surface = vk_surface_khr;
+        swapchain_info.surface = surface.get_native();
         swapchain_info.minImageCount = image_count;
         swapchain_info.imageFormat = parameters.surface_format_khr.format;
         swapchain_info.imageColorSpace = parameters.surface_format_khr.colorSpace;
