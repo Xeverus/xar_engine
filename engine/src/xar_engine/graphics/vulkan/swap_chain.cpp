@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/vulkan_swap_chain.hpp>
+#include <xar_engine/graphics/vulkan/swap_chain.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -8,43 +8,78 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    VulkanSwapChain::VulkanSwapChain(const VulkanSwapChain::Parameters& parameters)
-        : device(parameters.device)
-        , _vk_swap_chain(nullptr)
-        , _vk_surface_khr(parameters.vk_surface_khr)
-        , _vk_extent({})
-        , _vk_surface_format_khr(parameters.surface_format_khr)
-        , _frame_index{0}
-        , _image_index{0}
+    struct VulkanSwapChain::State
     {
-        _vk_extent = {
+    public:
+        explicit State(const Parameters& parameters);
+
+        ~State();
+
+    public:
+        Device device;
+
+        VkSwapchainKHR vk_swap_chain;
+        VkSurfaceKHR vk_surface_khr;
+        VkExtent2D vk_extent;
+        VkSurfaceFormatKHR vk_surface_format_khr;
+
+        std::uint32_t buffering_level;
+        std::uint32_t frame_index;
+        std::uint32_t image_index;
+
+        std::vector<VkImage> vk_images;
+        std::vector<VulkanImageView> vulkan_image_views;
+
+        std::vector<VkSemaphore> imageAvailableSemaphore;
+        std::vector<VkSemaphore> renderFinishedSemaphore;
+        std::vector<VkFence> inFlightFence;
+    };
+
+    VulkanSwapChain::State::State(const Parameters& parameters)
+        : device{parameters.device}
+        , vk_swap_chain{nullptr}
+        , vk_surface_khr{parameters.vk_surface_khr}
+        , vk_extent{}
+        , vk_surface_format_khr{parameters.surface_format_khr}
+        , buffering_level{static_cast<std::uint32_t>(parameters.buffering_level)}
+        , frame_index{0}
+        , image_index{0}
+        , vk_images{}
+        , vulkan_image_views{}
+        , imageAvailableSemaphore{}
+        , renderFinishedSemaphore{}
+        , inFlightFence{}
+    {
+        const auto vk_surface_capabilities_khr = parameters.device.get_physical_device().get_surface_capabilities(parameters.vk_surface_khr);
+
+        vk_extent = {
             static_cast<std::uint32_t>(parameters.dimension.x),
             static_cast<std::uint32_t>(parameters.dimension.y),
         };
-        _vk_extent.width = std::clamp(
-            _vk_extent.width,
-            parameters.vk_surface_capabilities_khr.minImageExtent.width,
-            parameters.vk_surface_capabilities_khr.maxImageExtent.width);
-        _vk_extent.height = std::clamp(
-            _vk_extent.height,
-            parameters.vk_surface_capabilities_khr.minImageExtent.height,
-            parameters.vk_surface_capabilities_khr.maxImageExtent.height);
-        std::uint32_t image_count = parameters.vk_surface_capabilities_khr.minImageCount + 1;
-        image_count = parameters.vk_surface_capabilities_khr.maxImageCount == 0 ? image_count : std::min(
+        vk_extent.width = std::clamp(
+            vk_extent.width,
+            vk_surface_capabilities_khr.minImageExtent.width,
+            vk_surface_capabilities_khr.maxImageExtent.width);
+        vk_extent.height = std::clamp(
+            vk_extent.height,
+            vk_surface_capabilities_khr.minImageExtent.height,
+            vk_surface_capabilities_khr.maxImageExtent.height);
+        std::uint32_t image_count = vk_surface_capabilities_khr.minImageCount + 1;
+        image_count = vk_surface_capabilities_khr.maxImageCount == 0 ? image_count : std::min(
             image_count,
-            parameters.vk_surface_capabilities_khr.maxImageCount);
+            vk_surface_capabilities_khr.maxImageCount);
 
         VkSwapchainCreateInfoKHR swapchain_info{};
         swapchain_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        swapchain_info.surface = _vk_surface_khr;
+        swapchain_info.surface = vk_surface_khr;
         swapchain_info.minImageCount = image_count;
         swapchain_info.imageFormat = parameters.surface_format_khr.format;
         swapchain_info.imageColorSpace = parameters.surface_format_khr.colorSpace;
-        swapchain_info.imageExtent = _vk_extent;
+        swapchain_info.imageExtent = vk_extent;
         swapchain_info.imageArrayLayers = 1;
         swapchain_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         swapchain_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapchain_info.preTransform = parameters.vk_surface_capabilities_khr.currentTransform;
+        swapchain_info.preTransform = vk_surface_capabilities_khr.currentTransform;
         swapchain_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         swapchain_info.presentMode = parameters.present_mode_khr;
         swapchain_info.clipped = VK_TRUE;
@@ -54,7 +89,7 @@ namespace xar_engine::graphics::vulkan
             device.get_native(),
             &swapchain_info,
             nullptr,
-            &_vk_swap_chain);
+            &vk_swap_chain);
         XAR_THROW_IF(
             swap_chain_result != VK_SUCCESS,
             error::XarException,
@@ -63,16 +98,16 @@ namespace xar_engine::graphics::vulkan
         std::uint32_t swap_chain_images_count = 0;
         vkGetSwapchainImagesKHR(
             device.get_native(),
-            _vk_swap_chain,
+            vk_swap_chain,
             &swap_chain_images_count,
             nullptr);
 
-        _vk_images.resize(swap_chain_images_count);
+        vk_images.resize(swap_chain_images_count);
         vkGetSwapchainImagesKHR(
             device.get_native(),
-            _vk_swap_chain,
+            vk_swap_chain,
             &swap_chain_images_count,
-            _vk_images.data());
+            vk_images.data());
 
         // sync
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -113,10 +148,10 @@ namespace xar_engine::graphics::vulkan
                 i);
         }
 
-        _vulkan_image_views.reserve(_vk_images.size());
-        for (auto& vk_image: _vk_images)
+        vulkan_image_views.reserve(vk_images.size());
+        for (auto& vk_image: vk_images)
         {
-            _vulkan_image_views.emplace_back(
+            vulkan_image_views.emplace_back(
                 VulkanImageView::Parameters{
                     device,
                     vk_image,
@@ -127,11 +162,11 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    VulkanSwapChain::~VulkanSwapChain()
+    VulkanSwapChain::State::~State()
     {
         vkDestroySwapchainKHR(
             device.get_native(),
-            _vk_swap_chain,
+            vk_swap_chain,
             nullptr);
 
         for (auto i = 0; i < imageAvailableSemaphore.size(); ++i)
@@ -151,46 +186,64 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
+
+    VulkanSwapChain::VulkanSwapChain()
+        : _state(nullptr)
+    {
+    }
+
+    VulkanSwapChain::VulkanSwapChain(const VulkanSwapChain::Parameters& parameters)
+        : _state(std::make_shared<State>(parameters))
+    {
+    }
+
+    VulkanSwapChain::~VulkanSwapChain() = default;
+
     VulkanSwapChain::BeginFrameResult VulkanSwapChain::begin_frame()
     {
         vkWaitForFences(
-            device.get_native(),
+            _state->device.get_native(),
             1,
-            &inFlightFence[_frame_index],
+            &_state->inFlightFence[_state->frame_index],
             VK_TRUE,
             UINT64_MAX);
         vkResetFences(
-            device.get_native(),
+            _state->device.get_native(),
             1,
-            &inFlightFence[_frame_index]);
+            &_state->inFlightFence[_state->frame_index]);
 
-        _image_index = uint32_t{0};
+        _state->image_index = uint32_t{0};
         const auto acquire_img_result = vkAcquireNextImageKHR(
-            device.get_native(),
+            _state->device.get_native(),
             get_native(),
             UINT64_MAX,
-            imageAvailableSemaphore[_frame_index],
+            _state->imageAvailableSemaphore[_state->frame_index],
             VK_NULL_HANDLE,
-            &_image_index);
+            &_state->image_index);
 
         if (acquire_img_result == VK_SUCCESS)
         {
             vkResetFences(
-                device.get_native(),
+                _state->device.get_native(),
                 1,
-                &inFlightFence[_frame_index]);
+                &_state->inFlightFence[_state->frame_index]);
         }
 
-        return {acquire_img_result, _vk_images[_image_index], _vulkan_image_views[_image_index].get_native()};
+        return {
+            acquire_img_result,
+            _state->vk_images[_state->image_index],
+            _state->vulkan_image_views[_state->image_index].get_native(),
+            _state->frame_index,
+        };
     }
 
     VulkanSwapChain::EndFrameResult VulkanSwapChain::end_frame(
         VkQueue vk_queue,
         VkCommandBuffer vk_command_buffer)
     {
-        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore[_frame_index]};
+        VkSemaphore waitSemaphores[] = {_state->imageAvailableSemaphore[_state->frame_index]};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[_frame_index]};
+        VkSemaphore signalSemaphores[] = {_state->renderFinishedSemaphore[_state->frame_index]};
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -206,7 +259,7 @@ namespace xar_engine::graphics::vulkan
             vk_queue,
             1,
             &submitInfo,
-            inFlightFence[_frame_index]);
+            _state->inFlightFence[_state->frame_index]);
         XAR_THROW_IF(
             submit_result != VK_SUCCESS,
             error::XarException,
@@ -219,27 +272,29 @@ namespace xar_engine::graphics::vulkan
         presentInfo.pWaitSemaphores = signalSemaphores;
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
-        presentInfo.pImageIndices = &_image_index;
+        presentInfo.pImageIndices = &_state->image_index;
         presentInfo.pResults = nullptr;
         const auto present_result = vkQueuePresentKHR(
             vk_queue,
             &presentInfo);
+
+        _state->frame_index = (_state->frame_index + 1) % _state->buffering_level;
 
         return {present_result};
     }
 
     VkExtent2D VulkanSwapChain::get_extent() const
     {
-        return _vk_extent;
+        return _state->vk_extent;
     }
 
     VkFormat VulkanSwapChain::get_format() const
     {
-        return _vk_surface_format_khr.format;
+        return _state->vk_surface_format_khr.format;
     }
 
     VkSwapchainKHR VulkanSwapChain::get_native() const
     {
-        return _vk_swap_chain;
+        return _state->vk_swap_chain;
     }
 }

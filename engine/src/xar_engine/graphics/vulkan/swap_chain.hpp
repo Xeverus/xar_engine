@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include <volk.h>
@@ -20,7 +21,9 @@ namespace xar_engine::graphics::vulkan
         struct EndFrameResult;
 
     public:
+        VulkanSwapChain();
         explicit VulkanSwapChain(const Parameters& parameters);
+
         ~VulkanSwapChain();
 
 
@@ -41,29 +44,16 @@ namespace xar_engine::graphics::vulkan
         VkSwapchainKHR get_native() const;
 
     private:
-        Device device;
+        struct State;
 
-        VkSwapchainKHR _vk_swap_chain;
-        VkSurfaceKHR _vk_surface_khr;
-        VkExtent2D _vk_extent;
-        VkSurfaceFormatKHR _vk_surface_format_khr;
-
-        std::uint32_t _frame_index;
-        std::uint32_t _image_index;
-
-        std::vector<VkImage> _vk_images;
-        std::vector<VulkanImageView> _vulkan_image_views;
-
-        std::vector<VkSemaphore> imageAvailableSemaphore;
-        std::vector<VkSemaphore> renderFinishedSemaphore;
-        std::vector<VkFence> inFlightFence;
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanSwapChain::Parameters
     {
         Device device;
         VkSurfaceKHR vk_surface_khr;
-        VkSurfaceCapabilitiesKHR vk_surface_capabilities_khr;
         math::Vector2i32 dimension;
         VkPresentModeKHR present_mode_khr;
         VkSurfaceFormatKHR surface_format_khr;
@@ -75,6 +65,7 @@ namespace xar_engine::graphics::vulkan
         VkResult vk_result;
         VkImage image;
         VkImageView image_view;
+        std::uint32_t frame_index;
     };
 
     struct VulkanSwapChain::EndFrameResult

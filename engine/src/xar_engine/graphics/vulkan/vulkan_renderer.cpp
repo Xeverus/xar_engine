@@ -96,7 +96,7 @@ namespace xar_engine::graphics::vulkan
         _depth_image = {};
 
         _swap_chain_image_views.clear();
-        _vulkan_swap_chain.reset();
+        _swap_chain = {};
     }
 
     void VulkanRenderer::init_swapchain()
@@ -124,16 +124,14 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        _vulkan_swap_chain = std::make_unique<VulkanSwapChain>(
-            VulkanSwapChain::Parameters{
+        _swap_chain = VulkanSwapChain{{
                 _device,
                 _vulkan_surface->get_native(),
-                _physical_device_list[0].get_surface_capabilities(_vulkan_surface->get_native()),
                 _os_window->get_surface_pixel_size(),
                 present_mode_to_use,
                 format_to_use,
                 MAX_FRAMES_IN_FLIGHT,
-            });
+            }};
     }
 
     void VulkanRenderer::init_shaders()
@@ -199,7 +197,7 @@ namespace xar_engine::graphics::vulkan
                 Vertex::getAttributeDescriptions(),
                 {pushConstantRange},
                 msaaSamples,
-                _vulkan_swap_chain->get_format(),
+                _swap_chain.get_format(),
                 findDepthFormat(),
             });
     }
@@ -384,11 +382,11 @@ namespace xar_engine::graphics::vulkan
         _color_image = VulkanImage{{
                                        _device,
                                        {
-                                           static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width),
-                                           static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
+                                           static_cast<std::int32_t>(_swap_chain.get_extent().width),
+                                           static_cast<std::int32_t>(_swap_chain.get_extent().height),
                                            1
                                        },
-                                       _vulkan_swap_chain->get_format(),
+                                       _swap_chain.get_format(),
                                        VK_IMAGE_TILING_OPTIMAL,
                                        VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -399,7 +397,7 @@ namespace xar_engine::graphics::vulkan
         _color_image_view = VulkanImageView{{
                 _device,
                 _color_image.get_native(),
-                _vulkan_swap_chain->get_format(),
+                _swap_chain.get_format(),
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 1,
             }};
@@ -411,8 +409,8 @@ namespace xar_engine::graphics::vulkan
             VulkanImage::Parameters{
                 _device,
                 {
-                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width),
-                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
+                    static_cast<std::int32_t>(_swap_chain.get_extent().width),
+                    static_cast<std::int32_t>(_swap_chain.get_extent().height),
                     1
                 },
                 findDepthFormat(),
@@ -517,7 +515,8 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::run_frame_sandbox()
     {
-        const auto begin_frame_result = _vulkan_swap_chain->begin_frame();
+        const auto begin_frame_result = _swap_chain.begin_frame();
+
         if (begin_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR)
         {
             XAR_LOG(
@@ -545,6 +544,8 @@ namespace xar_engine::graphics::vulkan
                 "Acquire failed because Swapchain");
             return;
         }
+
+        const auto currentFrame = begin_frame_result.frame_index;
 
         // Record CMD buffer
         {
@@ -628,7 +629,7 @@ namespace xar_engine::graphics::vulkan
             renderingInfo.colorAttachmentCount = 1;
             renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
             renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
-            renderingInfo.renderArea = VkRect2D{VkOffset2D{}, _vulkan_swap_chain->get_extent()};
+            renderingInfo.renderArea = VkRect2D{VkOffset2D{}, _swap_chain.get_extent()};
             renderingInfo.layerCount = 1;
 
             vkCmdBeginRenderingKHR(
@@ -652,8 +653,8 @@ namespace xar_engine::graphics::vulkan
             VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;
-            viewport.width = (float) _vulkan_swap_chain->get_extent().width;
-            viewport.height = (float) _vulkan_swap_chain->get_extent().height;
+            viewport.width = (float) _swap_chain.get_extent().width;
+            viewport.height = (float) _swap_chain.get_extent().height;
             viewport.minDepth = 0.0f;
             viewport.maxDepth = 1.0f;
             vkCmdSetViewport(
@@ -664,7 +665,7 @@ namespace xar_engine::graphics::vulkan
 
             VkRect2D scissor{};
             scissor.offset = {0, 0};
-            scissor.extent = _vulkan_swap_chain->get_extent();
+            scissor.extent = _swap_chain.get_extent();
             vkCmdSetScissor(
                 _vk_command_buffers[currentFrame],
                 0,
@@ -742,7 +743,7 @@ namespace xar_engine::graphics::vulkan
             updateUniformBuffer(currentFrame);
         }
 
-        const auto end_frame_result = _vulkan_swap_chain->end_frame(
+        const auto end_frame_result = _swap_chain.end_frame(
             _device.get_graphics_queue(),
             _vk_command_buffers[currentFrame]);
         if (end_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR || end_frame_result.vk_result == VK_SUBOPTIMAL_KHR)
@@ -780,7 +781,6 @@ namespace xar_engine::graphics::vulkan
             frameCounter);
 
         // change frame index
-        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
         ++frameCounter;
 
         using namespace std::chrono_literals;
@@ -844,7 +844,7 @@ namespace xar_engine::graphics::vulkan
 
         ubo.proj = glm::perspective(
             glm::radians(45.0f),
-            _vulkan_swap_chain->get_extent().width / (float) (_vulkan_swap_chain->get_extent().height),
+            _swap_chain.get_extent().width / (float) (_swap_chain.get_extent().height),
             0.1f,
             10.0f);
 
@@ -919,7 +919,6 @@ namespace xar_engine::graphics::vulkan
                 }))
         , _os_window(os_window)
         , _logger(std::make_unique<logging::ConsoleLogger>())
-        , currentFrame(0)
         , frameCounter(0)
     {
         init_device();

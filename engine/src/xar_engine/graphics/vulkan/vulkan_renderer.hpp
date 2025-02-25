@@ -21,7 +21,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_surface.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_swap_chain.hpp>
+#include <xar_engine/graphics/vulkan/swap_chain.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 
@@ -91,7 +91,7 @@ namespace xar_engine::graphics::vulkan
         std::vector<PhysicalDevice> _physical_device_list;
         Device _device;
 
-        std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
+        VulkanSwapChain _swap_chain;
         std::vector<VulkanImageView> _swap_chain_image_views;
         VulkanImage _depth_image;
         VulkanImageView _depth_image_view;
@@ -122,7 +122,6 @@ namespace xar_engine::graphics::vulkan
 
         uint32_t mipLevels;
         uint32_t frameCounter;
-        uint32_t currentFrame;
 
         VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
     };

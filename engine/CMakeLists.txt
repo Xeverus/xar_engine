@@ -80,8 +80,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/vulkan_shader.hpp
         src/xar_engine/graphics/vulkan/vulkan_surface.cpp
         src/xar_engine/graphics/vulkan/vulkan_surface.hpp
-        src/xar_engine/graphics/vulkan/vulkan_swap_chain.cpp
-        src/xar_engine/graphics/vulkan/vulkan_swap_chain.hpp
+        src/xar_engine/graphics/vulkan/swap_chain.cpp
+        src/xar_engine/graphics/vulkan/swap_chain.hpp
         src/xar_engine/input/button.cpp
         src/xar_engine/input/input_event.cpp
         src/xar_engine/logging/console_logger.cpp
