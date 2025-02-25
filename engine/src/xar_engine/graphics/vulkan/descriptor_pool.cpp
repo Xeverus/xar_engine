@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/vulkan_descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/descriptor_pool.hpp>
 
 #include <vector>
 
@@ -7,9 +7,22 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    VulkanDescriptorPool::VulkanDescriptorPool(const Parameters& parameters)
-        : _vk_device(parameters.vk_device)
-        , _vk_descriptor_pool(nullptr)
+    struct VulkanDescriptorPool::State
+    {
+    public:
+        explicit State(const Parameters& parameters);
+
+        ~State();
+
+    public:
+        Device device;
+
+        VkDescriptorPool vk_descriptor_pool;
+    };
+
+    VulkanDescriptorPool::State::State(const Parameters& parameters)
+        : device(parameters.device)
+        , vk_descriptor_pool(nullptr)
     {
         auto poolSizes = std::vector<VkDescriptorPoolSize>(2);
         poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -24,10 +37,10 @@ namespace xar_engine::graphics::vulkan
         poolInfo.maxSets = static_cast<uint32_t>(parameters.max_descriptor_set_count);
 
         const auto create_descriptor_pool_result = vkCreateDescriptorPool(
-            _vk_device,
+            device.get_native(),
             &poolInfo,
             nullptr,
-            &_vk_descriptor_pool);
+            &vk_descriptor_pool);
 
         XAR_THROW_IF(
             create_descriptor_pool_result != VK_SUCCESS,
@@ -35,16 +48,29 @@ namespace xar_engine::graphics::vulkan
             "failed to create descriptor pool!");
     }
 
-    VulkanDescriptorPool::~VulkanDescriptorPool()
+    VulkanDescriptorPool::State::~State()
     {
         vkDestroyDescriptorPool(
-            _vk_device,
-            _vk_descriptor_pool,
+            device.get_native(),
+            vk_descriptor_pool,
             nullptr);
     }
 
+
+    VulkanDescriptorPool::VulkanDescriptorPool()
+        : _state(nullptr)
+    {
+    }
+
+    VulkanDescriptorPool::VulkanDescriptorPool(const Parameters& parameters)
+        : _state(std::make_shared<State>(parameters))
+    {
+    }
+
+    VulkanDescriptorPool::~VulkanDescriptorPool() = default;
+
     VkDescriptorPool VulkanDescriptorPool::get_native() const
     {
-        return _vk_descriptor_pool;
+        return _state->vk_descriptor_pool;
     }
 }

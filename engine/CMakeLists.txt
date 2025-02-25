@@ -52,14 +52,14 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/renderer.cpp
         src/xar_engine/graphics/vulkan/buffer.cpp
         src/xar_engine/graphics/vulkan/buffer.hpp
-        src/xar_engine/graphics/vulkan/vulkan_command_buffer_pool.cpp
-        src/xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp
-        src/xar_engine/graphics/vulkan/vulkan_descriptor_pool.cpp
-        src/xar_engine/graphics/vulkan/vulkan_descriptor_pool.hpp
-        src/xar_engine/graphics/vulkan/vulkan_descriptor_set.cpp
-        src/xar_engine/graphics/vulkan/vulkan_descriptor_set.hpp
-        src/xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.cpp
-        src/xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.hpp
+        src/xar_engine/graphics/vulkan/command_buffer_pool.cpp
+        src/xar_engine/graphics/vulkan/command_buffer_pool.hpp
+        src/xar_engine/graphics/vulkan/descriptor_pool.cpp
+        src/xar_engine/graphics/vulkan/descriptor_pool.hpp
+        src/xar_engine/graphics/vulkan/descriptor_set.cpp
+        src/xar_engine/graphics/vulkan/descriptor_set.hpp
+        src/xar_engine/graphics/vulkan/descriptor_set_layout.cpp
+        src/xar_engine/graphics/vulkan/descriptor_set_layout.hpp
         src/xar_engine/graphics/vulkan/device.cpp
         src/xar_engine/graphics/vulkan/device.hpp
         src/xar_engine/graphics/vulkan/graphics_pipeline.cpp

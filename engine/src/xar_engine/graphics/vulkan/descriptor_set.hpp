@@ -1,9 +1,12 @@
 #pragma once
 
-#include <cstdint>
+#include <memory>
 #include <vector>
 
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -14,7 +17,9 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanDescriptorSet();
         explicit VulkanDescriptorSet(const Parameters& parameters);
+
         ~VulkanDescriptorSet();
 
         void write(const std::vector<VkWriteDescriptorSet>& data);
@@ -23,14 +28,16 @@ namespace xar_engine::graphics::vulkan
         const std::vector<VkDescriptorSet>& get_native() const;
 
     private:
-        VkDevice _vk_device;
-        std::vector<VkDescriptorSet> _vk_descriptor_sets;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanDescriptorSet::Parameters
     {
-        VkDevice vk_device;
-        VkDescriptorPool vk_descriptor_pool;
+        Device device;
+        VulkanDescriptorPool descriptor_pool;
         std::vector<VkDescriptorSetLayout> vk_layouts;
     };
 }

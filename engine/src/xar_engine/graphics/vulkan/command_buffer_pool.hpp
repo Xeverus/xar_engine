@@ -1,9 +1,11 @@
 #pragma once
 
-#include <cstdint>
+#include <memory>
 #include <vector>
 
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -14,8 +16,11 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanCommandBufferPool();
         explicit VulkanCommandBufferPool(const Parameters& parameters);
+
         ~VulkanCommandBufferPool();
+
 
         [[nodiscard]]
         VkCommandBuffer make_one_time_buffer();
@@ -25,15 +30,14 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkCommandBuffer> make_buffers(std::int32_t count);
 
     private:
-        VkDevice _vk_device;
-        VkQueue _vk_graphics_queue;
-        VkCommandPool _vk_command_pool;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanCommandBufferPool::Parameters
     {
-        VkDevice vk_device;
-        VkQueue vk_graphics_queue;
-        std::uint32_t vk_graphics_family_index;
+        Device device;
     };
 }

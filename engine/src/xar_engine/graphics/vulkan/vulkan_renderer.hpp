@@ -8,10 +8,10 @@
 
 #include <xar_engine/graphics/renderer.hpp>
 #include <xar_engine/graphics/vulkan/buffer.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_descriptor_pool.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_descriptor_set.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.hpp>
+#include <xar_engine/graphics/vulkan/command_buffer_pool.hpp>
+#include <xar_engine/graphics/vulkan/descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/descriptor_set.hpp>
+#include <xar_engine/graphics/vulkan/descriptor_set_layout.hpp>
 #include <xar_engine/graphics/vulkan/device.hpp>
 #include <xar_engine/graphics/vulkan/graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/image.hpp>
@@ -110,15 +110,15 @@ namespace xar_engine::graphics::vulkan
 
         VulkanGraphicsPipeline _vulkan_graphics_pipeline;
 
-        std::unique_ptr<VulkanDescriptorSetLayout> _vulkan_descriptor_set_layout;
-        std::unique_ptr<VulkanDescriptorPool> _vulkan_descriptor_pool;
-        std::unique_ptr<VulkanDescriptorSet> _vulkan_descriptor_sets;
+        VulkanDescriptorSetLayout _vulkan_descriptor_set_layout;
+        VulkanDescriptorPool _vulkan_descriptor_pool;
+        VulkanDescriptorSet _vulkan_descriptor_sets;
 
         std::vector<Buffer> _uniform_buffers;
         std::vector<void*> _uniform_buffers_mapped;
 
         std::vector<VkCommandBuffer> _vk_command_buffers;
-        std::unique_ptr<VulkanCommandBufferPool> _vulkan_command_pool;
+        VulkanCommandBufferPool _vulkan_command_pool;
 
         uint32_t mipLevels;
         uint32_t frameCounter;

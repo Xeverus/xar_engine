@@ -165,11 +165,11 @@ namespace xar_engine::graphics::vulkan
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        _vulkan_descriptor_set_layout = std::make_unique<VulkanDescriptorSetLayout>(
-            VulkanDescriptorSetLayout::Parameters{
-                _device.get_native(),
+        _vulkan_descriptor_set_layout = VulkanDescriptorSetLayout{
+            {
+                _device,
                 {uboLayoutBinding, samplerLayoutBinding},
-            });
+            }};
     }
 
     void VulkanRenderer::init_graphics_pipeline()
@@ -192,7 +192,7 @@ namespace xar_engine::graphics::vulkan
                         VK_SHADER_STAGE_FRAGMENT_BIT,
                         "main")
                 },
-                _vulkan_descriptor_set_layout->get_native(),
+                _vulkan_descriptor_set_layout.get_native(),
                 Vertex::getBindingDescription(),
                 Vertex::getAttributeDescriptions(),
                 {pushConstantRange},
@@ -315,24 +315,24 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_descriptors()
     {
-        _vulkan_descriptor_pool = std::make_unique<VulkanDescriptorPool>(
-            VulkanDescriptorPool::Parameters{
-                _device.get_native(),
+        _vulkan_descriptor_pool = VulkanDescriptorPool{
+            {
+                _device,
                 MAX_FRAMES_IN_FLIGHT,
                 MAX_FRAMES_IN_FLIGHT,
                 MAX_FRAMES_IN_FLIGHT,
-            });
+            }};
 
         std::vector<VkDescriptorSetLayout> layouts(
             MAX_FRAMES_IN_FLIGHT,
-            _vulkan_descriptor_set_layout->get_native());
+            _vulkan_descriptor_set_layout.get_native());
 
-        _vulkan_descriptor_sets = std::make_unique<VulkanDescriptorSet>(
-            VulkanDescriptorSet::Parameters{
-                _device.get_native(),
-                _vulkan_descriptor_pool->get_native(),
+        _vulkan_descriptor_sets = VulkanDescriptorSet{
+            {
+                _device,
+                _vulkan_descriptor_pool,
                 std::move(layouts),
-            });
+            }};
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
@@ -348,7 +348,7 @@ namespace xar_engine::graphics::vulkan
 
             std::vector<VkWriteDescriptorSet> descriptorWrites(2);
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = _vulkan_descriptor_sets->get_native()[i];
+            descriptorWrites[0].dstSet = _vulkan_descriptor_sets.get_native()[i];
             descriptorWrites[0].dstBinding = 0;
             descriptorWrites[0].dstArrayElement = 0;
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -358,7 +358,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = _vulkan_descriptor_sets->get_native()[i];
+            descriptorWrites[1].dstSet = _vulkan_descriptor_sets.get_native()[i];
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -367,19 +367,17 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[1].pImageInfo = &imageInfo; // Optional
             descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
-            _vulkan_descriptor_sets->write(descriptorWrites);
+            _vulkan_descriptor_sets.write(descriptorWrites);
         }
     }
 
     void VulkanRenderer::init_cmd_buffers()
     {
-        _vulkan_command_pool = std::make_unique<VulkanCommandBufferPool>(
-            VulkanCommandBufferPool::Parameters{
-                _device.get_native(),
-                _device.get_graphics_queue(),
-                _device.get_graphics_family_index(),
-            });
-        _vk_command_buffers = _vulkan_command_pool->make_buffers(MAX_FRAMES_IN_FLIGHT);
+        _vulkan_command_pool = VulkanCommandBufferPool{
+            {
+                _device,
+            }};
+        _vk_command_buffers = _vulkan_command_pool.make_buffers(MAX_FRAMES_IN_FLIGHT);
     }
 
     void VulkanRenderer::init_color_msaa()
@@ -437,11 +435,11 @@ namespace xar_engine::graphics::vulkan
                 1,
             }};
 
-        auto buffer = _vulkan_command_pool->make_one_time_buffer();
+        auto buffer = _vulkan_command_pool.make_one_time_buffer();
         _depth_image.transition_layout(
             buffer,
             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-        _vulkan_command_pool->submit_one_time_buffer(buffer);
+        _vulkan_command_pool.submit_one_time_buffer(buffer);
     }
 
     void VulkanRenderer::init_texture()
@@ -484,11 +482,11 @@ namespace xar_engine::graphics::vulkan
                 VK_SAMPLE_COUNT_1_BIT,
             }};
 
-        auto buffer = _vulkan_command_pool->make_one_time_buffer();
+        auto buffer = _vulkan_command_pool.make_one_time_buffer();
         _texture_image.transition_layout(
             buffer,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        _vulkan_command_pool->submit_one_time_buffer(buffer);
+        _vulkan_command_pool.submit_one_time_buffer(buffer);
 
         copyBufferToImage(
             staging_buffer.get_native(),
@@ -496,9 +494,9 @@ namespace xar_engine::graphics::vulkan
             image.pixel_width,
             image.pixel_height);
 
-        VkCommandBuffer tempCommandBuffer = _vulkan_command_pool->make_one_time_buffer();
+        VkCommandBuffer tempCommandBuffer = _vulkan_command_pool.make_one_time_buffer();
         _texture_image.generate_mipmaps(tempCommandBuffer);
-        _vulkan_command_pool->submit_one_time_buffer(tempCommandBuffer);
+        _vulkan_command_pool.submit_one_time_buffer(tempCommandBuffer);
     }
 
     void VulkanRenderer::init_texture_view()
@@ -702,7 +700,7 @@ namespace xar_engine::graphics::vulkan
                 _vulkan_graphics_pipeline.get_native_pipeline_layout(),
                 0,
                 1,
-                &_vulkan_descriptor_sets->get_native()[currentFrame],
+                &_vulkan_descriptor_sets.get_native()[currentFrame],
                 0,
                 nullptr);
 
@@ -805,7 +803,7 @@ namespace xar_engine::graphics::vulkan
         VkBuffer dstBuffer,
         VkDeviceSize size)
     {
-        VkCommandBuffer tmpCommandBuffer = _vulkan_command_pool->make_one_time_buffer();
+        VkCommandBuffer tmpCommandBuffer = _vulkan_command_pool.make_one_time_buffer();
 
         VkBufferCopy copyRegion{};
         copyRegion.size = size;
@@ -816,7 +814,7 @@ namespace xar_engine::graphics::vulkan
             1,
             &copyRegion);
 
-        _vulkan_command_pool->submit_one_time_buffer(tmpCommandBuffer);
+        _vulkan_command_pool.submit_one_time_buffer(tmpCommandBuffer);
     }
 
     void VulkanRenderer::updateUniformBuffer(uint32_t currentImageNr)
@@ -870,7 +868,7 @@ namespace xar_engine::graphics::vulkan
         uint32_t width,
         uint32_t height)
     {
-        VkCommandBuffer tempCommandBuffer = _vulkan_command_pool->make_one_time_buffer();
+        VkCommandBuffer tempCommandBuffer = _vulkan_command_pool.make_one_time_buffer();
 
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
@@ -898,7 +896,7 @@ namespace xar_engine::graphics::vulkan
             &region
         );
 
-        _vulkan_command_pool->submit_one_time_buffer(tempCommandBuffer);
+        _vulkan_command_pool.submit_one_time_buffer(tempCommandBuffer);
     }
 
     VkFormat VulkanRenderer::findDepthFormat()
