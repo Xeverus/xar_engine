@@ -39,10 +39,18 @@ namespace xar_engine::graphics::vulkan
         VkSampleCountFlagBits get_max_sample_count() const;
 
         [[nodiscard]]
+        VkFormatProperties get_format_properties(VkFormat vk_format) const;
+
+        [[nodiscard]]
         VkFormat find_supported_format(
             const std::vector<VkFormat>& candidate_list,
             VkImageTiling vk_tiling,
             VkFormatFeatureFlags vk_feature_flags) const;
+
+        [[nodiscard]]
+        std::uint32_t find_memory_type(
+            uint32_t type_filter,
+            VkMemoryPropertyFlags properties) const;
 
 
         [[nodiscard]]

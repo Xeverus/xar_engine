@@ -25,6 +25,9 @@ namespace xar_engine::graphics::vulkan
         void wait_idle() const;
 
         [[nodiscard]]
+        const PhysicalDevice& get_physical_device() const;
+
+        [[nodiscard]]
         VkDevice get_native() const;
 
         [[nodiscard]]

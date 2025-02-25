@@ -14,7 +14,7 @@
 #include <xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.hpp>
 #include <xar_engine/graphics/vulkan/device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_image.hpp>
+#include <xar_engine/graphics/vulkan/image.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
 #include <xar_engine/graphics/vulkan/instance.hpp>
 #include <xar_engine/graphics/vulkan/physical_device.hpp>
@@ -93,12 +93,12 @@ namespace xar_engine::graphics::vulkan
 
         std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
         std::vector<VulkanImageView> _vulkan_swap_chain_image_views;
-        std::unique_ptr<VulkanImage> _vulkan_depth_image;
+        VulkanImage _depth_image;
         std::unique_ptr<VulkanImageView> _vulkan_depth_image_view;
-        std::unique_ptr<VulkanImage> _vulkan_color_image;
+        VulkanImage _color_image;
         std::unique_ptr<VulkanImageView> _vulkan_color_image_view;
 
-        std::unique_ptr<VulkanImage> _vulkan_texture_image;
+        VulkanImage _texture_image;
         std::unique_ptr<VulkanImageView> _vulkan_texture_image_view;
         std::unique_ptr<VulkanSampler> _vulkan_sampler;
 

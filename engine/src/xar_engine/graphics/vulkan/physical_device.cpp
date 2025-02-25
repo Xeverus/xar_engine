@@ -186,34 +186,63 @@ namespace xar_engine::graphics::vulkan
         return VK_SAMPLE_COUNT_1_BIT;
     }
 
+    VkFormatProperties PhysicalDevice::get_format_properties(VkFormat vk_format) const
+    {
+        auto vk_format_properties = VkFormatProperties{};
+        vkGetPhysicalDeviceFormatProperties(
+            get_native(),
+            vk_format,
+            &vk_format_properties);
+
+        return vk_format_properties;
+    }
+
     VkFormat PhysicalDevice::find_supported_format(
-        const std::vector<VkFormat>& candidate_list,
+        const std::vector<VkFormat>& candidate_vk_format_list,
         const VkImageTiling vk_tiling,
         const VkFormatFeatureFlags vk_feature_flags) const
     {
-        for (const auto format: candidate_list)
+        for (const auto vk_format: candidate_vk_format_list)
         {
-            auto vk_format_properties = VkFormatProperties{};
-            vkGetPhysicalDeviceFormatProperties(
-                get_native(),
-                format,
-                &vk_format_properties);
+            const auto vk_format_properties = get_format_properties(vk_format);
 
             if (vk_tiling == VK_IMAGE_TILING_LINEAR &&
                 (vk_format_properties.linearTilingFeatures & vk_feature_flags) == vk_feature_flags)
             {
-                return format;
+                return vk_format;
             }
             else if (vk_tiling == VK_IMAGE_TILING_OPTIMAL &&
                      (vk_format_properties.optimalTilingFeatures & vk_feature_flags) == vk_feature_flags)
             {
-                return format;
+                return vk_format;
             }
         }
 
         XAR_THROW(
             error::XarException,
             "Cannot find supported format");
+    }
+
+    std::uint32_t PhysicalDevice::find_memory_type(
+        const uint32_t type_filter,
+        const VkMemoryPropertyFlags properties) const
+    {
+        auto memory_properties = VkPhysicalDeviceMemoryProperties{};
+        vkGetPhysicalDeviceMemoryProperties(
+            _state->vk_physical_device,
+            &memory_properties);
+
+        for (auto i = std::uint32_t{0}; i < memory_properties.memoryTypeCount; i++)
+        {
+            if ((type_filter & (std::uint32_t{1} << i)) &&
+                (memory_properties.memoryTypes[i].propertyFlags & properties) == properties)
+            {
+                return i;
+            }
+        }
+
+        XAR_THROW(error::XarException,
+                  "Failed to find suitable memory type");
     }
 
     VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(VkSurfaceKHR vk_surface) const

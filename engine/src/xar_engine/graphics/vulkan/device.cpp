@@ -112,6 +112,11 @@ namespace xar_engine::graphics::vulkan
 
     Device::~Device() = default;
 
+    const PhysicalDevice& Device::get_physical_device() const
+    {
+        return _state->physical_device;
+    }
+
     void Device::wait_idle() const
     {
         XAR_LOG(

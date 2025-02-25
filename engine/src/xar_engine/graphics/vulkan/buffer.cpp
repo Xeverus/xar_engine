@@ -5,32 +5,6 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    namespace
-    {
-        std::uint32_t findMemoryType(
-            VkPhysicalDevice vk_physical_device,
-            uint32_t typeFilter,
-            VkMemoryPropertyFlags properties)
-        {
-            VkPhysicalDeviceMemoryProperties memProperties;
-            vkGetPhysicalDeviceMemoryProperties(
-                vk_physical_device,
-                &memProperties);
-
-            for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-            {
-                if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
-                {
-                    return i;
-                }
-            }
-
-            XAR_THROW(error::XarException,
-                      "Failed to find suitable memory type");
-        };
-    }
-
-
     struct Buffer::State
     {
     public:
@@ -77,8 +51,7 @@ namespace xar_engine::graphics::vulkan
         auto alloc_info = VkMemoryAllocateInfo{};
         alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         alloc_info.allocationSize = memory_requirements.size;
-        alloc_info.memoryTypeIndex = findMemoryType(
-            parameters.physical_device.get_native(),
+        alloc_info.memoryTypeIndex = parameters.device.get_physical_device().find_memory_type(
             memory_requirements.memoryTypeBits,
             parameters.vk_memory_properties);
 

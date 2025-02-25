@@ -6,7 +6,6 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/vulkan/device.hpp>
-#include <xar_engine/graphics/vulkan/physical_device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -38,7 +37,6 @@ namespace xar_engine::graphics::vulkan
     struct Buffer::Parameters
     {
         Device device;
-        PhysicalDevice physical_device;
 
         VkDeviceSize vk_byte_size;
         VkBufferUsageFlags vk_buffer_usage;

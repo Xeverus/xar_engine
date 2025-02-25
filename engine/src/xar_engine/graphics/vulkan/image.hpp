@@ -1,8 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include <volk.h>
 
 #include <xar_engine/math/vector.hpp>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -13,35 +17,30 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanImage();
         explicit VulkanImage(const Parameters& parameters);
+
         ~VulkanImage();
 
         void transition_layout(
             VkCommandBuffer vk_command_buffer,
             VkImageLayout new_vk_image_layout);
 
-        void generate_mipmaps(
-            VkCommandBuffer vk_command_buffer,
-            VkPhysicalDevice vk_physical_device);
+        void generate_mipmaps(VkCommandBuffer vk_command_buffer);
 
         [[nodiscard]]
         VkImage get_native() const;
 
     private:
-        VkDevice _vk_device;
-        VkImage _vk_image;
-        VkDeviceMemory _vk_image_memory;
+        struct State;
 
-        VkFormat _vk_format;
-        VkImageLayout _vk_image_layout;
-        math::Vector3i32 _dimension;
-        std::uint32_t _mip_levels;
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanImage::Parameters
     {
-        VkDevice vk_device;
-        VkPhysicalDevice vk_physical_device;
+        Device device;
 
         math::Vector3i32 dimension;
         VkFormat format;
