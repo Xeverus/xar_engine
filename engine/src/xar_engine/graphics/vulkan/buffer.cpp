@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
+#include <xar_engine/graphics/vulkan/buffer.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
@@ -30,11 +30,27 @@ namespace xar_engine::graphics::vulkan
         };
     }
 
-    VulkanBuffer::VulkanBuffer(const VulkanBuffer::Parameters& parameters)
-        : _vk_buffer(nullptr)
-        , _vk_device_memory(nullptr)
-        , _vk_device(parameters.vk_device)
-        , _byte_size(0)
+
+    struct Buffer::State
+    {
+    public:
+        explicit State(const Buffer::Parameters& parameters);
+
+        ~State();
+
+    public:
+        Device device;
+
+        VkBuffer vk_buffer;
+        VkDeviceMemory vk_device_memory;
+        std::uint32_t byte_size;
+    };
+
+    Buffer::State::State(const Buffer::Parameters& parameters)
+        : device{parameters.device}
+        , vk_buffer{nullptr}
+        , vk_device_memory{nullptr}
+        , byte_size{0}
     {
         auto buffer_info = VkBufferCreateInfo{};
         buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -43,10 +59,10 @@ namespace xar_engine::graphics::vulkan
         buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         const auto vk_create_buffer_result = vkCreateBuffer(
-            parameters.vk_device,
+            parameters.device.get_native(),
             &buffer_info,
             nullptr,
-            &_vk_buffer);
+            &vk_buffer);
         XAR_THROW_IF(
             vk_create_buffer_result != VK_SUCCESS,
             error::XarException,
@@ -54,80 +70,93 @@ namespace xar_engine::graphics::vulkan
 
         auto memory_requirements = VkMemoryRequirements{};
         vkGetBufferMemoryRequirements(
-            parameters.vk_device,
-            _vk_buffer,
+            parameters.device.get_native(),
+            vk_buffer,
             &memory_requirements);
 
         auto alloc_info = VkMemoryAllocateInfo{};
         alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         alloc_info.allocationSize = memory_requirements.size;
         alloc_info.memoryTypeIndex = findMemoryType(
-            parameters.vk_physical_device,
+            parameters.physical_device.get_native(),
             memory_requirements.memoryTypeBits,
             parameters.vk_memory_properties);
 
-        // TODO(): Or original size?
-        _byte_size = memory_requirements.size;
+        byte_size = memory_requirements.size;
 
         const auto vk_allocate_memory_result = vkAllocateMemory(
-            parameters.vk_device,
+            parameters.device.get_native(),
             &alloc_info,
             nullptr,
-            &_vk_device_memory);
+            &vk_device_memory);
         XAR_THROW_IF(
             vk_allocate_memory_result != VK_SUCCESS,
             error::XarException,
-            "Failed to allocate memory for buffer");
+            "Memory allocation for buffer failed");
 
         vkBindBufferMemory(
-            parameters.vk_device,
-            _vk_buffer,
-            _vk_device_memory,
+            parameters.device.get_native(),
+            vk_buffer,
+            vk_device_memory,
             0);
     }
 
-    VulkanBuffer::~VulkanBuffer()
+    Buffer::State::~State()
     {
-        if (_vk_buffer)
+        if (vk_buffer)
         {
             vkDestroyBuffer(
-                _vk_device,
-                _vk_buffer,
+                device.get_native(),
+                vk_buffer,
                 nullptr);
         }
-        if (_vk_device_memory)
+
+        if (vk_device_memory)
         {
             vkFreeMemory(
-                _vk_device,
-                _vk_device_memory,
+                device.get_native(),
+                vk_device_memory,
                 nullptr);
         }
     }
 
-    void* VulkanBuffer::map()
+
+    Buffer::Buffer()
+        : _state(nullptr)
+    {
+    }
+
+    Buffer::Buffer(const Buffer::Parameters& parameters)
+        : _state(std::make_shared<State>(parameters))
+    {
+    }
+
+    Buffer::~Buffer() = default;
+
+    void* Buffer::map()
     {
         void* mapped_data = nullptr;
 
         vkMapMemory(
-            _vk_device,
-            _vk_device_memory,
+            _state->device.get_native(),
+            _state->vk_device_memory,
             0,
-            _byte_size,
+            _state->byte_size,
             0,
             &mapped_data);
 
         return mapped_data;
     }
 
-    void VulkanBuffer::unmap()
+    void Buffer::unmap()
     {
         vkUnmapMemory(
-            _vk_device,
-            _vk_device_memory);
+            _state->device.get_native(),
+            _state->vk_device_memory);
     }
 
-    VkBuffer VulkanBuffer::get_native() const
+    VkBuffer Buffer::get_native() const
     {
-        return _vk_buffer;
+        return _state->vk_buffer;
     }
 }

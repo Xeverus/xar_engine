@@ -1,20 +1,26 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
+#include <xar_engine/graphics/vulkan/physical_device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
 {
-    class VulkanBuffer
+    class Buffer
     {
     public:
         struct Parameters;
 
     public:
-        explicit VulkanBuffer(const Parameters& parameters);
-        ~VulkanBuffer();
+        Buffer();
+        explicit Buffer(const Parameters& parameters);
+
+        ~Buffer();
 
         void* map();
         void unmap();
@@ -23,16 +29,16 @@ namespace xar_engine::graphics::vulkan
         VkBuffer get_native() const;
 
     private:
-        VkBuffer _vk_buffer;
-        VkDeviceMemory _vk_device_memory;
-        VkDevice _vk_device;
-        std::uint32_t _byte_size;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
-    struct VulkanBuffer::Parameters
+    struct Buffer::Parameters
     {
-        VkDevice vk_device;
-        VkPhysicalDevice vk_physical_device;
+        Device device;
+        PhysicalDevice physical_device;
 
         VkDeviceSize vk_byte_size;
         VkBufferUsageFlags vk_buffer_usage;

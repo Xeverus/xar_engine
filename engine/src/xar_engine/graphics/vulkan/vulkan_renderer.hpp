@@ -7,17 +7,17 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/renderer.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
+#include <xar_engine/graphics/vulkan/buffer.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_descriptor_pool.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_descriptor_set.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_physical_device_list.hpp>
+#include <xar_engine/graphics/vulkan/instance.hpp>
+#include <xar_engine/graphics/vulkan/physical_device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_surface.hpp>
@@ -35,7 +35,7 @@ namespace xar_engine::graphics::vulkan
     {
     public:
         explicit VulkanRenderer(
-            std::shared_ptr<VulkanInstance> vulkan_instance,
+            std::shared_ptr<Instance> vulkan_instance,
             VkSurfaceKHR vk_surface_khr,
             const os::IWindow* os_window);
 
@@ -86,10 +86,10 @@ namespace xar_engine::graphics::vulkan
         std::unique_ptr<logging::ILogger> _logger;
         const os::IWindow* _os_window;
 
-        std::shared_ptr<VulkanInstance> _vulkan_instance;
+        std::shared_ptr<Instance> _instance;
         std::unique_ptr<VulkanSurface> _vulkan_surface;
-        std::unique_ptr<VulkanPhysicalDeviceList> _vulkan_physical_device_list;
-        std::unique_ptr<VulkanDevice> _vulkan_device;
+        std::vector<PhysicalDevice> _physical_device_list;
+        Device _device;
 
         std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
         std::vector<VulkanImageView> _vulkan_swap_chain_image_views;
@@ -102,8 +102,8 @@ namespace xar_engine::graphics::vulkan
         std::unique_ptr<VulkanImageView> _vulkan_texture_image_view;
         std::unique_ptr<VulkanSampler> _vulkan_sampler;
 
-        std::unique_ptr<VulkanBuffer> _vulkan_vertex_buffer;
-        std::unique_ptr<VulkanBuffer> _vulkan_index_buffer;
+        std::unique_ptr<Buffer> _vulkan_vertex_buffer;
+        std::unique_ptr<Buffer> _vulkan_index_buffer;
 
         std::unique_ptr<VulkanShader> _vulkan_vertex_shader;
         std::unique_ptr<VulkanShader> _vulkan_fragment_shader;
@@ -114,7 +114,7 @@ namespace xar_engine::graphics::vulkan
         std::unique_ptr<VulkanDescriptorPool> _vulkan_descriptor_pool;
         std::unique_ptr<VulkanDescriptorSet> _vulkan_descriptor_sets;
 
-        std::vector<std::unique_ptr<VulkanBuffer>> _vulkan_uniform_buffers;
+        std::vector<std::unique_ptr<Buffer>> _vulkan_uniform_buffers;
         std::vector<void*> _uniform_buffers_mapped;
 
         std::vector<VkCommandBuffer> _vk_command_buffers;

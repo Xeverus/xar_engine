@@ -1,20 +1,25 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/physical_device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
 {
-    class VulkanDevice
+    class Device
     {
     public:
         struct Parameters;
 
     public:
-        explicit VulkanDevice(const Parameters& parameters);
-        ~VulkanDevice();
+        Device();
+        explicit Device(const Parameters& parameters);
+
+        ~Device();
 
 
         void wait_idle() const;
@@ -29,13 +34,14 @@ namespace xar_engine::graphics::vulkan
         VkQueue get_graphics_queue() const;
 
     private:
-        VkDevice _vk_device;
-        VkQueue _vk_graphics_queue;
-        std::uint32_t _graphics_family_index;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
-    struct VulkanDevice::Parameters
+    struct Device::Parameters
     {
-        VkPhysicalDevice vk_physical_device;
+        PhysicalDevice physical_device;
     };
 }
