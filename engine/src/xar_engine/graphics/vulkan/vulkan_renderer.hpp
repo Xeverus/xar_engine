@@ -15,7 +15,7 @@
 #include <xar_engine/graphics/vulkan/device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/image.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
+#include <xar_engine/graphics/vulkan/image_view.hpp>
 #include <xar_engine/graphics/vulkan/instance.hpp>
 #include <xar_engine/graphics/vulkan/physical_device.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
@@ -92,18 +92,18 @@ namespace xar_engine::graphics::vulkan
         Device _device;
 
         std::unique_ptr<VulkanSwapChain> _vulkan_swap_chain;
-        std::vector<VulkanImageView> _vulkan_swap_chain_image_views;
+        std::vector<VulkanImageView> _swap_chain_image_views;
         VulkanImage _depth_image;
-        std::unique_ptr<VulkanImageView> _vulkan_depth_image_view;
+        VulkanImageView _depth_image_view;
         VulkanImage _color_image;
-        std::unique_ptr<VulkanImageView> _vulkan_color_image_view;
+        VulkanImageView _color_image_view;
 
         VulkanImage _texture_image;
-        std::unique_ptr<VulkanImageView> _vulkan_texture_image_view;
+        VulkanImageView _texture_image_view;
         std::unique_ptr<VulkanSampler> _vulkan_sampler;
 
-        std::unique_ptr<Buffer> _vulkan_vertex_buffer;
-        std::unique_ptr<Buffer> _vulkan_index_buffer;
+        Buffer _vertex_buffer;
+        Buffer _index_buffer;
 
         std::unique_ptr<VulkanShader> _vulkan_vertex_shader;
         std::unique_ptr<VulkanShader> _vulkan_fragment_shader;
@@ -114,7 +114,7 @@ namespace xar_engine::graphics::vulkan
         std::unique_ptr<VulkanDescriptorPool> _vulkan_descriptor_pool;
         std::unique_ptr<VulkanDescriptorSet> _vulkan_descriptor_sets;
 
-        std::vector<std::unique_ptr<Buffer>> _vulkan_uniform_buffers;
+        std::vector<Buffer> _uniform_buffers;
         std::vector<void*> _uniform_buffers_mapped;
 
         std::vector<VkCommandBuffer> _vk_command_buffers;

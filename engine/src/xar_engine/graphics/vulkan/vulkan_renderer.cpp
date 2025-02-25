@@ -89,13 +89,13 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::destroy_swapchain()
     {
-        _vulkan_color_image_view.reset();
+        _color_image_view = {};
         _color_image = {};
 
-        _vulkan_depth_image_view.reset();
+        _depth_image_view = {};
         _depth_image = {};
 
-        _vulkan_swap_chain_image_views.clear();
+        _swap_chain_image_views.clear();
         _vulkan_swap_chain.reset();
     }
 
@@ -126,7 +126,7 @@ namespace xar_engine::graphics::vulkan
 
         _vulkan_swap_chain = std::make_unique<VulkanSwapChain>(
             VulkanSwapChain::Parameters{
-                _device.get_native(),
+                _device,
                 _vulkan_surface->get_native(),
                 _physical_device_list[0].get_surface_capabilities(_vulkan_surface->get_native()),
                 _os_window->get_surface_pixel_size(),
@@ -209,12 +209,12 @@ namespace xar_engine::graphics::vulkan
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
         auto staging_buffer = Buffer{{
-                                               _device,
-                                               bufferSize,
-                                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                           }};
+                                         _device,
+                                         bufferSize,
+                                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                     }};
 
         void* const data = staging_buffer.map();
         memcpy(
@@ -223,17 +223,16 @@ namespace xar_engine::graphics::vulkan
             (size_t) bufferSize);
         staging_buffer.unmap();
 
-        _vulkan_vertex_buffer = std::make_unique<Buffer>(
-            Buffer::Parameters{
-                _device,
-                bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            });
+        _vertex_buffer = Buffer{{
+                                    _device,
+                                    bufferSize,
+                                    VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                }};
 
         copyBuffer(
             staging_buffer.get_native(),
-            _vulkan_vertex_buffer->get_native(),
+            _vertex_buffer.get_native(),
             bufferSize);
     }
 
@@ -242,12 +241,12 @@ namespace xar_engine::graphics::vulkan
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
         auto staging_buffer = Buffer{{
-                                               _device,
-                                               bufferSize,
-                                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                           }};
+                                         _device,
+                                         bufferSize,
+                                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                     }};
 
         void* const data = staging_buffer.map();
         memcpy(
@@ -256,17 +255,16 @@ namespace xar_engine::graphics::vulkan
             (size_t) bufferSize);
         staging_buffer.unmap();
 
-        _vulkan_index_buffer = std::make_unique<Buffer>(
-            Buffer::Parameters{
-                _device,
-                bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            });
+        _index_buffer = Buffer{{
+                                   _device,
+                                   bufferSize,
+                                   VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                               }};
 
         copyBuffer(
             staging_buffer.get_native(),
-            _vulkan_index_buffer->get_native(),
+            _index_buffer.get_native(),
             bufferSize);
     }
 
@@ -297,19 +295,18 @@ namespace xar_engine::graphics::vulkan
     {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-        _vulkan_uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+        _uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
         _uniform_buffers_mapped.resize(MAX_FRAMES_IN_FLIGHT);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            _vulkan_uniform_buffers[i] = std::make_unique<Buffer>(
-                Buffer::Parameters{
-                    _device,
-                    bufferSize,
-                    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                });
-            _uniform_buffers_mapped[i] = _vulkan_uniform_buffers[i]->map();
+            _uniform_buffers[i] = Buffer{{
+                                             _device,
+                                             bufferSize,
+                                             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                         }};
+            _uniform_buffers_mapped[i] = _uniform_buffers[i].map();
         }
     }
 
@@ -327,22 +324,23 @@ namespace xar_engine::graphics::vulkan
             MAX_FRAMES_IN_FLIGHT,
             _vulkan_descriptor_set_layout->get_native());
 
-        _vulkan_descriptor_sets = std::make_unique<VulkanDescriptorSet>(VulkanDescriptorSet::Parameters{
-            _device.get_native(),
-            _vulkan_descriptor_pool->get_native(),
-            std::move(layouts),
-        });
+        _vulkan_descriptor_sets = std::make_unique<VulkanDescriptorSet>(
+            VulkanDescriptorSet::Parameters{
+                _device.get_native(),
+                _vulkan_descriptor_pool->get_native(),
+                std::move(layouts),
+            });
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = _vulkan_uniform_buffers[i]->get_native();
+            bufferInfo.buffer = _uniform_buffers[i].get_native();
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = _vulkan_texture_image_view->get_native();
+            imageInfo.imageView = _texture_image_view.get_native();
             imageInfo.sampler = _vulkan_sampler->get_native();
 
             std::vector<VkWriteDescriptorSet> descriptorWrites(2);
@@ -384,28 +382,27 @@ namespace xar_engine::graphics::vulkan
     void VulkanRenderer::init_color_msaa()
     {
         _color_image = VulkanImage{{
-                _device,
-                {
-                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width),
-                    static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
-                    1
-                },
-                _vulkan_swap_chain->get_format(),
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                1,
-                msaaSamples,
-            }};
+                                       _device,
+                                       {
+                                           static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().width),
+                                           static_cast<std::int32_t>(_vulkan_swap_chain->get_extent().height),
+                                           1
+                                       },
+                                       _vulkan_swap_chain->get_format(),
+                                       VK_IMAGE_TILING_OPTIMAL,
+                                       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                       1,
+                                       msaaSamples,
+                                   }};
 
-        _vulkan_color_image_view = std::make_unique<VulkanImageView>(
-            VulkanImageView::Parameters{
-                _device.get_native(),
+        _color_image_view = VulkanImageView{{
+                _device,
                 _color_image.get_native(),
                 _vulkan_swap_chain->get_format(),
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 1,
-            });
+            }};
     }
 
     void VulkanRenderer::init_depth()
@@ -426,14 +423,13 @@ namespace xar_engine::graphics::vulkan
                 msaaSamples,
             }};
 
-        _vulkan_depth_image_view = std::make_unique<VulkanImageView>(
-            VulkanImageView::Parameters{
-                _device.get_native(),
+        _depth_image_view = VulkanImageView{{
+                _device,
                 _depth_image.get_native(),
                 findDepthFormat(),
                 VK_IMAGE_ASPECT_DEPTH_BIT,
                 1,
-            });
+            }};
 
         auto buffer = _vulkan_command_pool->make_one_time_buffer();
         _depth_image.transition_layout(
@@ -455,12 +451,12 @@ namespace xar_engine::graphics::vulkan
 
 
         auto staging_buffer = Buffer{{
-                                               _device,
-                                               imageSize,
-                                               VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                           }};
+                                         _device,
+                                         imageSize,
+                                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                         VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                     }};
 
         void* const data = staging_buffer.map();
         memcpy(
@@ -500,14 +496,13 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_texture_view()
     {
-        _vulkan_texture_image_view = std::make_unique<VulkanImageView>(
-            VulkanImageView::Parameters{
-                _device.get_native(),
+        _texture_image_view = VulkanImageView{{
+                _device,
                 _texture_image.get_native(),
                 VK_FORMAT_R8G8B8A8_SRGB,
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 mipLevels,
-            });
+            }};
     }
 
     void VulkanRenderer::init_sampler()
@@ -609,7 +604,7 @@ namespace xar_engine::graphics::vulkan
             VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
             vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
             vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
-            vkRenderingAttachmentInfoColor.imageView = _vulkan_color_image_view->get_native();
+            vkRenderingAttachmentInfoColor.imageView = _color_image_view.get_native();
             vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -623,7 +618,7 @@ namespace xar_engine::graphics::vulkan
             VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
             vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
             vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
-            vkRenderingAttachmentInfoDepth.imageView = _vulkan_depth_image_view->get_native();
+            vkRenderingAttachmentInfoDepth.imageView = _depth_image_view.get_native();
             vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -676,7 +671,7 @@ namespace xar_engine::graphics::vulkan
                 1,
                 &scissor);
 
-            VkBuffer vertexBuffers[] = {_vulkan_vertex_buffer->get_native()};
+            VkBuffer vertexBuffers[] = {_vertex_buffer.get_native()};
             VkDeviceSize offsets[] = {0};
             vkCmdBindVertexBuffers(
                 _vk_command_buffers[currentFrame],
@@ -686,7 +681,7 @@ namespace xar_engine::graphics::vulkan
                 offsets);
             vkCmdBindIndexBuffer(
                 _vk_command_buffers[currentFrame],
-                _vulkan_index_buffer->get_native(),
+                _index_buffer.get_native(),
                 0,
                 VK_INDEX_TYPE_UINT32);
 

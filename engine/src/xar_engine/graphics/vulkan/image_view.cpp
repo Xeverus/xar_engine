@@ -1,13 +1,28 @@
-#include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
+#include <xar_engine/graphics/vulkan/image_view.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
 
 namespace xar_engine::graphics::vulkan
 {
-    VulkanImageView::VulkanImageView(const VulkanImageView::Parameters& parameters)
-        : _vk_device(parameters.vk_device)
-        , _vk_image_view(nullptr)
+    struct VulkanImageView::State
+    {
+    public:
+        explicit State(const Parameters& parameters);
+
+        ~State();
+
+    public:
+        Device device;
+        VkImage vk_image;
+
+        VkImageView vk_image_view;
+    };
+
+    VulkanImageView::State::State(const Parameters& parameters)
+        : device(parameters.device)
+        , vk_image(parameters.vk_image)
+        , vk_image_view(nullptr)
     {
         auto image_view_create = VkImageViewCreateInfo{};
         image_view_create.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -21,10 +36,10 @@ namespace xar_engine::graphics::vulkan
         image_view_create.subresourceRange.layerCount = 1;
 
         const auto image_view_result = vkCreateImageView(
-            _vk_device,
+            parameters.device.get_native(),
             &image_view_create,
             nullptr,
-            &_vk_image_view);
+            &vk_image_view);
         XAR_THROW_IF(
             image_view_result != VK_SUCCESS,
             error::XarException,
@@ -32,16 +47,29 @@ namespace xar_engine::graphics::vulkan
 
     }
 
-    VulkanImageView::~VulkanImageView()
+    VulkanImageView::State::~State()
     {
         vkDestroyImageView(
-            _vk_device,
-            _vk_image_view,
+            device.get_native(),
+            vk_image_view,
             nullptr);
     }
 
+
+    VulkanImageView::VulkanImageView()
+        : _state(nullptr)
+    {
+    }
+
+    VulkanImageView::VulkanImageView(const VulkanImageView::Parameters& parameters)
+        : _state(std::make_shared<State>(parameters))
+    {
+    }
+
+    VulkanImageView::~VulkanImageView() = default;
+
     VkImageView VulkanImageView::get_native() const
     {
-        return _vk_image_view;
+        return _state->vk_image_view;
     }
 }

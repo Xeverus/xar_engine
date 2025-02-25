@@ -9,8 +9,8 @@
 namespace xar_engine::graphics::vulkan
 {
     VulkanSwapChain::VulkanSwapChain(const VulkanSwapChain::Parameters& parameters)
-        : _vk_swap_chain(nullptr)
-        , _vk_device(parameters.vk_device)
+        : device(parameters.device)
+        , _vk_swap_chain(nullptr)
         , _vk_surface_khr(parameters.vk_surface_khr)
         , _vk_extent({})
         , _vk_surface_format_khr(parameters.surface_format_khr)
@@ -51,7 +51,7 @@ namespace xar_engine::graphics::vulkan
         swapchain_info.oldSwapchain = VK_NULL_HANDLE;
 
         const auto swap_chain_result = vkCreateSwapchainKHR(
-            _vk_device,
+            device.get_native(),
             &swapchain_info,
             nullptr,
             &_vk_swap_chain);
@@ -62,14 +62,14 @@ namespace xar_engine::graphics::vulkan
 
         std::uint32_t swap_chain_images_count = 0;
         vkGetSwapchainImagesKHR(
-            _vk_device,
+            device.get_native(),
             _vk_swap_chain,
             &swap_chain_images_count,
             nullptr);
 
         _vk_images.resize(swap_chain_images_count);
         vkGetSwapchainImagesKHR(
-            _vk_device,
+            device.get_native(),
             _vk_swap_chain,
             &swap_chain_images_count,
             _vk_images.data());
@@ -89,17 +89,17 @@ namespace xar_engine::graphics::vulkan
         for (auto i = 0; i < parameters.buffering_level; ++i)
         {
             const auto create_available_result = vkCreateSemaphore(
-                _vk_device,
+                device.get_native(),
                 &semaphoreInfo,
                 nullptr,
                 &imageAvailableSemaphore[i]);
             const auto create_finished_result = vkCreateSemaphore(
-                _vk_device,
+                device.get_native(),
                 &semaphoreInfo,
                 nullptr,
                 &renderFinishedSemaphore[i]);
             const auto create_flight_result = vkCreateFence(
-                _vk_device,
+                device.get_native(),
                 &fenceInfo,
                 nullptr,
                 &inFlightFence[i]);
@@ -118,7 +118,7 @@ namespace xar_engine::graphics::vulkan
         {
             _vulkan_image_views.emplace_back(
                 VulkanImageView::Parameters{
-                    _vk_device,
+                    device,
                     vk_image,
                     parameters.surface_format_khr.format,
                     VK_IMAGE_ASPECT_COLOR_BIT,
@@ -130,22 +130,22 @@ namespace xar_engine::graphics::vulkan
     VulkanSwapChain::~VulkanSwapChain()
     {
         vkDestroySwapchainKHR(
-            _vk_device,
+            device.get_native(),
             _vk_swap_chain,
             nullptr);
 
         for (auto i = 0; i < imageAvailableSemaphore.size(); ++i)
         {
             vkDestroyFence(
-                _vk_device,
+                device.get_native(),
                 inFlightFence[i],
                 nullptr);
             vkDestroySemaphore(
-                _vk_device,
+                device.get_native(),
                 renderFinishedSemaphore[i],
                 nullptr);
             vkDestroySemaphore(
-                _vk_device,
+                device.get_native(),
                 imageAvailableSemaphore[i],
                 nullptr);
         }
@@ -154,19 +154,19 @@ namespace xar_engine::graphics::vulkan
     VulkanSwapChain::BeginFrameResult VulkanSwapChain::begin_frame()
     {
         vkWaitForFences(
-            _vk_device,
+            device.get_native(),
             1,
             &inFlightFence[_frame_index],
             VK_TRUE,
             UINT64_MAX);
         vkResetFences(
-            _vk_device,
+            device.get_native(),
             1,
             &inFlightFence[_frame_index]);
 
         _image_index = uint32_t{0};
         const auto acquire_img_result = vkAcquireNextImageKHR(
-            _vk_device,
+            device.get_native(),
             get_native(),
             UINT64_MAX,
             imageAvailableSemaphore[_frame_index],
@@ -176,7 +176,7 @@ namespace xar_engine::graphics::vulkan
         if (acquire_img_result == VK_SUCCESS)
         {
             vkResetFences(
-                _vk_device,
+                device.get_native(),
                 1,
                 &inFlightFence[_frame_index]);
         }

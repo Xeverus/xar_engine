@@ -4,7 +4,7 @@
 
 #include <volk.h>
 
-#include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
+#include <xar_engine/graphics/vulkan/image_view.hpp>
 
 #include <xar_engine/math/vector.hpp>
 
@@ -41,7 +41,8 @@ namespace xar_engine::graphics::vulkan
         VkSwapchainKHR get_native() const;
 
     private:
-        VkDevice _vk_device;
+        Device device;
+
         VkSwapchainKHR _vk_swap_chain;
         VkSurfaceKHR _vk_surface_khr;
         VkExtent2D _vk_extent;
@@ -60,7 +61,7 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanSwapChain::Parameters
     {
-        VkDevice vk_device;
+        Device device;
         VkSurfaceKHR vk_surface_khr;
         VkSurfaceCapabilitiesKHR vk_surface_capabilities_khr;
         math::Vector2i32 dimension;

@@ -1,8 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include <volk.h>
 
 #include <xar_engine/math/vector.hpp>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
+#include <xar_engine/graphics/vulkan/image.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -13,20 +18,24 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanImageView();
         explicit VulkanImageView(const Parameters& parameters);
+
         ~VulkanImageView();
 
         [[nodiscard]]
         VkImageView get_native() const;
 
     private:
-        VkDevice _vk_device;
-        VkImageView _vk_image_view;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanImageView::Parameters
     {
-        VkDevice vk_device;
+        Device device;
         VkImage vk_image;
 
         VkFormat format;
