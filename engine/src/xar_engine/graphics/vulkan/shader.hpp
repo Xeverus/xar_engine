@@ -1,9 +1,11 @@
 #pragma once
 
-#include <cstdint>
+#include <memory>
 #include <vector>
 
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -14,20 +16,24 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanShader();
         explicit VulkanShader(const Parameters& parameters);
+
         ~VulkanShader();
 
         [[nodiscard]]
         VkShaderModule get_native() const;
 
     private:
-        VkShaderModule _vk_shader_module;
-        VkDevice _vk_device;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanShader::Parameters
     {
-        VkDevice vk_device;
+        Device device;
         std::vector<char> shader_bytes;
     };
 }

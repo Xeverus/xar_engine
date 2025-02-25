@@ -74,12 +74,12 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/physical_device.hpp
         src/xar_engine/graphics/vulkan/vulkan_renderer.cpp
         src/xar_engine/graphics/vulkan/vulkan_renderer.hpp
-        src/xar_engine/graphics/vulkan/vulkan_sampler.cpp
-        src/xar_engine/graphics/vulkan/vulkan_sampler.hpp
-        src/xar_engine/graphics/vulkan/vulkan_shader.cpp
-        src/xar_engine/graphics/vulkan/vulkan_shader.hpp
-        src/xar_engine/graphics/vulkan/vulkan_surface.cpp
-        src/xar_engine/graphics/vulkan/vulkan_surface.hpp
+        src/xar_engine/graphics/vulkan/sampler.cpp
+        src/xar_engine/graphics/vulkan/sampler.hpp
+        src/xar_engine/graphics/vulkan/shader.cpp
+        src/xar_engine/graphics/vulkan/shader.hpp
+        src/xar_engine/graphics/vulkan/surface.cpp
+        src/xar_engine/graphics/vulkan/surface.hpp
         src/xar_engine/graphics/vulkan/swap_chain.cpp
         src/xar_engine/graphics/vulkan/swap_chain.hpp
         src/xar_engine/input/button.cpp

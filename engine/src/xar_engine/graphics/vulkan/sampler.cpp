@@ -1,13 +1,26 @@
-#include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
+#include <xar_engine/graphics/vulkan/sampler.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
 
 namespace xar_engine::graphics::vulkan
 {
-    VulkanSampler::VulkanSampler(const VulkanSampler::Parameters& parameters)
-        : _vk_device(parameters.vk_device)
-        , _vk_sampler(nullptr)
+    struct VulkanSampler::State
+    {
+    public:
+        explicit State(const Parameters& parameters);
+
+        ~State();
+
+    public:
+        Device device;
+
+        VkSampler vk_sampler;
+    };
+
+    VulkanSampler::State::State(const Parameters& parameters)
+        : device(parameters.device)
+        , vk_sampler(nullptr)
     {
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -28,26 +41,39 @@ namespace xar_engine::graphics::vulkan
         samplerInfo.maxLod = static_cast<float>(parameters.max_lod);
 
         const auto create_sampler_result = vkCreateSampler(
-            _vk_device,
+            device.get_native(),
             &samplerInfo,
             nullptr,
-            &_vk_sampler);
+            &vk_sampler);
         XAR_THROW_IF(
             create_sampler_result != VK_SUCCESS,
             error::XarException,
             "Failed to create texture sampler!");
     }
 
-    VulkanSampler::~VulkanSampler()
+    VulkanSampler::State::~State()
     {
         vkDestroySampler(
-            _vk_device,
-            _vk_sampler,
+            device.get_native(),
+            vk_sampler,
             nullptr);
     }
 
+
+    VulkanSampler::VulkanSampler()
+        : _state(nullptr)
+    {
+    }
+
+    VulkanSampler::VulkanSampler(const VulkanSampler::Parameters& parameters)
+        : _state(std::make_shared<State>(parameters))
+    {
+    }
+
+    VulkanSampler::~VulkanSampler() = default;
+
     VkSampler VulkanSampler::get_native() const
     {
-        return _vk_sampler;
+        return _state->vk_sampler;
     }
 }

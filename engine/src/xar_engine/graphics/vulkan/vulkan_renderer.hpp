@@ -18,9 +18,9 @@
 #include <xar_engine/graphics/vulkan/image_view.hpp>
 #include <xar_engine/graphics/vulkan/instance.hpp>
 #include <xar_engine/graphics/vulkan/physical_device.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_surface.hpp>
+#include <xar_engine/graphics/vulkan/sampler.hpp>
+#include <xar_engine/graphics/vulkan/shader.hpp>
+#include <xar_engine/graphics/vulkan/surface.hpp>
 #include <xar_engine/graphics/vulkan/swap_chain.hpp>
 
 #include <xar_engine/logging/logger.hpp>
@@ -35,7 +35,7 @@ namespace xar_engine::graphics::vulkan
     {
     public:
         explicit VulkanRenderer(
-            std::shared_ptr<Instance> vulkan_instance,
+            const std::shared_ptr<Instance>& vulkan_instance,
             VkSurfaceKHR vk_surface_khr,
             const os::IWindow* os_window);
 
@@ -87,7 +87,7 @@ namespace xar_engine::graphics::vulkan
         const os::IWindow* _os_window;
 
         std::shared_ptr<Instance> _instance;
-        std::unique_ptr<VulkanSurface> _vulkan_surface;
+        VulkanSurface _vulkan_surface;
         std::vector<PhysicalDevice> _physical_device_list;
         Device _device;
 
@@ -100,13 +100,13 @@ namespace xar_engine::graphics::vulkan
 
         VulkanImage _texture_image;
         VulkanImageView _texture_image_view;
-        std::unique_ptr<VulkanSampler> _vulkan_sampler;
+        VulkanSampler _vulkan_sampler;
 
         Buffer _vertex_buffer;
         Buffer _index_buffer;
 
-        std::unique_ptr<VulkanShader> _vulkan_vertex_shader;
-        std::unique_ptr<VulkanShader> _vulkan_fragment_shader;
+        VulkanShader _vertex_shader;
+        VulkanShader _fragment_shader;
 
         std::unique_ptr<VulkanGraphicsPipeline> _vulkan_graphics_pipeline;
 

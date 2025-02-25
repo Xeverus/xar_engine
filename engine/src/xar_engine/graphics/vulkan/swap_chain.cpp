@@ -237,9 +237,7 @@ namespace xar_engine::graphics::vulkan
         };
     }
 
-    VulkanSwapChain::EndFrameResult VulkanSwapChain::end_frame(
-        VkQueue vk_queue,
-        VkCommandBuffer vk_command_buffer)
+    VulkanSwapChain::EndFrameResult VulkanSwapChain::end_frame(VkCommandBuffer vk_command_buffer)
     {
         VkSemaphore waitSemaphores[] = {_state->imageAvailableSemaphore[_state->frame_index]};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -256,7 +254,7 @@ namespace xar_engine::graphics::vulkan
         submitInfo.pSignalSemaphores = signalSemaphores;
 
         const auto submit_result = vkQueueSubmit(
-            vk_queue,
+            _state->device.get_graphics_queue(),
             1,
             &submitInfo,
             _state->inFlightFence[_state->frame_index]);
@@ -275,7 +273,7 @@ namespace xar_engine::graphics::vulkan
         presentInfo.pImageIndices = &_state->image_index;
         presentInfo.pResults = nullptr;
         const auto present_result = vkQueuePresentKHR(
-            vk_queue,
+            _state->device.get_graphics_queue(),
             &presentInfo);
 
         _state->frame_index = (_state->frame_index + 1) % _state->buffering_level;

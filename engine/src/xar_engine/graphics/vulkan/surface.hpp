@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/instance.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -11,20 +15,24 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanSurface();
         explicit VulkanSurface(const Parameters& parameters);
+
         ~VulkanSurface();
 
         [[nodiscard]]
         VkSurfaceKHR get_native() const;
 
     private:
-        VkInstance _vk_instance;
-        VkSurfaceKHR _vk_surface;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanSurface::Parameters
     {
-        VkInstance vk_instance;
-        VkSurfaceKHR vk_surface;
+        std::shared_ptr<Instance> instance;
+        VkSurfaceKHR vk_surface_khr;
     };
 }

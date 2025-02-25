@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include <volk.h>
+
+#include <xar_engine/graphics/vulkan/device.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -11,20 +15,24 @@ namespace xar_engine::graphics::vulkan
         struct Parameters;
 
     public:
+        VulkanSampler();
         explicit VulkanSampler(const Parameters& parameters);
+
         ~VulkanSampler();
 
         [[nodiscard]]
         VkSampler get_native() const;
 
     private:
-        VkDevice _vk_device;
-        VkSampler _vk_sampler;
+        struct State;
+
+    private:
+        std::shared_ptr<State> _state;
     };
 
     struct VulkanSampler::Parameters
     {
-        VkDevice vk_device;
+        Device device;
         float max_anisotropy;
         float max_lod;
     };

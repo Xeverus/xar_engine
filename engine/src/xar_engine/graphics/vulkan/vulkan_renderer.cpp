@@ -101,7 +101,7 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_swapchain()
     {
-        const auto formats = _physical_device_list[0].get_surface_formats(_vulkan_surface->get_native());
+        const auto formats = _physical_device_list[0].get_surface_formats(_vulkan_surface.get_native());
         VkSurfaceFormatKHR format_to_use;
         for (const auto& format: formats)
         {
@@ -113,7 +113,7 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        const auto present_modes = _physical_device_list[0].get_present_modes(_vulkan_surface->get_native());
+        const auto present_modes = _physical_device_list[0].get_present_modes(_vulkan_surface.get_native());
         VkPresentModeKHR present_mode_to_use;
         for (const auto& present_mode: present_modes)
         {
@@ -125,28 +125,25 @@ namespace xar_engine::graphics::vulkan
         }
 
         _swap_chain = VulkanSwapChain{{
-                _device,
-                _vulkan_surface->get_native(),
-                _os_window->get_surface_pixel_size(),
-                present_mode_to_use,
-                format_to_use,
-                MAX_FRAMES_IN_FLIGHT,
-            }};
+                                          _device,
+                                          _vulkan_surface.get_native(),
+                                          _os_window->get_surface_pixel_size(),
+                                          present_mode_to_use,
+                                          format_to_use,
+                                          MAX_FRAMES_IN_FLIGHT,
+                                      }};
     }
 
     void VulkanRenderer::init_shaders()
     {
-        _vulkan_vertex_shader = std::make_unique<VulkanShader>(
-            VulkanShader::Parameters{
-                _device.get_native(),
-                xar_engine::file::read_binary_file("assets/triangle.vert.spv")
-            });
-
-        _vulkan_fragment_shader = std::make_unique<VulkanShader>(
-            VulkanShader::Parameters{
-                _device.get_native(),
-                xar_engine::file::read_binary_file("assets/triangle.frag.spv")
-            });
+        _vertex_shader = VulkanShader{{
+                                          _device,
+                                          xar_engine::file::read_binary_file("assets/triangle.vert.spv")
+                                      }};
+        _fragment_shader = VulkanShader{{
+                                            _device,
+                                            xar_engine::file::read_binary_file("assets/triangle.frag.spv")
+                                        }};
     }
 
     void VulkanRenderer::init_descriptor_set_layout()
@@ -184,11 +181,11 @@ namespace xar_engine::graphics::vulkan
                 _device.get_native(),
                 {
                     std::make_tuple(
-                        _vulkan_vertex_shader->get_native(),
+                        _vertex_shader.get_native(),
                         VK_SHADER_STAGE_VERTEX_BIT,
                         "main"),
                     std::make_tuple(
-                        _vulkan_fragment_shader->get_native(),
+                        _fragment_shader.get_native(),
                         VK_SHADER_STAGE_FRAGMENT_BIT,
                         "main")
                 },
@@ -339,7 +336,7 @@ namespace xar_engine::graphics::vulkan
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = _texture_image_view.get_native();
-            imageInfo.sampler = _vulkan_sampler->get_native();
+            imageInfo.sampler = _vulkan_sampler.get_native();
 
             std::vector<VkWriteDescriptorSet> descriptorWrites(2);
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -395,12 +392,12 @@ namespace xar_engine::graphics::vulkan
                                    }};
 
         _color_image_view = VulkanImageView{{
-                _device,
-                _color_image.get_native(),
-                _swap_chain.get_format(),
-                VK_IMAGE_ASPECT_COLOR_BIT,
-                1,
-            }};
+                                                _device,
+                                                _color_image.get_native(),
+                                                _swap_chain.get_format(),
+                                                VK_IMAGE_ASPECT_COLOR_BIT,
+                                                1,
+                                            }};
     }
 
     void VulkanRenderer::init_depth()
@@ -422,12 +419,12 @@ namespace xar_engine::graphics::vulkan
             }};
 
         _depth_image_view = VulkanImageView{{
-                _device,
-                _depth_image.get_native(),
-                findDepthFormat(),
-                VK_IMAGE_ASPECT_DEPTH_BIT,
-                1,
-            }};
+                                                _device,
+                                                _depth_image.get_native(),
+                                                findDepthFormat(),
+                                                VK_IMAGE_ASPECT_DEPTH_BIT,
+                                                1,
+                                            }};
 
         auto buffer = _vulkan_command_pool->make_one_time_buffer();
         _depth_image.transition_layout(
@@ -495,22 +492,23 @@ namespace xar_engine::graphics::vulkan
     void VulkanRenderer::init_texture_view()
     {
         _texture_image_view = VulkanImageView{{
-                _device,
-                _texture_image.get_native(),
-                VK_FORMAT_R8G8B8A8_SRGB,
-                VK_IMAGE_ASPECT_COLOR_BIT,
-                mipLevels,
-            }};
+                                                  _device,
+                                                  _texture_image.get_native(),
+                                                  VK_FORMAT_R8G8B8A8_SRGB,
+                                                  VK_IMAGE_ASPECT_COLOR_BIT,
+                                                  mipLevels,
+                                              }};
     }
 
     void VulkanRenderer::init_sampler()
     {
-        _vulkan_sampler = std::make_unique<VulkanSampler>(
-            VulkanSampler::Parameters{
-                _device.get_native(),
+        _vulkan_sampler = VulkanSampler{
+            {
+                _device,
                 _physical_device_list[0].get_device_properties().limits.maxSamplerAnisotropy,
                 static_cast<float>(mipLevels),
-            });
+            }
+        };
     }
 
     void VulkanRenderer::run_frame_sandbox()
@@ -743,9 +741,7 @@ namespace xar_engine::graphics::vulkan
             updateUniformBuffer(currentFrame);
         }
 
-        const auto end_frame_result = _swap_chain.end_frame(
-            _device.get_graphics_queue(),
-            _vk_command_buffers[currentFrame]);
+        const auto end_frame_result = _swap_chain.end_frame(_vk_command_buffers[currentFrame]);
         if (end_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR || end_frame_result.vk_result == VK_SUBOPTIMAL_KHR)
         {
             XAR_LOG(
@@ -907,16 +903,15 @@ namespace xar_engine::graphics::vulkan
 namespace xar_engine::graphics::vulkan
 {
     VulkanRenderer::VulkanRenderer(
-        std::shared_ptr<Instance> vulkan_instance,
+        const std::shared_ptr<Instance>& vulkan_instance,
         VkSurfaceKHR vk_surface_khr,
         const os::IWindow* os_window)
-        : _instance(std::move(vulkan_instance))
+        : _instance(vulkan_instance)
         , _vulkan_surface(
-            std::make_unique<VulkanSurface>(
-                VulkanSurface::Parameters{
-                    _instance->get_native(),
-                    vk_surface_khr,
-                }))
+            {
+                vulkan_instance,
+                vk_surface_khr,
+            })
         , _os_window(os_window)
         , _logger(std::make_unique<logging::ConsoleLogger>())
         , frameCounter(0)

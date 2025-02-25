@@ -29,9 +29,7 @@ namespace xar_engine::graphics::vulkan
 
         BeginFrameResult begin_frame();
 
-        EndFrameResult end_frame(
-            VkQueue vk_queue,
-            VkCommandBuffer vk_command_buffer);
+        EndFrameResult end_frame(VkCommandBuffer vk_command_buffer);
 
 
         [[nodiscard]]
