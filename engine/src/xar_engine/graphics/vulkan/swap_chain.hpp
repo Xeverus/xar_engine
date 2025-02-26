@@ -51,20 +51,20 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanSwapChain::Parameters
     {
-        Device device;
-        VulkanSurface surface;
+        VulkanDevice vulkan_device;
+        VulkanSurface vulkan_surface;
 
         math::Vector2i32 dimension;
-        VkPresentModeKHR present_mode_khr;
-        VkSurfaceFormatKHR surface_format_khr;
+        VkPresentModeKHR vk_present_mode_khr;
+        VkSurfaceFormatKHR vk_surface_format_khr;
         std::int32_t buffering_level;
     };
 
     struct VulkanSwapChain::BeginFrameResult
     {
         VkResult vk_result;
-        VkImage image;
-        VkImageView image_view;
+        VkImage vk_image;
+        VkImageView vk_image_view;
         std::uint32_t frame_index;
     };
 

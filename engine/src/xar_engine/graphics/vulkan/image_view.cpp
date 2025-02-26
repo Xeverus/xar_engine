@@ -13,44 +13,44 @@ namespace xar_engine::graphics::vulkan
         ~State();
 
     public:
-        Device device;
+        VulkanDevice vulkan_device;
         VkImage vk_image;
 
         VkImageView vk_image_view;
     };
 
     VulkanImageView::State::State(const Parameters& parameters)
-        : device(parameters.device)
+        : vulkan_device(parameters.vulkan_device)
         , vk_image(parameters.vk_image)
         , vk_image_view(nullptr)
     {
-        auto image_view_create = VkImageViewCreateInfo{};
-        image_view_create.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        image_view_create.image = parameters.vk_image;
-        image_view_create.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        image_view_create.format = parameters.format;
-        image_view_create.subresourceRange.aspectMask = parameters.aspect_mask;
-        image_view_create.subresourceRange.baseMipLevel = 0;
-        image_view_create.subresourceRange.levelCount = parameters.mip_levels;
-        image_view_create.subresourceRange.baseArrayLayer = 0;
-        image_view_create.subresourceRange.layerCount = 1;
+        auto vk_image_view_create_info = VkImageViewCreateInfo{};
+        vk_image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        vk_image_view_create_info.image = parameters.vk_image;
+        vk_image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        vk_image_view_create_info.format = parameters.vk_format;
+        vk_image_view_create_info.subresourceRange.aspectMask = parameters.vk_image_aspect_flags;
+        vk_image_view_create_info.subresourceRange.baseMipLevel = 0;
+        vk_image_view_create_info.subresourceRange.levelCount = parameters.mip_levels;
+        vk_image_view_create_info.subresourceRange.baseArrayLayer = 0;
+        vk_image_view_create_info.subresourceRange.layerCount = 1;
 
-        const auto image_view_result = vkCreateImageView(
-            parameters.device.get_native(),
-            &image_view_create,
+        const auto vk_create_image_view_result = vkCreateImageView(
+            parameters.vulkan_device.get_native(),
+            &vk_image_view_create_info,
             nullptr,
             &vk_image_view);
         XAR_THROW_IF(
-            image_view_result != VK_SUCCESS,
+            vk_create_image_view_result != VK_SUCCESS,
             error::XarException,
-            "Failed to create image view");
+            "vkCreateImageView failed");
 
     }
 
     VulkanImageView::State::~State()
     {
         vkDestroyImageView(
-            device.get_native(),
+            vulkan_device.get_native(),
             vk_image_view,
             nullptr);
     }

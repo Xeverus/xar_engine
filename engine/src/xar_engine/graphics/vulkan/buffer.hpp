@@ -10,16 +10,16 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    class Buffer
+    class VulkanBuffer
     {
     public:
         struct Parameters;
 
     public:
-        Buffer();
-        explicit Buffer(const Parameters& parameters);
+        VulkanBuffer();
+        explicit VulkanBuffer(const Parameters& parameters);
 
-        ~Buffer();
+        ~VulkanBuffer();
 
         void* map();
         void unmap();
@@ -34,12 +34,12 @@ namespace xar_engine::graphics::vulkan
         std::shared_ptr<State> _state;
     };
 
-    struct Buffer::Parameters
+    struct VulkanBuffer::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
 
         VkDeviceSize vk_byte_size;
-        VkBufferUsageFlags vk_buffer_usage;
-        VkMemoryPropertyFlags vk_memory_properties;
+        VkBufferUsageFlags vk_buffer_usage_flags;
+        VkMemoryPropertyFlags vk_memory_property_flags;
     };
 }

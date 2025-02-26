@@ -13,34 +13,34 @@ namespace xar_engine::graphics::vulkan
         ~State();
 
     public:
-        Device device;
+        VulkanDevice vulkan_device;
         VkDescriptorSetLayout vk_descriptor_set_layout;
     };
 
     VulkanDescriptorSetLayout::State::State(const VulkanDescriptorSetLayout::Parameters& parameters)
-        : device(parameters.device)
+        : vulkan_device(parameters.vulkan_device)
         , vk_descriptor_set_layout(nullptr)
     {
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<std::uint32_t>(parameters.vk_bindings.size());
-        layoutInfo.pBindings = parameters.vk_bindings.data();
+        auto vk_descriptor_set_layout_create_info = VkDescriptorSetLayoutCreateInfo{};
+        vk_descriptor_set_layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        vk_descriptor_set_layout_create_info.bindingCount = static_cast<std::uint32_t>(parameters.vk_descriptor_set_layout_binding_list.size());
+        vk_descriptor_set_layout_create_info.pBindings = parameters.vk_descriptor_set_layout_binding_list.data();
 
-        const auto result = vkCreateDescriptorSetLayout(
-            device.get_native(),
-            &layoutInfo,
+        const auto vk_create_descriptor_set_layout_result = vkCreateDescriptorSetLayout(
+            vulkan_device.get_native(),
+            &vk_descriptor_set_layout_create_info,
             nullptr,
             &vk_descriptor_set_layout);
         XAR_THROW_IF(
-            result != VK_SUCCESS,
+            vk_create_descriptor_set_layout_result != VK_SUCCESS,
             error::XarException,
-            "failed to create descriptor set layout!");
+            "Create descriptor set layout failed");
     }
 
     VulkanDescriptorSetLayout::State::~State()
     {
         vkDestroyDescriptorSetLayout(
-            device.get_native(),
+            vulkan_device.get_native(),
             vk_descriptor_set_layout,
             nullptr);
     }

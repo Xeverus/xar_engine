@@ -12,13 +12,13 @@ namespace xar_engine::graphics::vulkan
         ~State();
 
     public:
-        std::shared_ptr<Instance> instance;
+        std::shared_ptr<VulkanInstance> vulkan_instance;
 
         VkSurfaceKHR vk_surface_khr;
     };
 
     VulkanSurface::State::State(const Parameters& parameters)
-        : instance(parameters.instance)
+        : vulkan_instance(parameters.vulkan_instance)
         , vk_surface_khr(parameters.vk_surface_khr)
     {
     }
@@ -26,7 +26,7 @@ namespace xar_engine::graphics::vulkan
     VulkanSurface::State::~State()
     {
         vkDestroySurfaceKHR(
-            instance->get_native(),
+            vulkan_instance->get_native(),
             vk_surface_khr,
             nullptr);
     }

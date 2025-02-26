@@ -10,22 +10,22 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    class Device
+    class VulkanDevice
     {
     public:
         struct Parameters;
 
     public:
-        Device();
-        explicit Device(const Parameters& parameters);
+        VulkanDevice();
+        explicit VulkanDevice(const Parameters& parameters);
 
-        ~Device();
+        ~VulkanDevice();
 
 
         void wait_idle() const;
 
         [[nodiscard]]
-        const PhysicalDevice& get_physical_device() const;
+        const VulkanPhysicalDevice& get_physical_device() const;
 
         [[nodiscard]]
         VkDevice get_native() const;
@@ -43,8 +43,8 @@ namespace xar_engine::graphics::vulkan
         std::shared_ptr<State> _state;
     };
 
-    struct Device::Parameters
+    struct VulkanDevice::Parameters
     {
-        PhysicalDevice physical_device;
+        VulkanPhysicalDevice vulkan_physical_device;
     };
 }

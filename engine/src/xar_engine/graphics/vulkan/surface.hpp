@@ -32,7 +32,7 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanSurface::Parameters
     {
-        std::shared_ptr<Instance> instance;
+        std::shared_ptr<VulkanInstance> vulkan_instance;
         VkSurfaceKHR vk_surface_khr;
     };
 }

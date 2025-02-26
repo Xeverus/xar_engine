@@ -40,14 +40,14 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanImage::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
 
         math::Vector3i32 dimension;
-        VkFormat format;
-        VkImageTiling tiling;
-        VkImageUsageFlags usage;
-        VkMemoryPropertyFlags properties;
+        VkFormat vk_format;
+        VkImageTiling vk_image_tiling;
+        VkImageUsageFlags vk_image_usage_flags;
+        VkMemoryPropertyFlags vm_memory_property_flags;
         std::uint32_t mip_levels;
-        VkSampleCountFlagBits msaa_samples;
+        VkSampleCountFlagBits vk_sample_count_flag_bits;
     };
 }

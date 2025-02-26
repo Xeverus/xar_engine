@@ -5,81 +5,81 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    struct Buffer::State
+    struct VulkanBuffer::State
     {
     public:
-        explicit State(const Buffer::Parameters& parameters);
+        explicit State(const VulkanBuffer::Parameters& parameters);
 
         ~State();
 
     public:
-        Device device;
+        VulkanDevice vulkan_device;
 
         VkBuffer vk_buffer;
         VkDeviceMemory vk_device_memory;
-        std::uint32_t byte_size;
+        VkDeviceSize vk_byte_size;
     };
 
-    Buffer::State::State(const Buffer::Parameters& parameters)
-        : device{parameters.device}
+    VulkanBuffer::State::State(const VulkanBuffer::Parameters& parameters)
+        : vulkan_device{parameters.vulkan_device}
         , vk_buffer{nullptr}
         , vk_device_memory{nullptr}
-        , byte_size{0}
+        , vk_byte_size{0}
     {
-        auto buffer_info = VkBufferCreateInfo{};
-        buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        buffer_info.size = parameters.vk_byte_size;
-        buffer_info.usage = parameters.vk_buffer_usage;
-        buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        auto vk_buffer_create_info = VkBufferCreateInfo{};
+        vk_buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        vk_buffer_create_info.size = parameters.vk_byte_size;
+        vk_buffer_create_info.usage = parameters.vk_buffer_usage_flags;
+        vk_buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         const auto vk_create_buffer_result = vkCreateBuffer(
-            parameters.device.get_native(),
-            &buffer_info,
+            parameters.vulkan_device.get_native(),
+            &vk_buffer_create_info,
             nullptr,
             &vk_buffer);
         XAR_THROW_IF(
             vk_create_buffer_result != VK_SUCCESS,
             error::XarException,
-            "Failed to create buffer");
+            "Buffer creation failed");
 
-        auto memory_requirements = VkMemoryRequirements{};
+        auto vk_memory_requirements = VkMemoryRequirements{};
         vkGetBufferMemoryRequirements(
-            parameters.device.get_native(),
+            parameters.vulkan_device.get_native(),
             vk_buffer,
-            &memory_requirements);
+            &vk_memory_requirements);
 
-        auto alloc_info = VkMemoryAllocateInfo{};
-        alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        alloc_info.allocationSize = memory_requirements.size;
-        alloc_info.memoryTypeIndex = parameters.device.get_physical_device().find_memory_type(
-            memory_requirements.memoryTypeBits,
-            parameters.vk_memory_properties);
+        auto vk_memory_allocate_info = VkMemoryAllocateInfo{};
+        vk_memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        vk_memory_allocate_info.allocationSize = vk_memory_requirements.size;
+        vk_memory_allocate_info.memoryTypeIndex = parameters.vulkan_device.get_physical_device().find_memory_type(
+            vk_memory_requirements.memoryTypeBits,
+            parameters.vk_memory_property_flags);
 
-        byte_size = memory_requirements.size;
+        vk_byte_size = vk_memory_requirements.size;
 
-        const auto vk_allocate_memory_result = vkAllocateMemory(
-            parameters.device.get_native(),
-            &alloc_info,
+        const auto vk_memory_allocate_result = vkAllocateMemory(
+            parameters.vulkan_device.get_native(),
+            &vk_memory_allocate_info,
             nullptr,
             &vk_device_memory);
         XAR_THROW_IF(
-            vk_allocate_memory_result != VK_SUCCESS,
+            vk_memory_allocate_result != VK_SUCCESS,
             error::XarException,
             "Memory allocation for buffer failed");
 
         vkBindBufferMemory(
-            parameters.device.get_native(),
+            parameters.vulkan_device.get_native(),
             vk_buffer,
             vk_device_memory,
             0);
     }
 
-    Buffer::State::~State()
+    VulkanBuffer::State::~State()
     {
         if (vk_buffer)
         {
             vkDestroyBuffer(
-                device.get_native(),
+                vulkan_device.get_native(),
                 vk_buffer,
                 nullptr);
         }
@@ -87,48 +87,48 @@ namespace xar_engine::graphics::vulkan
         if (vk_device_memory)
         {
             vkFreeMemory(
-                device.get_native(),
+                vulkan_device.get_native(),
                 vk_device_memory,
                 nullptr);
         }
     }
 
 
-    Buffer::Buffer()
+    VulkanBuffer::VulkanBuffer()
         : _state(nullptr)
     {
     }
 
-    Buffer::Buffer(const Buffer::Parameters& parameters)
+    VulkanBuffer::VulkanBuffer(const VulkanBuffer::Parameters& parameters)
         : _state(std::make_shared<State>(parameters))
     {
     }
 
-    Buffer::~Buffer() = default;
+    VulkanBuffer::~VulkanBuffer() = default;
 
-    void* Buffer::map()
+    void* VulkanBuffer::map()
     {
-        void* mapped_data = nullptr;
+        void* data_pointer = nullptr;
 
         vkMapMemory(
-            _state->device.get_native(),
+            _state->vulkan_device.get_native(),
             _state->vk_device_memory,
             0,
-            _state->byte_size,
+            _state->vk_byte_size,
             0,
-            &mapped_data);
+            &data_pointer);
 
-        return mapped_data;
+        return data_pointer;
     }
 
-    void Buffer::unmap()
+    void VulkanBuffer::unmap()
     {
         vkUnmapMemory(
-            _state->device.get_native(),
+            _state->vulkan_device.get_native(),
             _state->vk_device_memory);
     }
 
-    VkBuffer Buffer::get_native() const
+    VkBuffer VulkanBuffer::get_native() const
     {
         return _state->vk_buffer;
     }

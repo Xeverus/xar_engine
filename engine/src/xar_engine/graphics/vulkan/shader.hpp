@@ -33,7 +33,7 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanShader::Parameters
     {
-        Device device;
-        std::vector<char> shader_bytes;
+        VulkanDevice vulkan_device;
+        std::vector<char> shader_byte_code;
     };
 }

@@ -38,6 +38,6 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanCommandBufferPool::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
     };
 }

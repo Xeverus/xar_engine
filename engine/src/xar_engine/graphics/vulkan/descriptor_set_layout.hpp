@@ -33,7 +33,7 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanDescriptorSetLayout::Parameters
     {
-        Device device;
-        std::vector<VkDescriptorSetLayoutBinding> vk_bindings;
+        VulkanDevice vulkan_device;
+        std::vector<VkDescriptorSetLayoutBinding> vk_descriptor_set_layout_binding_list;
     };
 }

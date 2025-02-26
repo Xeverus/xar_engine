@@ -13,48 +13,48 @@ namespace xar_engine::graphics::vulkan
         ~State();
 
     public:
-        Device device;
+        VulkanDevice vulkan_device;
 
         VkSampler vk_sampler;
     };
 
     VulkanSampler::State::State(const Parameters& parameters)
-        : device(parameters.device)
+        : vulkan_device(parameters.vulkan_device)
         , vk_sampler(nullptr)
     {
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = VK_TRUE;
-        samplerInfo.maxAnisotropy = parameters.max_anisotropy;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.minLod = 0;
-        samplerInfo.maxLod = static_cast<float>(parameters.max_lod);
+        auto vk_sampler_create_info = VkSamplerCreateInfo{};
+        vk_sampler_create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        vk_sampler_create_info.magFilter = VK_FILTER_LINEAR;
+        vk_sampler_create_info.minFilter = VK_FILTER_LINEAR;
+        vk_sampler_create_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        vk_sampler_create_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        vk_sampler_create_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        vk_sampler_create_info.anisotropyEnable = VK_TRUE;
+        vk_sampler_create_info.maxAnisotropy = parameters.max_anisotropy;
+        vk_sampler_create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        vk_sampler_create_info.unnormalizedCoordinates = VK_FALSE;
+        vk_sampler_create_info.compareEnable = VK_FALSE;
+        vk_sampler_create_info.compareOp = VK_COMPARE_OP_ALWAYS;
+        vk_sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        vk_sampler_create_info.mipLodBias = 0.0f;
+        vk_sampler_create_info.minLod = 0;
+        vk_sampler_create_info.maxLod = static_cast<float>(parameters.max_lod);
 
-        const auto create_sampler_result = vkCreateSampler(
-            device.get_native(),
-            &samplerInfo,
+        const auto vk_create_sampler_result = vkCreateSampler(
+            vulkan_device.get_native(),
+            &vk_sampler_create_info,
             nullptr,
             &vk_sampler);
         XAR_THROW_IF(
-            create_sampler_result != VK_SUCCESS,
+            vk_create_sampler_result != VK_SUCCESS,
             error::XarException,
-            "Failed to create texture sampler!");
+            "vkCreateSampler failed");
     }
 
     VulkanSampler::State::~State()
     {
         vkDestroySampler(
-            device.get_native(),
+            vulkan_device.get_native(),
             vk_sampler,
             nullptr);
     }

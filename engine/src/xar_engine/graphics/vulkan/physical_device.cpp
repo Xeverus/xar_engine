@@ -12,7 +12,7 @@ namespace xar_engine::graphics::vulkan
         const auto logging_tag = "vulkan::PhysicalDevice";
     }
 
-    struct PhysicalDevice::State
+    struct VulkanPhysicalDevice::State
     {
     public:
         explicit State(const Parameters& parameters);
@@ -23,15 +23,15 @@ namespace xar_engine::graphics::vulkan
         VkPhysicalDeviceProperties vk_physical_device_properties;
         VkPhysicalDeviceFeatures vk_physical_device_features;
         std::vector<VkQueueFamilyProperties> vk_queue_family_properties_list;
-        std::vector<VkExtensionProperties> vk_extension_properties_list;
+        std::vector<VkExtensionProperties> vk_device_extension_properties_list;
     };
 
-    PhysicalDevice::State::State(const Parameters& parameters)
+    VulkanPhysicalDevice::State::State(const Parameters& parameters)
         : vk_physical_device{parameters.vk_physical_device}
         , vk_physical_device_properties{}
         , vk_physical_device_features{}
         , vk_queue_family_properties_list{}
-        , vk_extension_properties_list{}
+        , vk_device_extension_properties_list{}
     {
         vkGetPhysicalDeviceProperties(
             vk_physical_device,
@@ -44,63 +44,63 @@ namespace xar_engine::graphics::vulkan
         XAR_LOG(
             logging::LogLevel::DEBUG,
             logging_tag,
-            "device:'{}' api:'{}' driver:'{}'",
+            "device:'{}' api:{:#10x} driver:{:#10x}",
             vk_physical_device_properties.deviceName,
             vk_physical_device_properties.apiVersion,
             vk_physical_device_properties.driverVersion);
 
-        auto queue_familie_counts = std::uint32_t{0};
+        auto vk_queue_family_counts = std::uint32_t{0};
         vkGetPhysicalDeviceQueueFamilyProperties(
             vk_physical_device,
-            &queue_familie_counts,
+            &vk_queue_family_counts,
             nullptr);
 
-        vk_queue_family_properties_list.resize(queue_familie_counts);
+        vk_queue_family_properties_list.resize(vk_queue_family_counts);
         vkGetPhysicalDeviceQueueFamilyProperties(
             vk_physical_device,
-            &queue_familie_counts,
+            &vk_queue_family_counts,
             vk_queue_family_properties_list.data());
 
         /*auto queue_family_index = std::uint32_t{0};
-        for (const auto& vk_queue_family_properties : _vk_queue_family_properties[i])
+        for (const auto& vk_queue_family_properties : vk_queue_family_properties_list)
         {
             VkBool32 present_support = VK_FALSE;
             vkGetPhysicalDeviceSurfaceSupportKHR(
-                physical_device,
+                vk_physical_device,
                 queue_family_index,
                 _vk_surface_khr,
                 &present_support);
             ++queue_family_index;
+            ++queue_family_index;
 
             XAR_LOG(
                 logging::LogLevel::INFO,
-                *_logger,
-                tag,
-                "{} {} {}",
-                queue_family.queueCount,
-                (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT),
+                logging_tag,
+                "count={} graphics={} present={}",
+                vk_queue_family_properties.queueCount,
+                (vk_queue_family_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT),
                 present_support);
         }*/
 
-        auto device_extension_count = std::uint32_t{0};
+        auto vk_device_extension_preoprties_count = std::uint32_t{0};
         vkEnumerateDeviceExtensionProperties(
             vk_physical_device,
             nullptr,
-            &device_extension_count,
+            &vk_device_extension_preoprties_count,
             nullptr);
 
-        vk_extension_properties_list.resize(device_extension_count);
+        vk_device_extension_properties_list.resize(vk_device_extension_preoprties_count);
         vkEnumerateDeviceExtensionProperties(
             vk_physical_device,
             nullptr,
-            &device_extension_count,
-            vk_extension_properties_list.data());
+            &vk_device_extension_preoprties_count,
+            vk_device_extension_properties_list.data());
 
         XAR_LOG(
             logging::LogLevel::INFO,
             logging_tag,
             "device extension list:");
-        for (const auto& vk_device_extension: vk_extension_properties_list)
+        for (const auto& vk_device_extension: vk_device_extension_properties_list)
         {
             XAR_LOG(
                 logging::LogLevel::INFO,
@@ -111,47 +111,47 @@ namespace xar_engine::graphics::vulkan
         }
     }
 
-    PhysicalDevice::State::~State() = default;
+    VulkanPhysicalDevice::State::~State() = default;
 
 
-    PhysicalDevice::PhysicalDevice()
+    VulkanPhysicalDevice::VulkanPhysicalDevice()
         : _state(nullptr)
     {
     }
 
-    PhysicalDevice::PhysicalDevice(const Parameters& parameters)
+    VulkanPhysicalDevice::VulkanPhysicalDevice(const Parameters& parameters)
         : _state(std::make_shared<State>(parameters))
     {
     }
 
-    VkPhysicalDevice PhysicalDevice::get_native() const
+    VkPhysicalDevice VulkanPhysicalDevice::get_vk_physical_device() const
     {
         return _state->vk_physical_device;
     }
 
-    const VkPhysicalDeviceProperties& PhysicalDevice::get_device_properties() const
+    const VkPhysicalDeviceProperties& VulkanPhysicalDevice::get_vk_device_properties() const
     {
         return _state->vk_physical_device_properties;
     }
 
-    const VkPhysicalDeviceFeatures& PhysicalDevice::get_device_features() const
+    const VkPhysicalDeviceFeatures& VulkanPhysicalDevice::get_vk_device_features() const
     {
         return _state->vk_physical_device_features;
     }
 
-    const std::vector<VkQueueFamilyProperties>& PhysicalDevice::get_queue_family_properties() const
+    const std::vector<VkQueueFamilyProperties>& VulkanPhysicalDevice::get_vk_queue_family_properties_list() const
     {
         return _state->vk_queue_family_properties_list;
     }
 
-    const std::vector<VkExtensionProperties>& PhysicalDevice::get_extension_properties() const
+    const std::vector<VkExtensionProperties>& VulkanPhysicalDevice::get_vk_device_extension_properties_list() const
     {
-        return _state->vk_extension_properties_list;
+        return _state->vk_device_extension_properties_list;
     }
 
-    VkSampleCountFlagBits PhysicalDevice::get_max_sample_count() const
+    VkSampleCountFlagBits VulkanPhysicalDevice::get_vk_sample_count_flag_bits() const
     {
-        const auto& physical_device_properties = get_device_properties();
+        const auto& physical_device_properties = get_vk_device_properties();
 
         auto vk_sample_count_flags = VkSampleCountFlags{
             physical_device_properties.limits.framebufferColorSampleCounts &
@@ -186,33 +186,33 @@ namespace xar_engine::graphics::vulkan
         return VK_SAMPLE_COUNT_1_BIT;
     }
 
-    VkFormatProperties PhysicalDevice::get_format_properties(VkFormat vk_format) const
+    VkFormatProperties VulkanPhysicalDevice::get_vk_format_properties(VkFormat vk_format) const
     {
         auto vk_format_properties = VkFormatProperties{};
         vkGetPhysicalDeviceFormatProperties(
-            get_native(),
+            get_vk_physical_device(),
             vk_format,
             &vk_format_properties);
 
         return vk_format_properties;
     }
 
-    VkFormat PhysicalDevice::find_supported_format(
-        const std::vector<VkFormat>& candidate_vk_format_list,
-        const VkImageTiling vk_tiling,
-        const VkFormatFeatureFlags vk_feature_flags) const
+    VkFormat VulkanPhysicalDevice::find_supported_vk_format(
+        const std::vector<VkFormat>& vk_format_candidate_list,
+        VkImageTiling requested_vk_image_tiling,
+        VkFormatFeatureFlags requested_vk_format_feature_flags) const
     {
-        for (const auto vk_format: candidate_vk_format_list)
+        for (const auto vk_format: vk_format_candidate_list)
         {
-            const auto vk_format_properties = get_format_properties(vk_format);
+            const auto vk_format_properties = get_vk_format_properties(vk_format);
 
-            if (vk_tiling == VK_IMAGE_TILING_LINEAR &&
-                (vk_format_properties.linearTilingFeatures & vk_feature_flags) == vk_feature_flags)
+            if (requested_vk_image_tiling == VK_IMAGE_TILING_LINEAR &&
+                (vk_format_properties.linearTilingFeatures & requested_vk_format_feature_flags) == requested_vk_format_feature_flags)
             {
                 return vk_format;
             }
-            else if (vk_tiling == VK_IMAGE_TILING_OPTIMAL &&
-                     (vk_format_properties.optimalTilingFeatures & vk_feature_flags) == vk_feature_flags)
+            else if (requested_vk_image_tiling == VK_IMAGE_TILING_OPTIMAL &&
+                     (vk_format_properties.optimalTilingFeatures & requested_vk_format_feature_flags) == requested_vk_format_feature_flags)
             {
                 return vk_format;
             }
@@ -220,43 +220,47 @@ namespace xar_engine::graphics::vulkan
 
         XAR_THROW(
             error::XarException,
-            "Cannot find supported format");
+            "No format with tiling={} and features={}",
+            static_cast<std::uint32_t>(requested_vk_image_tiling),
+            static_cast<std::uint32_t>(requested_vk_format_feature_flags));
     }
 
-    std::uint32_t PhysicalDevice::find_memory_type(
+    std::uint32_t VulkanPhysicalDevice::find_memory_type(
         const uint32_t type_filter,
-        const VkMemoryPropertyFlags properties) const
+        const VkMemoryPropertyFlags requested_vk_memory_property_flags) const
     {
-        auto memory_properties = VkPhysicalDeviceMemoryProperties{};
+        auto vk_physical_device_memory_properties = VkPhysicalDeviceMemoryProperties{};
         vkGetPhysicalDeviceMemoryProperties(
             _state->vk_physical_device,
-            &memory_properties);
+            &vk_physical_device_memory_properties);
 
-        for (auto i = std::uint32_t{0}; i < memory_properties.memoryTypeCount; i++)
+        for (auto i = std::uint32_t{0}; i < vk_physical_device_memory_properties.memoryTypeCount; i++)
         {
             if ((type_filter & (std::uint32_t{1} << i)) &&
-                (memory_properties.memoryTypes[i].propertyFlags & properties) == properties)
+                (vk_physical_device_memory_properties.memoryTypes[i].propertyFlags & requested_vk_memory_property_flags) == requested_vk_memory_property_flags)
             {
                 return i;
             }
         }
 
         XAR_THROW(error::XarException,
-                  "Failed to find suitable memory type");
+                  "No memory with filter={} and properties={}",
+                  type_filter,
+                  requested_vk_memory_property_flags);
     }
 
-    VkSurfaceCapabilitiesKHR PhysicalDevice::get_surface_capabilities(VkSurfaceKHR vk_surface) const
+    VkSurfaceCapabilitiesKHR VulkanPhysicalDevice::get_vk_surface_capabilities_khr(VkSurfaceKHR vk_surface) const
     {
-        auto capabilities_list = VkSurfaceCapabilitiesKHR{};
+        auto vk_surface_capabilities_khr = VkSurfaceCapabilitiesKHR{};
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
             _state->vk_physical_device,
             vk_surface,
-            &capabilities_list);
+            &vk_surface_capabilities_khr);
 
-        return capabilities_list;
+        return vk_surface_capabilities_khr;
     }
 
-    std::vector<VkSurfaceFormatKHR> PhysicalDevice::get_surface_formats(VkSurfaceKHR vk_surface) const
+    std::vector<VkSurfaceFormatKHR> VulkanPhysicalDevice::get_vk_surface_format_khr_list(VkSurfaceKHR vk_surface) const
     {
         auto format_counts = std::uint32_t{0};
         vkGetPhysicalDeviceSurfaceFormatsKHR(
@@ -265,17 +269,17 @@ namespace xar_engine::graphics::vulkan
             &format_counts,
             nullptr);
 
-        auto format_list = std::vector<VkSurfaceFormatKHR>(format_counts);
+        auto vk_surface_format_khr_list = std::vector<VkSurfaceFormatKHR>(format_counts);
         vkGetPhysicalDeviceSurfaceFormatsKHR(
             _state->vk_physical_device,
             vk_surface,
             &format_counts,
-            format_list.data());
+            vk_surface_format_khr_list.data());
 
-        return format_list;
+        return vk_surface_format_khr_list;
     }
 
-    std::vector<VkPresentModeKHR> PhysicalDevice::get_present_modes(VkSurfaceKHR vk_surface) const
+    std::vector<VkPresentModeKHR> VulkanPhysicalDevice::get_vk_present_mode_khr_list(VkSurfaceKHR vk_surface) const
     {
         auto present_mode_counts = std::uint32_t{0};
         vkGetPhysicalDeviceSurfacePresentModesKHR(
@@ -284,13 +288,13 @@ namespace xar_engine::graphics::vulkan
             &present_mode_counts,
             nullptr);
 
-        auto present_mode_list = std::vector<VkPresentModeKHR>(present_mode_counts);
+        auto vk_present_mode_list = std::vector<VkPresentModeKHR>(present_mode_counts);
         vkGetPhysicalDeviceSurfacePresentModesKHR(
             _state->vk_physical_device,
             vk_surface,
             &present_mode_counts,
-            present_mode_list.data());
+            vk_present_mode_list.data());
 
-        return present_mode_list;
+        return vk_present_mode_list;
     }
 }

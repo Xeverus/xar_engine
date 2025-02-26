@@ -38,15 +38,15 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanGraphicsPipeline::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
 
-        std::vector<std::tuple<VkShaderModule, VkShaderStageFlagBits, std::string>> vk_shader_with_entry_points;
+        std::vector<std::tuple<VkShaderModule, VkShaderStageFlagBits, std::string>> vk_shader_module_list;
         VkDescriptorSetLayout vk_descriptor_set_layout;
-        std::vector<VkVertexInputBindingDescription> vk_vertex_input_binding_descriptors;
-        std::vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_descriptors;
-        std::vector<VkPushConstantRange> vk_push_constants;
+        std::vector<VkVertexInputBindingDescription> vk_vertex_input_binding_descriptor_list;
+        std::vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_descriptor_list;
+        std::vector<VkPushConstantRange> vk_push_constant_range_list;
 
-        VkSampleCountFlagBits vk_msaa_sample_count;
+        VkSampleCountFlagBits vk_sample_count_flag_bits;
         VkFormat vk_color_attachment_format;
         VkFormat vk_depth_attachment_format;
     };

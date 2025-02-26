@@ -15,55 +15,55 @@ namespace xar_engine::graphics::vulkan
     }
 
 
-    struct Device::State
+    struct VulkanDevice::State
     {
     public:
         explicit State(const Parameters& parameters);
         ~State();
 
     public:
-        PhysicalDevice physical_device;
+        VulkanPhysicalDevice vulkan_physical_device;
 
         VkDevice vk_device;
         VkQueue vk_graphics_queue;
         std::uint32_t graphics_queue_family_index;
     };
 
-    Device::State::State(const Parameters& parameters)
-        : physical_device(parameters.physical_device)
+    VulkanDevice::State::State(const Parameters& parameters)
+        : vulkan_physical_device(parameters.vulkan_physical_device)
         , vk_device(nullptr)
         , vk_graphics_queue(nullptr)
         , graphics_queue_family_index(0)
     {
         const auto queue_priority = 1.0f;
 
-        auto queue_create_info = VkDeviceQueueCreateInfo{};
-        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queue_create_info.queueFamilyIndex = graphics_queue_family_index;
-        queue_create_info.queueCount = 1;
-        queue_create_info.pQueuePriorities = &queue_priority;
+        auto vk_device_queue_create_info = VkDeviceQueueCreateInfo{};
+        vk_device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        vk_device_queue_create_info.queueFamilyIndex = graphics_queue_family_index;
+        vk_device_queue_create_info.queueCount = 1;
+        vk_device_queue_create_info.pQueuePriorities = &queue_priority;
 
-        auto device_features = VkPhysicalDeviceFeatures{};
-        device_features.samplerAnisotropy = VK_TRUE;
-        device_features.sampleRateShading = VK_TRUE;
+        auto vk_physical_device_features = VkPhysicalDeviceFeatures{};
+        vk_physical_device_features.samplerAnisotropy = VK_TRUE;
+        vk_physical_device_features.sampleRateShading = VK_TRUE;
 
         const auto physical_device_extension_names = std::vector<const char*>{
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
         };
 
-        auto dynamic_rendering_feature = VkPhysicalDeviceDynamicRenderingFeaturesKHR{};
-        dynamic_rendering_feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
-        dynamic_rendering_feature.dynamicRendering = VK_TRUE;
+        auto vk_physical_device_dynamic_rendering_features_khr = VkPhysicalDeviceDynamicRenderingFeaturesKHR{};
+        vk_physical_device_dynamic_rendering_features_khr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+        vk_physical_device_dynamic_rendering_features_khr.dynamicRendering = VK_TRUE;
 
-        auto device_create_info = VkDeviceCreateInfo{};
-        device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        device_create_info.pQueueCreateInfos = &queue_create_info;
-        device_create_info.queueCreateInfoCount = 1;
-        device_create_info.pEnabledFeatures = &device_features;
-        device_create_info.enabledExtensionCount = physical_device_extension_names.size();
-        device_create_info.ppEnabledExtensionNames = physical_device_extension_names.data();
-        device_create_info.pNext = &dynamic_rendering_feature;
+        auto vk_device_create_info = VkDeviceCreateInfo{};
+        vk_device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        vk_device_create_info.pQueueCreateInfos = &vk_device_queue_create_info;
+        vk_device_create_info.queueCreateInfoCount = 1;
+        vk_device_create_info.pEnabledFeatures = &vk_physical_device_features;
+        vk_device_create_info.enabledExtensionCount = physical_device_extension_names.size();
+        vk_device_create_info.ppEnabledExtensionNames = physical_device_extension_names.data();
+        vk_device_create_info.pNext = &vk_physical_device_dynamic_rendering_features_khr;
 
         XAR_LOG(
             logging::LogLevel::DEBUG,
@@ -71,14 +71,14 @@ namespace xar_engine::graphics::vulkan
             "{} calling vkCreateDevice",
             XAR_OBJECT_ID(this));
         const auto vk_create_device_result = vkCreateDevice(
-            physical_device.get_native(),
-            &device_create_info,
+            vulkan_physical_device.get_vk_physical_device(),
+            &vk_device_create_info,
             nullptr,
             &vk_device);
         XAR_THROW_IF(
             vk_create_device_result != VK_SUCCESS,
             error::XarException,
-            "Vulkan device creation failed");
+            "vkCreateDevice failed");
 
         XAR_LOG(
             logging::LogLevel::DEBUG,
@@ -92,7 +92,7 @@ namespace xar_engine::graphics::vulkan
             &vk_graphics_queue);
     }
 
-    Device::State::~State()
+    VulkanDevice::State::~State()
     {
         vkDestroyDevice(
             vk_device,
@@ -100,24 +100,24 @@ namespace xar_engine::graphics::vulkan
     }
 
 
-    Device::Device()
+    VulkanDevice::VulkanDevice()
         : _state(nullptr)
     {
     }
 
-    Device::Device(const Device::Parameters& parameters)
+    VulkanDevice::VulkanDevice(const VulkanDevice::Parameters& parameters)
         : _state(std::make_shared<State>(parameters))
     {
     }
 
-    Device::~Device() = default;
+    VulkanDevice::~VulkanDevice() = default;
 
-    const PhysicalDevice& Device::get_physical_device() const
+    const VulkanPhysicalDevice& VulkanDevice::get_physical_device() const
     {
-        return _state->physical_device;
+        return _state->vulkan_physical_device;
     }
 
-    void Device::wait_idle() const
+    void VulkanDevice::wait_idle() const
     {
         XAR_LOG(
             logging::LogLevel::DEBUG,
@@ -132,17 +132,17 @@ namespace xar_engine::graphics::vulkan
             XAR_OBJECT_ID(this));
     }
 
-    VkDevice Device::get_native() const
+    VkDevice VulkanDevice::get_native() const
     {
         return _state->vk_device;
     }
 
-    std::uint32_t Device::get_graphics_family_index() const
+    std::uint32_t VulkanDevice::get_graphics_family_index() const
     {
         return _state->graphics_queue_family_index;
     }
 
-    VkQueue Device::get_graphics_queue() const
+    VkQueue VulkanDevice::get_graphics_queue() const
     {
         return _state->vk_graphics_queue;
     }

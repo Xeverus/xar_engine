@@ -27,16 +27,16 @@ namespace xar_engine::graphics::vulkan
             XAR_THROW_IF(
                 volk_initialize_result != VK_SUCCESS,
                 error::XarException,
-                "Volk initialization failed");
+                "volkInitialize failed");
 
             volk_already_initialized = true;
         }
 
         VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
-            VkDebugUtilsMessageSeverityFlagBitsEXT vk_message_severity,
-            VkDebugUtilsMessageTypeFlagsEXT vk_message_type,
-            const VkDebugUtilsMessengerCallbackDataEXT* vk_callback_data,
-            void* user_data)
+            const VkDebugUtilsMessageSeverityFlagBitsEXT vk_message_severity,
+            const VkDebugUtilsMessageTypeFlagsEXT vk_message_type,
+            const VkDebugUtilsMessengerCallbackDataEXT* const vk_callback_data,
+            void* const user_data)
         {
             switch (vk_message_severity)
             {
@@ -97,70 +97,79 @@ namespace xar_engine::graphics::vulkan
                 error::XarException,
                 "Vulkan is not supported on this platform");
 
-            auto all_extensions_counts = std::uint32_t{0};
+            auto all_extension_counts = std::uint32_t{0};
             vkEnumerateInstanceExtensionProperties(
                 nullptr,
-                &all_extensions_counts,
+                &all_extension_counts,
                 nullptr);
 
-            auto all_extensions = std::vector<VkExtensionProperties>(all_extensions_counts);
+            auto all_vk_extension_properties_list = std::vector<VkExtensionProperties>(all_extension_counts);
             vkEnumerateInstanceExtensionProperties(
                 nullptr,
-                &all_extensions_counts,
-                all_extensions.data());
+                &all_extension_counts,
+                all_vk_extension_properties_list.data());
 
-            for (const auto& extension: all_extensions)
+            XAR_LOG(
+                logging::LogLevel::INFO,
+                logging_tag,
+                "Vulkan instance extensions:");
+            for (const auto& vk_extension_properties: all_vk_extension_properties_list)
             {
                 XAR_LOG(
                     logging::LogLevel::INFO,
                     logging_tag,
-                    "{} {}",
-                    extension.extensionName,
-                    extension.specVersion);
+                    "  {} {}",
+                    vk_extension_properties.extensionName,
+                    vk_extension_properties.specVersion);
             }
 
-            auto extensions_counts = std::uint32_t{0};
-            const auto glfw_extensions = glfwGetRequiredInstanceExtensions(&extensions_counts);
+            auto glfw_required_instance_extension_counts = std::uint32_t{0};
+            const auto glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_required_instance_extension_counts);
 
-            auto extensions = std::vector<const char*>{};
-            for (auto i = 0; i < extensions_counts; ++i)
+            auto selected_instance_extension_list = std::vector<const char*>{};
+            for (auto i = 0; i < glfw_required_instance_extension_counts; ++i)
             {
-                extensions.emplace_back(glfw_extensions[i]);
+                selected_instance_extension_list.emplace_back(glfw_extensions[i]);
             }
-            extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+            selected_instance_extension_list.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-            auto validation_layer_counts = std::uint32_t{0};
+            auto instance_layer_properties_count = std::uint32_t{0};
             vkEnumerateInstanceLayerProperties(
-                &validation_layer_counts,
+                &instance_layer_properties_count,
                 nullptr);
-            auto all_validation_layers = std::vector<VkLayerProperties>(validation_layer_counts);
+            auto all_vk_layer_properties_list = std::vector<VkLayerProperties>(instance_layer_properties_count);
             vkEnumerateInstanceLayerProperties(
-                &validation_layer_counts,
-                all_validation_layers.data());
-            for (const auto& validation_layer: all_validation_layers)
+                &instance_layer_properties_count,
+                all_vk_layer_properties_list.data());
+
+            XAR_LOG(
+                logging::LogLevel::INFO,
+                logging_tag,
+                "Vulkan instance layers:");
+            for (const auto& vk_layer_properties: all_vk_layer_properties_list)
             {
                 XAR_LOG(
                     logging::LogLevel::INFO,
                     logging_tag,
-                    "{} {}",
-                    validation_layer.layerName,
-                    validation_layer.specVersion);
+                    "  {} {}",
+                    vk_layer_properties.layerName,
+                    vk_layer_properties.specVersion);
             }
 
-            const auto validation_layers = std::vector<const char*>{"VK_LAYER_KHRONOS_validation"};
+            const auto selected_validation_layer_list = std::vector<const char*>{"VK_LAYER_KHRONOS_validation"};
 
-            VkDebugUtilsMessengerCreateInfoEXT debug_utils_messenger_create_info{};
-            debug_utils_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-            debug_utils_messenger_create_info.messageSeverity =
+            VkDebugUtilsMessengerCreateInfoEXT vk_debug_utils_messenger_create_info_ext{};
+            vk_debug_utils_messenger_create_info_ext.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+            vk_debug_utils_messenger_create_info_ext.messageSeverity =
                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-            debug_utils_messenger_create_info.messageType =
+            vk_debug_utils_messenger_create_info_ext.messageType =
                 VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-            debug_utils_messenger_create_info.pfnUserCallback = vk_debug_callback;
-            debug_utils_messenger_create_info.pUserData = nullptr;
+            vk_debug_utils_messenger_create_info_ext.pfnUserCallback = vk_debug_callback;
+            vk_debug_utils_messenger_create_info_ext.pUserData = nullptr;
 
             auto vk_instance = VkInstance{nullptr};
 
@@ -178,12 +187,12 @@ namespace xar_engine::graphics::vulkan
 
             auto vk_instance_create_info = VkInstanceCreateInfo{};
             vk_instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-            vk_instance_create_info.pNext = &debug_utils_messenger_create_info;
+            vk_instance_create_info.pNext = &vk_debug_utils_messenger_create_info_ext;
             vk_instance_create_info.pApplicationInfo = &vk_application_info;
-            vk_instance_create_info.enabledExtensionCount = static_cast<std::uint32_t>(extensions.size());
-            vk_instance_create_info.ppEnabledExtensionNames = extensions.data();
-            vk_instance_create_info.enabledLayerCount = static_cast<std::uint32_t>(validation_layers.size());
-            vk_instance_create_info.ppEnabledLayerNames = validation_layers.data();
+            vk_instance_create_info.enabledExtensionCount = static_cast<std::uint32_t>(selected_instance_extension_list.size());
+            vk_instance_create_info.ppEnabledExtensionNames = selected_instance_extension_list.data();
+            vk_instance_create_info.enabledLayerCount = static_cast<std::uint32_t>(selected_validation_layer_list.size());
+            vk_instance_create_info.ppEnabledLayerNames = selected_validation_layer_list.data();
 
             const auto create_instance_result = vkCreateInstance(
                 &vk_instance_create_info,
@@ -192,14 +201,14 @@ namespace xar_engine::graphics::vulkan
             XAR_THROW_IF(
                 create_instance_result != VK_SUCCESS,
                 error::XarException,
-                "Vulkan instance creation failed");
+                "vkCreateInstance failed");
 
             return vk_instance;
         }
     }
 
 
-    struct Instance::State
+    struct VulkanInstance::State
     {
     public:
         State();
@@ -210,7 +219,7 @@ namespace xar_engine::graphics::vulkan
     };
 
 
-    Instance::State::State()
+    VulkanInstance::State::State()
         : vk_instance(nullptr)
     {
         initialize_volk_once();
@@ -219,7 +228,7 @@ namespace xar_engine::graphics::vulkan
         volkLoadInstance(vk_instance);
     }
 
-    Instance::State::~State()
+    VulkanInstance::State::~State()
     {
         vkDestroyInstance(
             vk_instance,
@@ -227,14 +236,14 @@ namespace xar_engine::graphics::vulkan
     }
 
 
-    Instance::Instance()
+    VulkanInstance::VulkanInstance()
         : _state(std::make_shared<State>())
     {
     }
 
-    Instance::~Instance() = default;
+    VulkanInstance::~VulkanInstance() = default;
 
-    std::vector<PhysicalDevice> Instance::get_physical_device_list() const
+    std::vector<VulkanPhysicalDevice> VulkanInstance::get_physical_device_list() const
     {
         auto physical_device_counts = std::uint32_t{0};
         vkEnumeratePhysicalDevices(
@@ -248,11 +257,11 @@ namespace xar_engine::graphics::vulkan
             &physical_device_counts,
             vk_physical_device_list.data());
 
-        auto physical_device_list = std::vector<PhysicalDevice>{};
+        auto physical_device_list = std::vector<VulkanPhysicalDevice>{};
         physical_device_list.reserve(physical_device_counts);
         for (auto vk_physical_device : vk_physical_device_list)
         {
-            physical_device_list.emplace_back(PhysicalDevice::Parameters{
+            physical_device_list.emplace_back(VulkanPhysicalDevice::Parameters{
                 vk_physical_device,
             });
         }
@@ -260,7 +269,7 @@ namespace xar_engine::graphics::vulkan
         return physical_device_list;
     }
 
-    VkInstance Instance::get_native() const
+    VkInstance VulkanInstance::get_native() const
     {
         return _state->vk_instance;
     }

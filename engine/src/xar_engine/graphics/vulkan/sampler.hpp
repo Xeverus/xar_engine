@@ -32,7 +32,7 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanSampler::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
         float max_anisotropy;
         float max_lod;
     };

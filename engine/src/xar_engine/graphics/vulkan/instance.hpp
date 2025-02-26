@@ -9,15 +9,15 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    class Instance
+    class VulkanInstance
     {
     public:
-        Instance();
+        VulkanInstance();
 
-        ~Instance();
+        ~VulkanInstance();
 
         [[nodiscard]]
-        std::vector<PhysicalDevice> get_physical_device_list() const;
+        std::vector<VulkanPhysicalDevice> get_physical_device_list() const;
 
         [[nodiscard]]
         VkInstance get_native() const;

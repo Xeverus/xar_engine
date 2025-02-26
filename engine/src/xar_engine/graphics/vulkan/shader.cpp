@@ -13,35 +13,35 @@ namespace xar_engine::graphics::vulkan
         ~State();
 
     public:
-        Device device;
+        VulkanDevice vulkan_device;
 
         VkShaderModule vk_shader_module;
     };
 
     VulkanShader::State::State(const Parameters& parameters)
-        : device(parameters.device)
+        : vulkan_device(parameters.vulkan_device)
         , vk_shader_module(nullptr)
     {
-        auto create_info = VkShaderModuleCreateInfo{};
-        create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        create_info.codeSize = parameters.shader_bytes.size();
-        create_info.pCode = reinterpret_cast<const std::uint32_t*>(parameters.shader_bytes.data());
+        auto vk_shader_module_create_info = VkShaderModuleCreateInfo{};
+        vk_shader_module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        vk_shader_module_create_info.codeSize = parameters.shader_byte_code.size();
+        vk_shader_module_create_info.pCode = reinterpret_cast<const std::uint32_t*>(parameters.shader_byte_code.data());
 
-        const auto result = vkCreateShaderModule(
-            parameters.device.get_native(),
-            &create_info,
+        const auto vk_create_shader_module_result = vkCreateShaderModule(
+            parameters.vulkan_device.get_native(),
+            &vk_shader_module_create_info,
             nullptr,
             &vk_shader_module);
         XAR_THROW_IF(
-            result != VK_SUCCESS,
+            vk_create_shader_module_result != VK_SUCCESS,
             error::XarException,
-            "Failed to create shader");
+            "vkCreateShaderModule failed");
     }
 
     VulkanShader::State::~State()
     {
         vkDestroyShaderModule(
-            device.get_native(),
+            vulkan_device.get_native(),
             vk_shader_module,
             nullptr);
     }

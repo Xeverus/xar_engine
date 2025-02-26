@@ -22,10 +22,10 @@ namespace xar_engine::graphics::vulkan
         ~State();
 
     public:
-        Device device;
+        VulkanDevice device;
 
         VkImage vk_image;
-        VkDeviceMemory vk_image_memory;
+        VkDeviceMemory vk_device_memory;
 
         VkFormat vk_format;
         VkImageLayout vk_image_layout;
@@ -34,67 +34,67 @@ namespace xar_engine::graphics::vulkan
     };
 
     VulkanImage::State::State(const Parameters& parameters)
-        : device(parameters.device)
+        : device(parameters.vulkan_device)
         , vk_image{nullptr}
-        , vk_image_memory{nullptr}
-        , vk_format{parameters.format}
+        , vk_device_memory{nullptr}
+        , vk_format{parameters.vk_format}
         , vk_image_layout{VK_IMAGE_LAYOUT_UNDEFINED}
         , dimension{parameters.dimension}
         , mip_levels{parameters.mip_levels}
     {
-        auto image_create_info = VkImageCreateInfo{};
-        image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        image_create_info.imageType = VK_IMAGE_TYPE_2D;
-        image_create_info.extent.width = parameters.dimension.x;
-        image_create_info.extent.height = parameters.dimension.y;
-        image_create_info.extent.depth = parameters.dimension.z;
-        image_create_info.mipLevels = parameters.mip_levels;
-        image_create_info.arrayLayers = 1;
-        image_create_info.format = parameters.format;
-        image_create_info.tiling = parameters.tiling;
-        image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        image_create_info.usage = parameters.usage;
-        image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        image_create_info.samples = parameters.msaa_samples;
-        image_create_info.flags = 0;
+        auto vk_image_create_info = VkImageCreateInfo{};
+        vk_image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        vk_image_create_info.imageType = VK_IMAGE_TYPE_2D;
+        vk_image_create_info.extent.width = parameters.dimension.x;
+        vk_image_create_info.extent.height = parameters.dimension.y;
+        vk_image_create_info.extent.depth = parameters.dimension.z;
+        vk_image_create_info.mipLevels = parameters.mip_levels;
+        vk_image_create_info.arrayLayers = 1;
+        vk_image_create_info.format = parameters.vk_format;
+        vk_image_create_info.tiling = parameters.vk_image_tiling;
+        vk_image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        vk_image_create_info.usage = parameters.vk_image_usage_flags;
+        vk_image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        vk_image_create_info.samples = parameters.vk_sample_count_flag_bits;
+        vk_image_create_info.flags = 0;
 
-        const auto create_image_result = vkCreateImage(
-            parameters.device.get_native(),
-            &image_create_info,
+        const auto vk_create_image_result = vkCreateImage(
+            parameters.vulkan_device.get_native(),
+            &vk_image_create_info,
             nullptr,
             &vk_image);
         XAR_THROW_IF(
-            create_image_result != VK_SUCCESS,
+            vk_create_image_result != VK_SUCCESS,
             error::XarException,
-            "Failed to create image");
+            "vkCreateImage failed");
 
-        auto memory_requirements = VkMemoryRequirements{};
+        auto vk_memory_requirements = VkMemoryRequirements{};
         vkGetImageMemoryRequirements(
-            parameters.device.get_native(),
+            parameters.vulkan_device.get_native(),
             vk_image,
-            &memory_requirements);
+            &vk_memory_requirements);
 
-        auto memory_allocation = VkMemoryAllocateInfo{};
-        memory_allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        memory_allocation.allocationSize = memory_requirements.size;
-        memory_allocation.memoryTypeIndex = parameters.device.get_physical_device().find_memory_type(
-            memory_requirements.memoryTypeBits,
-            parameters.properties);
+        auto vk_memory_allocate_info = VkMemoryAllocateInfo{};
+        vk_memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        vk_memory_allocate_info.allocationSize = vk_memory_requirements.size;
+        vk_memory_allocate_info.memoryTypeIndex = parameters.vulkan_device.get_physical_device().find_memory_type(
+            vk_memory_requirements.memoryTypeBits,
+            parameters.vm_memory_property_flags);
 
-        const auto memory_allocation_result = vkAllocateMemory(
-            parameters.device.get_native(),
-            &memory_allocation,
+        const auto vk_allocate_memory_result = vkAllocateMemory(
+            parameters.vulkan_device.get_native(),
+            &vk_memory_allocate_info,
             nullptr,
-            &vk_image_memory);
+            &vk_device_memory);
         XAR_THROW_IF(
-            memory_allocation_result != VK_SUCCESS,
+            vk_allocate_memory_result != VK_SUCCESS,
             error::XarException,
-            "Failed to allocate image");
+            "vkAllocateMemory failed");
 
         vkBindImageMemory(
-            parameters.device.get_native(),
+            parameters.vulkan_device.get_native(),
             vk_image,
-            vk_image_memory,
+            vk_device_memory,
             0);
     }
 
@@ -107,7 +107,7 @@ namespace xar_engine::graphics::vulkan
 
         vkFreeMemory(
             device.get_native(),
-            vk_image_memory,
+            vk_device_memory,
             nullptr);
     }
 
@@ -132,22 +132,19 @@ namespace xar_engine::graphics::vulkan
         vk_image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         vk_image_memory_barrier.oldLayout = _state->vk_image_layout;
         vk_image_memory_barrier.newLayout = new_vk_image_layout;
-
         vk_image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         vk_image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
         vk_image_memory_barrier.image = _state->vk_image;
         vk_image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         vk_image_memory_barrier.subresourceRange.baseMipLevel = 0;
         vk_image_memory_barrier.subresourceRange.levelCount = _state->mip_levels;
         vk_image_memory_barrier.subresourceRange.baseArrayLayer = 0;
         vk_image_memory_barrier.subresourceRange.layerCount = 1;
+        vk_image_memory_barrier.srcAccessMask = 0;
+        vk_image_memory_barrier.dstAccessMask = 0;
 
-        vk_image_memory_barrier.srcAccessMask = 0; // TODO
-        vk_image_memory_barrier.dstAccessMask = 0; // TODO
-
-        auto source_stage = VkPipelineStageFlags{};
-        auto destination_stage = VkPipelineStageFlags{};
+        auto vk_source_pipeline_stage_flags = VkPipelineStageFlags{};
+        auto vk_destination_pipeline_stage_flags = VkPipelineStageFlags{};
 
         if (new_vk_image_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
         {
@@ -169,8 +166,8 @@ namespace xar_engine::graphics::vulkan
             vk_image_memory_barrier.srcAccessMask = 0;
             vk_image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            vk_source_pipeline_stage_flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            vk_destination_pipeline_stage_flags = VK_PIPELINE_STAGE_TRANSFER_BIT;
         }
         else if (_state->vk_image_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
                  new_vk_image_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
@@ -178,8 +175,8 @@ namespace xar_engine::graphics::vulkan
             vk_image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             vk_image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            vk_source_pipeline_stage_flags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            vk_destination_pipeline_stage_flags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         }
         else if (_state->vk_image_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
                  new_vk_image_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
@@ -188,20 +185,24 @@ namespace xar_engine::graphics::vulkan
             vk_image_memory_barrier.dstAccessMask =
                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destination_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            vk_source_pipeline_stage_flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            vk_destination_pipeline_stage_flags = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         }
         else
         {
-            throw std::invalid_argument("unsupported layout transition!");
+            XAR_THROW(
+                error::XarException,
+                "transition from {} to {} is not supported",
+                static_cast<std::uint32_t>(_state->vk_image_layout),
+                static_cast<std::uint32_t>(new_vk_image_layout));
         }
 
         _state->vk_image_layout = new_vk_image_layout;
 
         vkCmdPipelineBarrier(
             vk_command_buffer,
-            source_stage,
-            destination_stage,
+            vk_source_pipeline_stage_flags,
+            vk_destination_pipeline_stage_flags,
             0,
             0,
             nullptr,
@@ -213,33 +214,33 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanImage::generate_mipmaps(VkCommandBuffer vk_command_buffer)
     {
-        const auto vk_format_properties = _state->device.get_physical_device().get_format_properties(_state->vk_format);
+        const auto vk_format_properties = _state->device.get_physical_device().get_vk_format_properties(_state->vk_format);
         XAR_THROW_IF(
             !(vk_format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT),
             error::XarException,
-            "Texture image format '{}' does not support linear blitting",
+            "Image format {} does not support linear blitting",
             static_cast<std::int32_t>(_state->vk_format));
 
-        auto image_memory_barrier = VkImageMemoryBarrier{};
-        image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        image_memory_barrier.image = _state->vk_image;
-        image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        image_memory_barrier.subresourceRange.baseArrayLayer = 0;
-        image_memory_barrier.subresourceRange.layerCount = 1;
-        image_memory_barrier.subresourceRange.levelCount = 1;
+        auto vk_image_memory_barrier = VkImageMemoryBarrier{};
+        vk_image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        vk_image_memory_barrier.image = _state->vk_image;
+        vk_image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        vk_image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        vk_image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vk_image_memory_barrier.subresourceRange.baseArrayLayer = 0;
+        vk_image_memory_barrier.subresourceRange.layerCount = 1;
+        vk_image_memory_barrier.subresourceRange.levelCount = 1;
 
         auto mip_width = _state->dimension.x;
         auto mip_height = _state->dimension.y;
 
         for (auto mip_level = std::uint32_t{1}; mip_level < _state->mip_levels; mip_level++)
         {
-            image_memory_barrier.subresourceRange.baseMipLevel = mip_level - 1;
-            image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            vk_image_memory_barrier.subresourceRange.baseMipLevel = mip_level - 1;
+            vk_image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            vk_image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            vk_image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            vk_image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
             vkCmdPipelineBarrier(
                 vk_command_buffer,
@@ -251,7 +252,7 @@ namespace xar_engine::graphics::vulkan
                 0,
                 nullptr,
                 1,
-                &image_memory_barrier);
+                &vk_image_memory_barrier);
 
             auto vk_image_blit = VkImageBlit{};
             vk_image_blit.srcOffsets[0] = {0, 0, 0};
@@ -277,10 +278,10 @@ namespace xar_engine::graphics::vulkan
                 &vk_image_blit,
                 VK_FILTER_LINEAR);
 
-            image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            vk_image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            vk_image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            vk_image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            vk_image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
             vkCmdPipelineBarrier(
                 vk_command_buffer,
@@ -292,7 +293,7 @@ namespace xar_engine::graphics::vulkan
                 0,
                 nullptr,
                 1,
-                &image_memory_barrier);
+                &vk_image_memory_barrier);
 
             if (mip_width > 1)
             {
@@ -304,11 +305,11 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        image_memory_barrier.subresourceRange.baseMipLevel = _state->mip_levels - 1;
-        image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        vk_image_memory_barrier.subresourceRange.baseMipLevel = _state->mip_levels - 1;
+        vk_image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        vk_image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        vk_image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        vk_image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         vkCmdPipelineBarrier(
             vk_command_buffer,
@@ -320,7 +321,7 @@ namespace xar_engine::graphics::vulkan
             0,
             nullptr,
             1,
-            &image_memory_barrier);
+            &vk_image_memory_barrier);
     }
 
     VkImage VulkanImage::get_native() const

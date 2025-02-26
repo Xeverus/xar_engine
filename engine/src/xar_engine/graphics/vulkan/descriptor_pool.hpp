@@ -32,7 +32,7 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanDescriptorPool::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
 
         std::int32_t uniform_buffer_count;
         std::int32_t combined_image_sampler_count;

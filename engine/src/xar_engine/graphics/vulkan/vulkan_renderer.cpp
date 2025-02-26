@@ -83,8 +83,8 @@ namespace xar_engine::graphics::vulkan
     void VulkanRenderer::init_device()
     {
         _physical_device_list = _instance->get_physical_device_list();
-        _device = Device{{_physical_device_list[0]}};
-        msaaSamples = _physical_device_list[0].get_max_sample_count();
+        _device = VulkanDevice{{_physical_device_list[0]}};
+        msaaSamples = _physical_device_list[0].get_vk_sample_count_flag_bits();
     }
 
     void VulkanRenderer::destroy_swapchain()
@@ -101,7 +101,7 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanRenderer::init_swapchain()
     {
-        const auto formats = _physical_device_list[0].get_surface_formats(_vulkan_surface.get_native());
+        const auto formats = _physical_device_list[0].get_vk_surface_format_khr_list(_vulkan_surface.get_native());
         VkSurfaceFormatKHR format_to_use;
         for (const auto& format: formats)
         {
@@ -113,7 +113,7 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        const auto present_modes = _physical_device_list[0].get_present_modes(_vulkan_surface.get_native());
+        const auto present_modes = _physical_device_list[0].get_vk_present_mode_khr_list(_vulkan_surface.get_native());
         VkPresentModeKHR present_mode_to_use;
         for (const auto& present_mode: present_modes)
         {
@@ -206,7 +206,7 @@ namespace xar_engine::graphics::vulkan
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-        auto staging_buffer = Buffer{
+        auto staging_buffer = VulkanBuffer{
             {
                 _device,
                 bufferSize,
@@ -222,7 +222,7 @@ namespace xar_engine::graphics::vulkan
             (size_t) bufferSize);
         staging_buffer.unmap();
 
-        _vertex_buffer = Buffer{
+        _vertex_buffer = VulkanBuffer{
             {
                 _device,
                 bufferSize,
@@ -240,7 +240,7 @@ namespace xar_engine::graphics::vulkan
     {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-        auto staging_buffer = Buffer{
+        auto staging_buffer = VulkanBuffer{
             {
                 _device,
                 bufferSize,
@@ -256,7 +256,7 @@ namespace xar_engine::graphics::vulkan
             (size_t) bufferSize);
         staging_buffer.unmap();
 
-        _index_buffer = Buffer{
+        _index_buffer = VulkanBuffer{
             {
                 _device,
                 bufferSize,
@@ -302,7 +302,7 @@ namespace xar_engine::graphics::vulkan
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            _uniform_buffers[i] = Buffer{
+            _uniform_buffers[i] = VulkanBuffer{
                 {
                     _device,
                     bufferSize,
@@ -454,7 +454,7 @@ namespace xar_engine::graphics::vulkan
         VkDeviceSize imageSize = asset::image::get_byte_size(image);
 
 
-        auto staging_buffer = Buffer{
+        auto staging_buffer = VulkanBuffer{
             {
                 _device,
                 imageSize,
@@ -515,7 +515,7 @@ namespace xar_engine::graphics::vulkan
         _vulkan_sampler = VulkanSampler{
             {
                 _device,
-                _physical_device_list[0].get_device_properties().limits.maxSamplerAnisotropy,
+                _physical_device_list[0].get_vk_device_properties().limits.maxSamplerAnisotropy,
                 static_cast<float>(mipLevels),
             }
         };
@@ -584,7 +584,7 @@ namespace xar_engine::graphics::vulkan
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                 .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .image = begin_frame_result.image,
+                .image = begin_frame_result.vk_image,
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -619,7 +619,7 @@ namespace xar_engine::graphics::vulkan
             vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
             vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfoColor.resolveImageView = begin_frame_result.image_view;
+            vkRenderingAttachmentInfoColor.resolveImageView = begin_frame_result.vk_image_view;
 
             VkClearValue clearDepthColor{};
             clearDepthColor.depthStencil = {1.0f, 0};
@@ -719,7 +719,7 @@ namespace xar_engine::graphics::vulkan
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .image = begin_frame_result.image,
+                .image = begin_frame_result.vk_image,
                 .subresourceRange = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .baseMipLevel = 0,
@@ -901,7 +901,7 @@ namespace xar_engine::graphics::vulkan
 
     VkFormat VulkanRenderer::findDepthFormat()
     {
-        return _physical_device_list[0].find_supported_format(
+        return _physical_device_list[0].find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
@@ -913,7 +913,7 @@ namespace xar_engine::graphics::vulkan
 namespace xar_engine::graphics::vulkan
 {
     VulkanRenderer::VulkanRenderer(
-        const std::shared_ptr<Instance>& vulkan_instance,
+        const std::shared_ptr<VulkanInstance>& vulkan_instance,
         VkSurfaceKHR vk_surface_khr,
         const os::IWindow* os_window)
         : _instance(vulkan_instance)

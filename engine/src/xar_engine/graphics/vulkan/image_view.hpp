@@ -35,11 +35,11 @@ namespace xar_engine::graphics::vulkan
 
     struct VulkanImageView::Parameters
     {
-        Device device;
+        VulkanDevice vulkan_device;
         VkImage vk_image;
 
-        VkFormat format;
-        VkImageAspectFlags aspect_mask;
+        VkFormat vk_format;
+        VkImageAspectFlags vk_image_aspect_flags;
         std::uint32_t mip_levels;
     };
 }
