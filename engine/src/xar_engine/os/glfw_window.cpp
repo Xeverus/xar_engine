@@ -2,8 +2,8 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
-#include <xar_engine/graphics/vulkan/vulkan_renderer.hpp>
+#include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
+#include <xar_engine/graphics/vulkan/impl/vulkan_renderer.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
@@ -315,7 +315,7 @@ namespace xar_engine::os
 
     std::shared_ptr<graphics::IRenderer> GlfwWindow::make_renderer(const graphics::RendererType renderer_type)
     {
-        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::VulkanInstance>();
+        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::impl::VulkanInstance>();
 
         VkSurfaceKHR vk_surface_khr = nullptr;
         const auto result = glfwCreateWindowSurface(
@@ -328,7 +328,7 @@ namespace xar_engine::os
             error::XarException,
             "Failed to create window surface");
 
-        return std::make_shared<graphics::vulkan::VulkanRenderer>(
+        return std::make_shared<graphics::vulkan::impl::VulkanRenderer>(
             std::move(vulkan_instance),
             vk_surface_khr,
             this);
