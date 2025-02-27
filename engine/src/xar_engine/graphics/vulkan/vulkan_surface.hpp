@@ -4,7 +4,7 @@
 
 #include <volk.h>
 
-#include <xar_engine/graphics/vulkan/instance.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
 
 
 namespace xar_engine::graphics::vulkan

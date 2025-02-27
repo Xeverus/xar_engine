@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/sampler.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 

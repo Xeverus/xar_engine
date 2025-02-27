@@ -7,21 +7,21 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/renderer.hpp>
-#include <xar_engine/graphics/vulkan/buffer.hpp>
-#include <xar_engine/graphics/vulkan/command_buffer_pool.hpp>
-#include <xar_engine/graphics/vulkan/descriptor_pool.hpp>
-#include <xar_engine/graphics/vulkan/descriptor_set.hpp>
-#include <xar_engine/graphics/vulkan/descriptor_set_layout.hpp>
-#include <xar_engine/graphics/vulkan/device.hpp>
-#include <xar_engine/graphics/vulkan/graphics_pipeline.hpp>
-#include <xar_engine/graphics/vulkan/image.hpp>
-#include <xar_engine/graphics/vulkan/image_view.hpp>
-#include <xar_engine/graphics/vulkan/instance.hpp>
-#include <xar_engine/graphics/vulkan/physical_device.hpp>
-#include <xar_engine/graphics/vulkan/sampler.hpp>
-#include <xar_engine/graphics/vulkan/shader.hpp>
-#include <xar_engine/graphics/vulkan/surface.hpp>
-#include <xar_engine/graphics/vulkan/swap_chain.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_buffer.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_command_buffer_pool.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_descriptor_set.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_descriptor_set_layout.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_graphics_pipeline.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_image.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_image_view.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_physical_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_sampler.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_surface.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_swap_chain.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 

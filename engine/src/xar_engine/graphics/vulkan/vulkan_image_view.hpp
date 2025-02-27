@@ -6,8 +6,8 @@
 
 #include <xar_engine/math/vector.hpp>
 
-#include <xar_engine/graphics/vulkan/device.hpp>
-#include <xar_engine/graphics/vulkan/image.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 
 
 namespace xar_engine::graphics::vulkan

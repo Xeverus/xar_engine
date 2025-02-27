@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/shader.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_shader.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 

@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/swap_chain.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_swap_chain.hpp>
 
 #include <algorithm>
 #include <cmath>

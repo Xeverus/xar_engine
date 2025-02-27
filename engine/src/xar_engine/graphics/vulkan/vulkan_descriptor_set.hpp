@@ -5,8 +5,8 @@
 
 #include <volk.h>
 
-#include <xar_engine/graphics/vulkan/descriptor_pool.hpp>
-#include <xar_engine/graphics/vulkan/device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_device.hpp>
 
 
 namespace xar_engine::graphics::vulkan

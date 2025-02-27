@@ -4,7 +4,7 @@
 
 #include <volk.h>
 
-#include <xar_engine/graphics/vulkan/physical_device.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_physical_device.hpp>
 
 
 namespace xar_engine::graphics::vulkan

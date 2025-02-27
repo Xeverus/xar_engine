@@ -1,4 +1,4 @@
-#include <xar_engine/graphics/vulkan/image.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_image.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 

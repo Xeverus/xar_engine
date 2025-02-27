@@ -2,7 +2,7 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
-#include <xar_engine/graphics/vulkan/instance.hpp>
+#include <xar_engine/graphics/vulkan/vulkan_instance.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_renderer.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
