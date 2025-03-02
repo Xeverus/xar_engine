@@ -15,8 +15,8 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/asset/model.hpp
         include/xar_engine/asset/model_loader.hpp
         include/xar_engine/error/exception.hpp
+        include/xar_engine/graphics/graphics_backend_type.hpp
         include/xar_engine/graphics/renderer.hpp
-        include/xar_engine/graphics/renderer_type.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
         include/xar_engine/math/epsilon.hpp
@@ -82,10 +82,16 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.cpp
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp
+        src/xar_engine/graphics/vulkan/vulkan_window_surface.cpp
+        src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
         src/xar_engine/graphics/graphics_backend.cpp
         src/xar_engine/graphics/graphics_backend.hpp
+        src/xar_engine/graphics/graphics_backend_type.cpp
         src/xar_engine/graphics/renderer.cpp
-        src/xar_engine/graphics/renderer_type.cpp
+        src/xar_engine/graphics/resource_reference.hpp
+        src/xar_engine/graphics/resource_map.hpp
+        src/xar_engine/graphics/window_surface.cpp
+        src/xar_engine/graphics/window_surface.hpp
         src/xar_engine/input/button.cpp
         src/xar_engine/input/input_event.cpp
         src/xar_engine/logging/console_logger.cpp

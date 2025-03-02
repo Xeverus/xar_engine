@@ -2,6 +2,8 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+#include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
+
 #include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_renderer.hpp>
 
@@ -182,6 +184,28 @@ namespace xar_engine::os
         glfwSetWindowTitle(
             _native_glfw_window,
             _parameters.title.c_str());
+
+        if (_parameters.graphics_backend_type != graphics::EGraphicsBackendType::VULKAN)
+        {
+            return;
+        }
+
+        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::impl::VulkanInstance>();
+
+        auto vk_surface_khr = VkSurfaceKHR{nullptr};
+        const auto result = glfwCreateWindowSurface(
+            vulkan_instance->get_native(),
+            _native_glfw_window,
+            nullptr,
+            &vk_surface_khr);
+        XAR_THROW_IF(
+            result != VK_SUCCESS,
+            error::XarException,
+            "Failed to create window surface");
+
+        _window_surface = std::make_shared<graphics::vulkan::VulkanWindowSurface>(
+            vulkan_instance,
+            vk_surface_khr);
     }
 
     GlfwWindow::~GlfwWindow()
@@ -313,27 +337,6 @@ namespace xar_engine::os
             GLFW_TRUE);
     }
 
-    std::shared_ptr<graphics::IRenderer> GlfwWindow::make_renderer(const graphics::RendererType renderer_type)
-    {
-        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::impl::VulkanInstance>();
-
-        VkSurfaceKHR vk_surface_khr = nullptr;
-        const auto result = glfwCreateWindowSurface(
-            vulkan_instance->get_native(),
-            _native_glfw_window,
-            nullptr,
-            &vk_surface_khr);
-        XAR_THROW_IF(
-            result != VK_SUCCESS,
-            error::XarException,
-            "Failed to create window surface");
-
-        return std::make_shared<graphics::vulkan::impl::VulkanRenderer>(
-            std::move(vulkan_instance),
-            vk_surface_khr,
-            this);
-    }
-
     bool GlfwWindow::close_requested() const
     {
         return glfwWindowShouldClose(_native_glfw_window);
@@ -342,6 +345,11 @@ namespace xar_engine::os
     const std::string& GlfwWindow::get_title() const
     {
         return _parameters.title;
+    }
+
+    const std::shared_ptr<graphics::IWindowSurface>& GlfwWindow::get_surface() const
+    {
+        return _window_surface;
     }
 
     math::Vector2i32 GlfwWindow::get_surface_pixel_size() const

@@ -27,6 +27,9 @@ namespace xar_engine::graphics::vulkan::impl
         [[nodiscard]]
         VkBuffer get_native() const;
 
+        [[nodiscard]]
+        std::uint32_t get_buffer_byte_size() const;
+
     private:
         struct State;
 

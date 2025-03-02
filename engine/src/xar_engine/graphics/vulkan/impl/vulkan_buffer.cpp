@@ -132,4 +132,9 @@ namespace xar_engine::graphics::vulkan::impl
     {
         return _state->vk_buffer;
     }
+
+    std::uint32_t VulkanBuffer::get_buffer_byte_size() const
+    {
+        return _state->vk_byte_size;
+    }
 }

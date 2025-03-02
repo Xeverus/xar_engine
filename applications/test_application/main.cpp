@@ -10,7 +10,7 @@ int main()
 {
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
-    auto renderer = window->make_renderer(xar_engine::graphics::RendererType::VULKAN);
+    auto renderer = window->make_renderer(xar_engine::graphics::EGraphicsBackendType::VULKAN);
 
     window->set_on_update(
         [&]()

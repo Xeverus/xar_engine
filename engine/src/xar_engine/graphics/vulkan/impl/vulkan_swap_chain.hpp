@@ -5,6 +5,8 @@
 
 #include <volk.h>
 
+#include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
+
 #include <xar_engine/graphics/vulkan/impl/vulkan_image_view.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_surface.hpp>
 
@@ -52,9 +54,8 @@ namespace xar_engine::graphics::vulkan::impl
     struct VulkanSwapChain::Parameters
     {
         VulkanDevice vulkan_device;
-        VulkanSurface vulkan_surface;
+        std::shared_ptr<VulkanWindowSurface> vulkan_window_surface;
 
-        math::Vector2i32 dimension;
         VkPresentModeKHR vk_present_mode_khr;
         VkSurfaceFormatKHR vk_surface_format_khr;
         std::int32_t buffering_level;

@@ -37,7 +37,7 @@ namespace xar_engine::graphics::vulkan::impl
 
     VulkanSwapChain::State::State(const Parameters& parameters)
         : vulkan_device{parameters.vulkan_device}
-        , vulkan_surface{parameters.vulkan_surface}
+        , vulkan_surface{parameters.vulkan_window_surface->get_vulkan_surface()}
         , vk_swap_chain{nullptr}
         , vk_extent_2d{}
         , vk_surface_format_khr{parameters.vk_surface_format_khr}
@@ -50,11 +50,11 @@ namespace xar_engine::graphics::vulkan::impl
         , render_finished_vk_semaphore{}
         , in_flight_vk_fence{}
     {
-        const auto vk_surface_capabilities_khr = parameters.vulkan_device.get_physical_device().get_vk_surface_capabilities_khr(parameters.vulkan_surface.get_native());
+        const auto vk_surface_capabilities_khr = parameters.vulkan_device.get_physical_device().get_vk_surface_capabilities_khr(parameters.vulkan_window_surface->get_vulkan_surface().get_native());
 
         vk_extent_2d = {
-            static_cast<std::uint32_t>(parameters.dimension.x),
-            static_cast<std::uint32_t>(parameters.dimension.y),
+            static_cast<std::uint32_t>(parameters.vulkan_window_surface->get_pixel_size().x),
+            static_cast<std::uint32_t>(parameters.vulkan_window_surface->get_pixel_size().y),
         };
         vk_extent_2d.width = std::clamp(
             vk_extent_2d.width,
@@ -95,7 +95,7 @@ namespace xar_engine::graphics::vulkan::impl
             error::XarException,
             "vkCreateSwapchainKHR failed");
 
-        std::uint32_t swap_chain_images_count = 0;
+        auto swap_chain_images_count = std::uint32_t{0};
         vkGetSwapchainImagesKHR(
             vulkan_device.get_native(),
             vk_swap_chain,

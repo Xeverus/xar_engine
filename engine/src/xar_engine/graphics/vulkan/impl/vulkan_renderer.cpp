@@ -32,41 +32,6 @@ namespace xar_engine::graphics::vulkan::impl
             glm::vec3 position;
             glm::vec3 color;
             glm::vec2 textureCoords;
-
-            static std::vector<VkVertexInputBindingDescription> getBindingDescription()
-            {
-                VkVertexInputBindingDescription bindingDescription{};
-                bindingDescription.binding = 0;
-                bindingDescription.stride = sizeof(Vertex);
-                bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-                return {bindingDescription};
-            }
-
-            static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-            {
-                std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
-
-                attributeDescriptions[0].binding = 0;
-                attributeDescriptions[0].location = 0;
-                attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-                attributeDescriptions[0].offset = offsetof(Vertex,
-                                                           position);
-
-                attributeDescriptions[1].binding = 0;
-                attributeDescriptions[1].location = 1;
-                attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-                attributeDescriptions[1].offset = offsetof(Vertex,
-                                                           color);
-
-                attributeDescriptions[2].binding = 0;
-                attributeDescriptions[2].location = 2;
-                attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-                attributeDescriptions[2].offset = offsetof(Vertex,
-                                                           textureCoords);
-
-                return attributeDescriptions;
-            }
         };
 
         struct UniformBufferObject
@@ -80,196 +45,77 @@ namespace xar_engine::graphics::vulkan::impl
         std::vector<std::uint32_t> indices;
     }
 
-    void VulkanRenderer::init_device()
-    {
-        _physical_device_list = _instance->get_physical_device_list();
-        _device = VulkanDevice{{_physical_device_list[0]}};
-        msaaSamples = _physical_device_list[0].get_vk_sample_count_flag_bits();
-    }
-
+    // DONE
     void VulkanRenderer::destroy_swapchain()
     {
-        _color_image_view = {};
-        _color_image = {};
+        _color_image_view_ref = {};
+        _color_image_ref = {};
 
-        _depth_image_view = {};
-        _depth_image = {};
-
-        _swap_chain_image_views.clear();
-        _swap_chain = {};
+        _depth_image_view_ref = {};
+        _depth_image_ref = {};
     }
 
-    void VulkanRenderer::init_swapchain()
-    {
-        const auto formats = _physical_device_list[0].get_vk_surface_format_khr_list(_vulkan_surface.get_native());
-        VkSurfaceFormatKHR format_to_use;
-        for (const auto& format: formats)
-        {
-            if (format.format == VK_FORMAT_R8G8B8A8_SRGB &&
-                format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-            {
-                format_to_use = format;
-                break;
-            }
-        }
-
-        const auto present_modes = _physical_device_list[0].get_vk_present_mode_khr_list(_vulkan_surface.get_native());
-        VkPresentModeKHR present_mode_to_use;
-        for (const auto& present_mode: present_modes)
-        {
-            if (present_mode == VK_PRESENT_MODE_FIFO_KHR)
-            {
-                present_mode_to_use = present_mode;
-                break;
-            }
-        }
-
-        _swap_chain = VulkanSwapChain{
-            {
-                _device,
-                _vulkan_surface,
-                _os_window->get_surface_pixel_size(),
-                present_mode_to_use,
-                format_to_use,
-                MAX_FRAMES_IN_FLIGHT,
-            }};
-    }
-
-    void VulkanRenderer::init_shaders()
-    {
-        _vertex_shader = VulkanShader{
-            {
-                _device,
-                xar_engine::file::read_binary_file("assets/triangle.vert.spv")
-            }};
-        _fragment_shader = VulkanShader{
-            {
-                _device,
-                xar_engine::file::read_binary_file("assets/triangle.frag.spv")
-            }};
-    }
-
+    // DONE
     void VulkanRenderer::init_descriptor_set_layout()
     {
-        VkDescriptorSetLayoutBinding uboLayoutBinding{};
-        uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
-
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-        _vulkan_descriptor_set_layout = VulkanDescriptorSetLayout{
-            {
-                _device,
-                {uboLayoutBinding, samplerLayoutBinding},
-            }};
+        _descriptor_set_layout_ref = _vulkan_graphics_backend->resource().make_descriptor_set_layout();
     }
 
+    // DONE
     void VulkanRenderer::init_graphics_pipeline()
     {
-        VkPushConstantRange pushConstantRange{};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(float);
-
-        _vulkan_graphics_pipeline = VulkanGraphicsPipeline{
-            {
-                _device,
-                {
-                    std::make_tuple(
-                        _vertex_shader.get_native(),
-                        VK_SHADER_STAGE_VERTEX_BIT,
-                        "main"),
-                    std::make_tuple(
-                        _fragment_shader.get_native(),
-                        VK_SHADER_STAGE_FRAGMENT_BIT,
-                        "main")
-                },
-                _vulkan_descriptor_set_layout.get_native(),
-                Vertex::getBindingDescription(),
-                Vertex::getAttributeDescriptions(),
-                {pushConstantRange},
-                msaaSamples,
-                _swap_chain.get_format(),
-                findDepthFormat(),
-            }};
+        _graphics_pipeline_ref = _vulkan_graphics_backend->resource().make_graphics_pipeline(
+            _descriptor_set_layout_ref,
+            _vertex_shader_ref,
+            _fragment_shader_ref,
+            EImageFormat::R8G8B8A8_SRGB,
+            findDepthFormat(),
+            msaaSamples);
     }
 
+    // DONE
     void VulkanRenderer::init_vertex_data()
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-        auto staging_buffer = VulkanBuffer{
-            {
-                _device,
-                bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            }};
-
-        void* const data = staging_buffer.map();
-        memcpy(
-            data,
+        auto staging_buffer = _vulkan_graphics_backend->resource().make_staging_buffer(bufferSize);
+        _vulkan_graphics_backend->host_command().update_buffer(
+            staging_buffer,
             vertices.data(),
-            (size_t) bufferSize);
-        staging_buffer.unmap();
-
-        _vertex_buffer = VulkanBuffer{
-            {
-                _device,
-                bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            }};
-
-        copyBuffer(
-            staging_buffer.get_native(),
-            _vertex_buffer.get_native(),
             bufferSize);
+
+        _vertex_buffer_ref = _vulkan_graphics_backend->resource().make_vertex_buffer(bufferSize);
+
+        auto tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
+        _vulkan_graphics_backend->device_command().copy_buffer(
+            tmp_command_buffer,
+            staging_buffer,
+            _vertex_buffer_ref);
+        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
+    // DONE
     void VulkanRenderer::init_index_data()
     {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-        auto staging_buffer = VulkanBuffer{
-            {
-                _device,
-                bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            }};
-
-        void* const data = staging_buffer.map();
-        memcpy(
-            data,
+        auto staging_buffer = _vulkan_graphics_backend->resource().make_staging_buffer(bufferSize);
+        _vulkan_graphics_backend->host_command().update_buffer(
+            staging_buffer,
             indices.data(),
-            (size_t) bufferSize);
-        staging_buffer.unmap();
-
-        _index_buffer = VulkanBuffer{
-            {
-                _device,
-                bufferSize,
-                VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            }};
-
-        copyBuffer(
-            staging_buffer.get_native(),
-            _index_buffer.get_native(),
             bufferSize);
+
+        _index_buffer_ref = _vulkan_graphics_backend->resource().make_index_buffer(bufferSize);
+
+        auto tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
+        _vulkan_graphics_backend->device_command().copy_buffer(
+            tmp_command_buffer,
+            staging_buffer,
+            _index_buffer_ref);
+        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
+    // DONE
     void VulkanRenderer::init_model()
     {
         const auto model = xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj");
@@ -293,158 +139,80 @@ namespace xar_engine::graphics::vulkan::impl
             sizeof(indices[0]) * indices.size());
     }
 
+    // DONE
     void VulkanRenderer::init_ubo_data()
     {
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-        _uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
-        _uniform_buffers_mapped.resize(MAX_FRAMES_IN_FLIGHT);
-
+        _uniform_buffer_ref_list.resize(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            _uniform_buffers[i] = VulkanBuffer{
-                {
-                    _device,
-                    bufferSize,
-                    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                }};
-            _uniform_buffers_mapped[i] = _uniform_buffers[i].map();
+            _uniform_buffer_ref_list.push_back(_vulkan_graphics_backend->resource().make_uniform_buffer(sizeof(UniformBufferObject)));
         }
     }
 
+    // DONE
     void VulkanRenderer::init_descriptors()
     {
-        _vulkan_descriptor_pool = VulkanDescriptorPool{
-            {
-                _device,
-                MAX_FRAMES_IN_FLIGHT,
-                MAX_FRAMES_IN_FLIGHT,
-                MAX_FRAMES_IN_FLIGHT,
-            }};
-
-        std::vector<VkDescriptorSetLayout> layouts(
-            MAX_FRAMES_IN_FLIGHT,
-            _vulkan_descriptor_set_layout.get_native());
-
-        _vulkan_descriptor_sets = VulkanDescriptorSet{
-            {
-                _device,
-                _vulkan_descriptor_pool,
-                std::move(layouts),
-            }};
-
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = _uniform_buffers[i].get_native();
-            bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(UniformBufferObject);
-
-            VkDescriptorImageInfo imageInfo{};
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = _texture_image_view.get_native();
-            imageInfo.sampler = _vulkan_sampler.get_native();
-
-            std::vector<VkWriteDescriptorSet> descriptorWrites(2);
-            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = _vulkan_descriptor_sets.get_native()[i];
-            descriptorWrites[0].dstBinding = 0;
-            descriptorWrites[0].dstArrayElement = 0;
-            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].pBufferInfo = &bufferInfo;
-            descriptorWrites[0].pImageInfo = nullptr; // Optional
-            descriptorWrites[0].pTexelBufferView = nullptr; // Optional
-
-            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = _vulkan_descriptor_sets.get_native()[i];
-            descriptorWrites[1].dstBinding = 1;
-            descriptorWrites[1].dstArrayElement = 0;
-            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[1].descriptorCount = 1;
-            descriptorWrites[1].pBufferInfo = nullptr;
-            descriptorWrites[1].pImageInfo = &imageInfo; // Optional
-            descriptorWrites[1].pTexelBufferView = nullptr; // Optional
-
-            _vulkan_descriptor_sets.write(descriptorWrites);
-        }
+        _descriptor_pool_ref = _vulkan_graphics_backend->resource().make_descriptor_pool();
+        _descriptor_set_list_ref = _vulkan_graphics_backend->resource().make_descriptor_set_list(
+            _descriptor_pool_ref,
+            _descriptor_set_layout_ref,
+            _uniform_buffer_ref_list,
+            _texture_image_view_ref,
+            _sampler_ref);
     }
 
-    void VulkanRenderer::init_cmd_buffers()
-    {
-        _vulkan_command_pool = VulkanCommandBufferPool{
-            {
-                _device,
-            }};
-        _vk_command_buffers = _vulkan_command_pool.make_buffers(MAX_FRAMES_IN_FLIGHT);
-    }
-
+    // DONE
     void VulkanRenderer::init_color_msaa()
     {
-        _color_image = VulkanImage{
+        _color_image_ref = _vulkan_graphics_backend->resource().make_image(
+            EImageType::COLOR_ATTACHMENT,
             {
-                _device,
-                {
-                    static_cast<std::int32_t>(_swap_chain.get_extent().width),
-                    static_cast<std::int32_t>(_swap_chain.get_extent().height),
-                    1
-                },
-                _swap_chain.get_format(),
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                1,
-                msaaSamples,
-            }};
+                static_cast<std::int32_t>(_vulkan_window_surface->get_pixel_size().x),
+                static_cast<std::int32_t>(_vulkan_window_surface->get_pixel_size().y),
+                1
+            },
+            EImageFormat::R8G8B8A8_SRGB,
+            1,
+            msaaSamples);
 
-        _color_image_view = VulkanImageView{
-            {
-                _device,
-                _color_image.get_native(),
-                _swap_chain.get_format(),
-                VK_IMAGE_ASPECT_COLOR_BIT,
-                1,
-            }};
+
+        _color_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
+            _color_image_ref,
+            EImageAspect::COLOR,
+            1);
     }
 
+    // DONE
     void VulkanRenderer::init_depth()
     {
-        _depth_image = VulkanImage{
+        _depth_image_ref = _vulkan_graphics_backend->resource().make_image(
+            EImageType::DEPTH_ATTACHMENT,
             {
-                _device,
-                {
-                    static_cast<std::int32_t>(_swap_chain.get_extent().width),
-                    static_cast<std::int32_t>(_swap_chain.get_extent().height),
-                    1
-                },
-                findDepthFormat(),
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                1,
-                msaaSamples,
-            }};
+                static_cast<std::int32_t>(_vulkan_window_surface->get_pixel_size().x),
+                static_cast<std::int32_t>(_vulkan_window_surface->get_pixel_size().y),
+                1
+            },
+            findDepthFormat(),
+            1,
+            msaaSamples);
 
-        _depth_image_view = VulkanImageView{
-            {
-                _device,
-                _depth_image.get_native(),
-                findDepthFormat(),
-                VK_IMAGE_ASPECT_DEPTH_BIT,
-                1,
-            }};
+        _depth_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
+            _depth_image_ref,
+            EImageAspect::DEPTH,
+            1);
 
-        auto buffer = _vulkan_command_pool.make_one_time_buffer();
-        _depth_image.transition_layout(
-            buffer,
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-        _vulkan_command_pool.submit_one_time_buffer(buffer);
+        auto cmd_bf = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
+        _vulkan_graphics_backend->device_command().transit_image_layout(
+            cmd_bf,
+            _depth_image_ref,
+            EImageLayout::DEPTH_STENCIL_ATTACHMENT);
+        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(cmd_bf);
     }
 
+    // DONE
     void VulkanRenderer::init_texture()
     {
-        const auto image = asset::ImageLoaderFactory().make()->load_image_from_file("assets/viking_room.png");
+        auto image = asset::ImageLoaderFactory().make()->load_image_from_file("assets/viking_room.png");
         mipLevels = static_cast<uint32_t>(std::floor(
             std::log2(
                 std::max(
@@ -453,72 +221,51 @@ namespace xar_engine::graphics::vulkan::impl
 
         VkDeviceSize imageSize = asset::image::get_byte_size(image);
 
-
-        auto staging_buffer = VulkanBuffer{
-            {
-                _device,
-                imageSize,
-                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            }};
-
-        void* const data = staging_buffer.map();
-        memcpy(
-            data,
+        auto staging_buffer = _vulkan_graphics_backend->resource().make_staging_buffer(imageSize);
+        _vulkan_graphics_backend->host_command().update_buffer(
+            staging_buffer,
             image.bytes.data(),
             static_cast<size_t>(imageSize));
-        staging_buffer.unmap();
 
-        _texture_image = VulkanImage{
-            VulkanImage::Parameters{
-                _device,
-                {image.pixel_width, image.pixel_height, 1},
-                VK_FORMAT_R8G8B8A8_SRGB,
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                mipLevels,
-                VK_SAMPLE_COUNT_1_BIT,
-            }};
+        _texture_image_ref = _vulkan_graphics_backend->resource().make_image(
+            EImageType::TEXTURE,
+            {image.pixel_width, image.pixel_height, 1},
+            EImageFormat::R8G8B8A8_SRGB,
+            mipLevels,
+            1);
 
-        auto buffer = _vulkan_command_pool.make_one_time_buffer();
-        _texture_image.transition_layout(
-            buffer,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        _vulkan_command_pool.submit_one_time_buffer(buffer);
+        auto tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
+        _vulkan_graphics_backend->device_command().transit_image_layout(
+            tmp_command_buffer,
+            _texture_image_ref,
+            EImageLayout::TRANSFER_DESTINATION);
+        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
 
-        copyBufferToImage(
-            staging_buffer.get_native(),
-            _texture_image.get_native(),
-            image.pixel_width,
-            image.pixel_height);
+        tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
+        _vulkan_graphics_backend->device_command().copy_buffer_to_image(
+            tmp_command_buffer,
+            staging_buffer,
+            _texture_image_ref);
+        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
 
-        VkCommandBuffer tempCommandBuffer = _vulkan_command_pool.make_one_time_buffer();
-        _texture_image.generate_mipmaps(tempCommandBuffer);
-        _vulkan_command_pool.submit_one_time_buffer(tempCommandBuffer);
+        tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
+        _vulkan_graphics_backend->device_command().generate_image_mip_maps(tmp_command_buffer, _texture_image_ref);
+        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
+    // DONE
     void VulkanRenderer::init_texture_view()
     {
-        _texture_image_view = VulkanImageView{{
-                                                  _device,
-                                                  _texture_image.get_native(),
-                                                  VK_FORMAT_R8G8B8A8_SRGB,
-                                                  VK_IMAGE_ASPECT_COLOR_BIT,
-                                                  mipLevels,
-                                              }};
+        _texture_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
+            _texture_image_ref,
+            EImageAspect::COLOR,
+            mipLevels);
     }
 
+    // DONE
     void VulkanRenderer::init_sampler()
     {
-        _vulkan_sampler = VulkanSampler{
-            {
-                _device,
-                _physical_device_list[0].get_vk_device_properties().limits.maxSamplerAnisotropy,
-                static_cast<float>(mipLevels),
-            }
-        };
+        _sampler_ref = _vulkan_graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
     }
 
     void VulkanRenderer::run_frame_sandbox()
@@ -532,9 +279,14 @@ namespace xar_engine::graphics::vulkan::impl
                 tag,
                 "Acquire failed because Swapchain is out of date");
 
-            _device.wait_idle();
+            _vulkan_graphics_backend->device_command().wait_idle();
+            _vulkan_graphics_backend->device_command().wait_idle();
             destroy_swapchain();
-            init_swapchain();
+
+            _swap_chain_ref = _vulkan_graphics_backend->resource().make_swap_chain(
+                _vulkan_window_surface,
+                MAX_FRAMES_IN_FLIGHT);
+
             init_color_msaa();
             init_depth();
 
@@ -570,8 +322,9 @@ namespace xar_engine::graphics::vulkan::impl
                 _vk_command_buffers[currentFrame],
                 &beginInfo) != VK_SUCCESS)
             {
-                XAR_THROW(error::XarException,
-                          "failed to begin recording command buffer!");
+                XAR_THROW(
+                    error::XarException,
+                    "failed to begin recording command buffer!");
             }
 
             struct Constants
@@ -744,8 +497,9 @@ namespace xar_engine::graphics::vulkan::impl
 
             if (vkEndCommandBuffer(_vk_command_buffers[currentFrame]) != VK_SUCCESS)
             {
-                XAR_THROW(error::XarException,
-                          "failed to record command buffer!");
+                XAR_THROW(
+                    error::XarException,
+                    "failed to record command buffer!");
             }
 
             updateUniformBuffer(currentFrame);
@@ -759,9 +513,13 @@ namespace xar_engine::graphics::vulkan::impl
                 tag,
                 "Present failed because Swapchain is out of date");
 
-            _device.wait_idle();
+            _vulkan_graphics_backend->device_command().wait_idle();
             destroy_swapchain();
-            init_swapchain();
+
+            _swap_chain_ref = _vulkan_graphics_backend->resource().make_swap_chain(
+                _vulkan_window_surface,
+                MAX_FRAMES_IN_FLIGHT);
+
             init_color_msaa();
             init_depth();
 
@@ -793,30 +551,13 @@ namespace xar_engine::graphics::vulkan::impl
         std::this_thread::sleep_for(16ms);
     }
 
+    // DONE
     void VulkanRenderer::cleanup_sandbox()
     {
-        _device.wait_idle();
+        _vulkan_graphics_backend->device_command().wait_idle();
     }
 
-    void VulkanRenderer::copyBuffer(
-        VkBuffer srcBuffer,
-        VkBuffer dstBuffer,
-        VkDeviceSize size)
-    {
-        VkCommandBuffer tmpCommandBuffer = _vulkan_command_pool.make_one_time_buffer();
-
-        VkBufferCopy copyRegion{};
-        copyRegion.size = size;
-        vkCmdCopyBuffer(
-            tmpCommandBuffer,
-            srcBuffer,
-            dstBuffer,
-            1,
-            &copyRegion);
-
-        _vulkan_command_pool.submit_one_time_buffer(tmpCommandBuffer);
-    }
-
+    // DONE
     void VulkanRenderer::updateUniformBuffer(uint32_t currentImageNr)
     {
         static auto startTime = std::chrono::high_resolution_clock::now();
@@ -850,62 +591,57 @@ namespace xar_engine::graphics::vulkan::impl
 
         ubo.proj = glm::perspective(
             glm::radians(45.0f),
-            _swap_chain.get_extent().width / (float) (_swap_chain.get_extent().height),
+            _vulkan_window_surface->get_pixel_size().x / (float) _vulkan_window_surface->get_pixel_size().y,
             0.1f,
             10.0f);
 
         ubo.proj[1][1] *= -1;
 
-        memcpy(
-            _uniform_buffers_mapped[currentImageNr],
+        _vulkan_graphics_backend->host_command().update_buffer(
+            _uniform_buffer_ref_list[currentImageNr],
             &ubo,
             sizeof(ubo));
     }
 
-    void VulkanRenderer::copyBufferToImage(
-        VkBuffer buffer,
-        VkImage image,
-        uint32_t width,
-        uint32_t height)
+    // DONE
+    EImageFormat VulkanRenderer::findDepthFormat()
     {
-        VkCommandBuffer tempCommandBuffer = _vulkan_command_pool.make_one_time_buffer();
-
-        VkBufferImageCopy region{};
-        region.bufferOffset = 0;
-        region.bufferRowLength = 0;
-        region.bufferImageHeight = 0;
-
-        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = 0;
-        region.imageSubresource.layerCount = 1;
-
-        region.imageOffset = {0, 0, 0};
-        region.imageExtent = {
-            width,
-            height,
-            1
-        };
-
-        vkCmdCopyBufferToImage(
-            tempCommandBuffer,
-            buffer,
-            image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &region
-        );
-
-        _vulkan_command_pool.submit_one_time_buffer(tempCommandBuffer);
-    }
-
-    VkFormat VulkanRenderer::findDepthFormat()
-    {
-        return _physical_device_list[0].find_supported_vk_format(
+        const auto vk_format = _physical_device_list[0].find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
+
+        switch (vk_format)
+        {
+            case VK_FORMAT_D32_SFLOAT:
+            {
+                break;
+            }
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            {
+                XAR_THROW(
+                    error::XarException,
+                    "VK_FORMAT_D32_SFLOAT_S8_UINT not supported");
+                break;
+            }
+            case VK_FORMAT_D24_UNORM_S8_UINT:
+            {
+                XAR_THROW(
+                    error::XarException,
+                    "VK_FORMAT_D24_UNORM_S8_UINT not supported");
+                break;
+            }
+            default:
+            {
+                XAR_THROW(
+                    error::XarException,
+                    "VK_FORMAT not supported");
+                break;
+            }
+        }
+
+        return EImageFormat::D32_SFLOAT;
     }
 }
 
@@ -914,23 +650,23 @@ namespace xar_engine::graphics::vulkan::impl
 {
     VulkanRenderer::VulkanRenderer(
         const std::shared_ptr<VulkanInstance>& vulkan_instance,
-        VkSurfaceKHR vk_surface_khr,
-        const os::IWindow* os_window)
+        std::shared_ptr<VulkanWindowSurface> vulkan_window_surface)
         : _instance(vulkan_instance)
-        , _vulkan_surface(
-            {
-                vulkan_instance,
-                vk_surface_khr,
-            })
-        , _os_window(os_window)
         , frameCounter(0)
+        , _vulkan_window_surface(std::move(vulkan_window_surface))
     {
-        init_device();
-        init_swapchain();
-        init_shaders();
+        _vulkan_graphics_backend = std::make_unique<VulkanGraphicsBackend>();
+        _command_buffer_list = _vulkan_graphics_backend->resource().make_command_buffers(MAX_FRAMES_IN_FLIGHT);
+
+        _swap_chain_ref = _vulkan_graphics_backend->resource().make_swap_chain(
+            _vulkan_window_surface,
+            MAX_FRAMES_IN_FLIGHT);
+
+        _vertex_shader_ref = _vulkan_graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.vert.spv"));
+        _fragment_shader_ref = _vulkan_graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.frag.spv"));
+
         init_descriptor_set_layout();
         init_graphics_pipeline();
-        init_cmd_buffers();
         init_color_msaa();
         init_depth();
         init_texture();

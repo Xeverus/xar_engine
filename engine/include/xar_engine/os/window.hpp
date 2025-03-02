@@ -3,8 +3,9 @@
 #include <functional>
 #include <memory>
 
+#include <xar_engine/graphics/graphics_backend_type.hpp>
 #include <xar_engine/graphics/renderer.hpp>
-#include <xar_engine/graphics/renderer_type.hpp>
+#include <xar_engine/graphics/window_surface.hpp>
 
 #include <xar_engine/input/input_event.hpp>
 
@@ -44,12 +45,12 @@ namespace xar_engine::os
 
         virtual void request_close() = 0;
 
-        virtual std::shared_ptr<graphics::IRenderer> make_renderer(graphics::RendererType renderer_type) = 0;
-
         [[nodiscard]]
         virtual bool close_requested() const = 0;
         [[nodiscard]]
         virtual const std::string& get_title() const = 0;
+        [[nodiscard]]
+        virtual const std::shared_ptr<graphics::IWindowSurface>& get_surface() const = 0;
         [[nodiscard]]
         virtual math::Vector2i32 get_surface_pixel_size() const = 0;
     };
@@ -57,5 +58,6 @@ namespace xar_engine::os
     struct IWindow::Parameters
     {
         std::string title;
+        graphics::EGraphicsBackendType graphics_backend_type;
     };
 }

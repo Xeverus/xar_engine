@@ -31,6 +31,12 @@ namespace xar_engine::graphics::vulkan::impl
         [[nodiscard]]
         VkImage get_native() const;
 
+        [[nodiscard]]
+        math::Vector3i32 get_dimension() const;
+
+        [[nodiscard]]
+        VkFormat get_vk_format() const;
+
     private:
         struct State;
 

@@ -36,7 +36,3 @@ namespace xar_engine::logging
 
 #define XAR_LOG(logging_level, tag, message, ...) \
     XAR_LOG_LOCAL(logging_level, ::xar_engine::os::IServiceRegister::get_instance().get_global_logger(), tag, message, ##__VA_ARGS__)
-
-
-#define XAR_OBJECT_ID(this_pointer) \
-    fmt::format("{:#10x}", reinterpret_cast<std::uint64_t>(this_pointer))

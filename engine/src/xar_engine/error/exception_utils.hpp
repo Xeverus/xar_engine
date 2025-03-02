@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <fmt/core.h>
 
 #include <xar_engine/error/exception.hpp>
@@ -26,5 +28,8 @@ namespace xar_engine::error
 #define XAR_THROW(ExceptionType, message, ...) \
     XAR_THROW_IF(true, ExceptionType, message, ##__VA_ARGS__)
 
+
+#define XAR_OBJECT_ID(this_pointer) \
+    fmt::format("{:#10x}", reinterpret_cast<std::uint64_t>(this_pointer))
 
 }

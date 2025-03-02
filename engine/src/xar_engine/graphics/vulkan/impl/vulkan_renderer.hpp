@@ -7,6 +7,9 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/renderer.hpp>
+#include <xar_engine/graphics/graphics_backend.hpp>
+
+#include <xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp>
 
 #include <xar_engine/graphics/vulkan/impl/vulkan_buffer.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.hpp>
@@ -24,8 +27,6 @@
 #include <xar_engine/graphics/vulkan/impl/vulkan_surface.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp>
-
 #include <xar_engine/os/window.hpp>
 
 
@@ -37,18 +38,14 @@ namespace xar_engine::graphics::vulkan::impl
     public:
         explicit VulkanRenderer(
             const std::shared_ptr<VulkanInstance>& vulkan_instance,
-            VkSurfaceKHR vk_surface_khr,
-            const os::IWindow* os_window);
+            std::shared_ptr<VulkanWindowSurface> vulkan_window_surface);
 
         ~VulkanRenderer() override;
 
         void update() override;
 
     private:
-        void init_device();
         void destroy_swapchain();
-        void init_swapchain();
-        void init_shaders();
         void init_descriptor_set_layout();
         void init_graphics_pipeline();
         void init_vertex_data();
@@ -56,7 +53,6 @@ namespace xar_engine::graphics::vulkan::impl
         void init_model();
         void init_ubo_data();
         void init_descriptors();
-        void init_cmd_buffers();
         void init_color_msaa();
         void init_depth();
         void init_texture();
@@ -68,63 +64,47 @@ namespace xar_engine::graphics::vulkan::impl
         void cleanup_sandbox();
 
     private:
-        void copyBuffer(
-            VkBuffer srcBuffer,
-            VkBuffer dstBuffer,
-            VkDeviceSize size);
-
         void updateUniformBuffer(uint32_t currentImage);
 
-        void copyBufferToImage(
-            VkBuffer buffer,
-            VkImage image,
-            uint32_t width,
-            uint32_t height);
-
-        VkFormat findDepthFormat();
+        EImageFormat findDepthFormat();
 
     private:
-        std::unique_ptr<VulkanGraphicsBackend> _vulkan_graphics_backend;
-
-        const os::IWindow* _os_window;
-
         std::shared_ptr<VulkanInstance> _instance;
-        VulkanSurface _vulkan_surface;
         std::vector<VulkanPhysicalDevice> _physical_device_list;
-        VulkanDevice _device;
-
-        VulkanSwapChain _swap_chain;
-        std::vector<VulkanImageView> _swap_chain_image_views;
-        VulkanImage _depth_image;
-        VulkanImageView _depth_image_view;
-        VulkanImage _color_image;
-        VulkanImageView _color_image_view;
-
-        VulkanImage _texture_image;
-        VulkanImageView _texture_image_view;
-        VulkanSampler _vulkan_sampler;
-
-        VulkanBuffer _vertex_buffer;
-        VulkanBuffer _index_buffer;
-
-        VulkanShader _vertex_shader;
-        VulkanShader _fragment_shader;
-
-        VulkanGraphicsPipeline _vulkan_graphics_pipeline;
-
-        VulkanDescriptorSetLayout _vulkan_descriptor_set_layout;
-        VulkanDescriptorPool _vulkan_descriptor_pool;
-        VulkanDescriptorSet _vulkan_descriptor_sets;
-
-        std::vector<VulkanBuffer> _uniform_buffers;
-        std::vector<void*> _uniform_buffers_mapped;
-
-        std::vector<VkCommandBuffer> _vk_command_buffers;
-        VulkanCommandBufferPool _vulkan_command_pool;
 
         uint32_t mipLevels;
         uint32_t frameCounter;
 
         VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+
+
+        ///////////////////
+        std::shared_ptr<VulkanWindowSurface> _vulkan_window_surface;
+
+        std::unique_ptr<IGraphicsBackend> _vulkan_graphics_backend;
+        std::vector<CommandBufferReference> _command_buffer_list;
+
+        SwapChainReference _swap_chain_ref;
+        ShaderReference _vertex_shader_ref;
+        ShaderReference _fragment_shader_ref;
+
+        BufferReference _vertex_buffer_ref;
+        BufferReference _index_buffer_ref;
+        std::vector<BufferReference> _uniform_buffer_ref_list;
+
+        ImageReference _texture_image_ref;
+        ImageViewReference _texture_image_view_ref;
+        SamplerReference _sampler_ref;
+
+        DescriptorPoolReference _descriptor_pool_ref;
+        DescriptorSetLayoutReference _descriptor_set_layout_ref;
+        DescriptorSetListReference _descriptor_set_list_ref;
+
+        ImageReference _color_image_ref;
+        ImageViewReference _color_image_view_ref;
+        ImageReference _depth_image_ref;
+        ImageViewReference _depth_image_view_ref;
+
+        GraphicsPipelineReference _graphics_pipeline_ref;
     };
 }

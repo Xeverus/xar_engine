@@ -328,4 +328,14 @@ namespace xar_engine::graphics::vulkan::impl
     {
         return _state->vk_image;
     }
+
+    math::Vector3i32 VulkanImage::get_dimension() const
+    {
+        return _state->dimension;
+    }
+
+    VkFormat VulkanImage::get_vk_format() const
+    {
+        return _state->vk_format;
+    }
 }
