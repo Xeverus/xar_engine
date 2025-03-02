@@ -70,7 +70,6 @@ namespace xar_engine::graphics::vulkan::impl
 
     private:
         std::shared_ptr<VulkanInstance> _instance;
-        std::vector<VulkanPhysicalDevice> _physical_device_list;
 
         uint32_t mipLevels;
         uint32_t frameCounter;

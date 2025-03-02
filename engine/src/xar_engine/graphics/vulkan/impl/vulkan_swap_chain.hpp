@@ -39,10 +39,16 @@ namespace xar_engine::graphics::vulkan::impl
         VkExtent2D get_extent() const;
 
         [[nodiscard]]
-        VkFormat get_format() const;
+        VkFormat get_vk_format() const;
 
         [[nodiscard]]
         VkSwapchainKHR get_native() const;
+
+        [[nodiscard]]
+        VkImage get_vk_image(std::uint32_t index) const;
+
+        [[nodiscard]]
+        const VulkanImageView& get_vulkan_image_view(std::uint32_t index) const;
 
     private:
         struct State;
@@ -64,8 +70,6 @@ namespace xar_engine::graphics::vulkan::impl
     struct VulkanSwapChain::BeginFrameResult
     {
         VkResult vk_result;
-        VkImage vk_image;
-        VkImageView vk_image_view;
         std::uint32_t frame_index;
     };
 

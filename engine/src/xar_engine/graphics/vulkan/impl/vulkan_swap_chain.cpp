@@ -230,8 +230,6 @@ namespace xar_engine::graphics::vulkan::impl
 
         return {
             acquire_img_result,
-            _state->vk_images[_state->image_index],
-            _state->vulkan_image_view_list[_state->image_index].get_native(),
             _state->frame_index,
         };
     }
@@ -286,7 +284,7 @@ namespace xar_engine::graphics::vulkan::impl
         return _state->vk_extent_2d;
     }
 
-    VkFormat VulkanSwapChain::get_format() const
+    VkFormat VulkanSwapChain::get_vk_format() const
     {
         return _state->vk_surface_format_khr.format;
     }
@@ -294,5 +292,15 @@ namespace xar_engine::graphics::vulkan::impl
     VkSwapchainKHR VulkanSwapChain::get_native() const
     {
         return _state->vk_swap_chain;
+    }
+
+    VkImage VulkanSwapChain::get_vk_image(std::uint32_t index) const
+    {
+        return _state->vk_images[index];
+    }
+
+    const VulkanImageView& VulkanSwapChain::get_vulkan_image_view(std::uint32_t index) const
+    {
+        return _state->vulkan_image_view_list[index];
     }
 }

@@ -24,6 +24,8 @@ namespace xar_engine::graphics::vulkan
                     return VK_FORMAT_R8G8B8A8_SRGB;
                 }
             }
+
+            return VK_FORMAT_UNDEFINED;
         }
 
         VkImageAspectFlagBits to_vk_aspect(const EImageAspect image_aspect)
@@ -37,6 +39,28 @@ namespace xar_engine::graphics::vulkan
                 case EImageAspect::DEPTH:
                 {
                     return VK_IMAGE_ASPECT_DEPTH_BIT;
+                }
+            }
+
+            return VK_IMAGE_ASPECT_NONE;
+        }
+
+        ESwapChainResult to_xargine(const VkResult vk_result)
+        {
+            switch (vk_result)
+            {
+                case VK_SUCCESS:
+                {
+                    return ESwapChainResult::OK;
+                }
+                case VK_ERROR_OUT_OF_DATE_KHR:
+                case VK_SUBOPTIMAL_KHR:
+                {
+                    return ESwapChainResult::RECREATION_REQUIRED;
+                }
+                default:
+                {
+                    return ESwapChainResult::ERROR;
                 }
             }
         }
@@ -306,15 +330,14 @@ namespace xar_engine::graphics::vulkan
         const ShaderReference& fragment_shader,
         const EImageFormat color_format,
         const EImageFormat depth_format,
-        std::uint32_t sample_counts
-    )
+        std::uint32_t sample_counts)
     {
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(float);
 
-        _vulkan_graphics_pipeline_map.add(
+        return _vulkan_graphics_pipeline_map.add(
             impl::VulkanGraphicsPipeline{
                 {
                     _vulkan_device,
@@ -481,6 +504,30 @@ namespace xar_engine::graphics::vulkan
         vulkan_buffer.unmap();
     }
 
+    std::tuple<ESwapChainResult, std::uint32_t> VulkanGraphicsBackend::begin_frame(const SwapChainReference& swap_chain)
+    {
+        const auto result = get_object(swap_chain).begin_frame();
+
+        return {
+            to_xargine(result.vk_result),
+            result.frame_index
+        };
+    }
+
+    std::uint32_t VulkanGraphicsBackend::get_sample_count() const
+    {
+        return _vk_sample_count_flag_bits;
+    }
+
+    ESwapChainResult VulkanGraphicsBackend::end_frame(
+        const CommandBufferReference& command_buffer,
+        const SwapChainReference& swap_chain)
+    {
+        const auto result = get_object(swap_chain).end_frame(get_object(command_buffer));
+
+        return to_xargine(result.vk_result);
+    }
+
     void VulkanGraphicsBackend::copy_buffer(
         const CommandBufferReference& command_buffer,
         const BufferReference& source_buffer,
@@ -559,9 +606,25 @@ namespace xar_engine::graphics::vulkan
         const ImageReference& image,
         EImageLayout new_image_layout)
     {
-        const auto new_vk_image_layout =
-            new_image_layout == EImageLayout::TRANSFER_DESTINATION ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
-                                                                   : VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageLayout new_vk_image_layout = {};
+        switch (new_image_layout)
+        {
+            case EImageLayout::TRANSFER_DESTINATION:
+            {
+                new_vk_image_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                break;
+            }
+            case EImageLayout::DEPTH_STENCIL_ATTACHMENT:
+            {
+                new_vk_image_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                break;
+            }
+            default:
+            {
+                new_vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+                break;
+            }
+        }
 
         get_object(image).transition_layout(
             get_object(command_buffer),
@@ -571,6 +634,212 @@ namespace xar_engine::graphics::vulkan
     void VulkanGraphicsBackend::wait_idle()
     {
         _vulkan_device.wait_idle();
+    }
+
+    void VulkanGraphicsBackend::TMP_RECORD_FRAME(
+        const CommandBufferReference& command_buffer,
+        const SwapChainReference& swap_chain,
+        const GraphicsPipelineReference& graphics_pipeline,
+        std::uint32_t frame_index,
+        const DescriptorSetListReference& descriptor_set_list,
+        const BufferReference& vertex_buffer,
+        const BufferReference& index_buffer,
+        const ImageViewReference& color_image_view,
+        const ImageViewReference& depth_image_view,
+        const std::uint32_t index_counts)
+    {
+        vkResetCommandBuffer(
+            get_object(command_buffer),
+            0);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = 0; // Optional
+        beginInfo.pInheritanceInfo = nullptr; // Optional
+
+        if (vkBeginCommandBuffer(
+            get_object(command_buffer),
+            &beginInfo) != VK_SUCCESS)
+        {
+            XAR_THROW(
+                error::XarException,
+                "failed to begin recording command buffer!");
+        }
+
+        struct Constants
+        {
+            float time;
+        };
+
+        const VkImageMemoryBarrier image_memory_barrier_start{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .image = get_object(swap_chain).get_vk_image(frame_index),
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            }
+        };
+
+        vkCmdPipelineBarrier(
+            get_object(command_buffer),
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1, // imageMemoryBarrierCount
+            &image_memory_barrier_start // pImageMemoryBarriers
+        );
+
+        VkClearValue clearColorColor{};
+        clearColorColor.color = {0.0f, 0.0f, 0.0f, 1.0f};
+
+        VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
+        vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+        vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
+        vkRenderingAttachmentInfoColor.imageView = get_object(color_image_view).get_native();
+        vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+        vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+        vkRenderingAttachmentInfoColor.resolveImageView = get_object(swap_chain).get_vulkan_image_view(frame_index).get_native();
+
+        VkClearValue clearDepthColor{};
+        clearDepthColor.depthStencil = {1.0f, 0};
+
+        VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
+        vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+        vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
+        vkRenderingAttachmentInfoDepth.imageView = get_object(depth_image_view).get_native();
+        vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+        VkRenderingInfoKHR renderingInfo{};
+        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
+        renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
+        renderingInfo.renderArea = VkRect2D{VkOffset2D{}, get_object(swap_chain).get_extent()};
+        renderingInfo.layerCount = 1;
+
+        vkCmdBeginRenderingKHR(
+            get_object(command_buffer),
+            &renderingInfo);
+
+        vkCmdBindPipeline(
+            get_object(command_buffer),
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            get_object(graphics_pipeline).get_native_pipeline());
+
+        const Constants pc = {static_cast<float>(0)};
+        vkCmdPushConstants(
+            get_object(command_buffer),
+            get_object(graphics_pipeline).get_native_pipeline_layout(),
+            VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(Constants),
+            &pc);
+
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float) get_object(swap_chain).get_extent().width;
+        viewport.height = (float) get_object(swap_chain).get_extent().height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(
+            get_object(command_buffer),
+            0,
+            1,
+            &viewport);
+
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = get_object(swap_chain).get_extent();
+        vkCmdSetScissor(
+            get_object(command_buffer),
+            0,
+            1,
+            &scissor);
+
+        VkBuffer vertexBuffers[] = {get_object(vertex_buffer).get_native()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(
+            get_object(command_buffer),
+            0,
+            1,
+            vertexBuffers,
+            offsets);
+        vkCmdBindIndexBuffer(
+            get_object(command_buffer),
+            get_object(index_buffer).get_native(),
+            0,
+            VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(
+            get_object(command_buffer),
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            get_object(graphics_pipeline).get_native_pipeline_layout(),
+            0,
+            1,
+            &get_object(descriptor_set_list).get_native()[frame_index],
+            0,
+            nullptr);
+
+        vkCmdDrawIndexed(
+            get_object(command_buffer),
+            static_cast<uint32_t>(index_counts),
+            1,
+            0,
+            0,
+            0);
+
+        vkCmdEndRenderingKHR(get_object(command_buffer));
+
+        const VkImageMemoryBarrier image_memory_barrier_end{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .image = get_object(swap_chain).get_vk_image(frame_index),
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            }
+        };
+
+        vkCmdPipelineBarrier(
+            get_object(command_buffer),
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1, // imageMemoryBarrierCount
+            &image_memory_barrier_end // pImageMemoryBarriers
+        );
+
+        if (vkEndCommandBuffer(get_object(command_buffer)) != VK_SUCCESS)
+        {
+            XAR_THROW(
+                error::XarException,
+                "failed to record command buffer!");
+        }
     }
 
     impl::VulkanBuffer& VulkanGraphicsBackend::get_object(const BufferReference& reference)
@@ -598,6 +867,11 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_descriptor_layout_map.get_object(reference);
     }
 
+    impl::VulkanGraphicsPipeline VulkanGraphicsBackend::get_object(const GraphicsPipelineReference& reference)
+    {
+        return _vulkan_graphics_pipeline_map.get_object(reference);
+    }
+
     impl::VulkanImage VulkanGraphicsBackend::get_object(const ImageReference& reference)
     {
         return _vulkan_image_map.get_object(reference);
@@ -616,5 +890,10 @@ namespace xar_engine::graphics::vulkan
     impl::VulkanShader VulkanGraphicsBackend::get_object(const ShaderReference& reference)
     {
         return _vulkan_shader_map.get_object(reference);
+    }
+
+    impl::VulkanSwapChain VulkanGraphicsBackend::get_object(const SwapChainReference& reference)
+    {
+        return _vulkan_swap_chain_map.get_object(reference);
     }
 }

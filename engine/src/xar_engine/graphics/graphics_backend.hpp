@@ -62,6 +62,13 @@ namespace xar_engine::graphics
         DEPTH,
     };
 
+    enum class ESwapChainResult
+    {
+        OK,
+        RECREATION_REQUIRED,
+        ERROR,
+    };
+
 
     class IGraphicsBackendResource
     {
@@ -127,6 +134,12 @@ namespace xar_engine::graphics
             const BufferReference& buffer,
             void* data,
             std::uint32_t data_byte_size) = 0;
+
+        virtual std::tuple<ESwapChainResult, std::uint32_t> begin_frame(
+            const SwapChainReference& swap_chain) = 0;
+
+        [[nodiscard]]
+        virtual std::uint32_t get_sample_count() const = 0;
     };
 
 
@@ -145,6 +158,10 @@ namespace xar_engine::graphics
             const BufferReference& source_buffer,
             const ImageReference& target_image) = 0;
 
+        virtual ESwapChainResult end_frame(
+            const CommandBufferReference& command_buffer,
+            const SwapChainReference& swap_chain) = 0;
+
         virtual void generate_image_mip_maps(
             const CommandBufferReference& command_buffer,
             const ImageReference& image) = 0;
@@ -157,6 +174,18 @@ namespace xar_engine::graphics
             EImageLayout new_image_layout) = 0;
 
         virtual void wait_idle() = 0;
+
+        virtual void TMP_RECORD_FRAME(
+            const CommandBufferReference& command_buffer,
+            const SwapChainReference& swap_chain,
+            const GraphicsPipelineReference& graphics_pipeline,
+            std::uint32_t frame_index,
+            const DescriptorSetListReference& descriptor_set_list,
+            const BufferReference& vertex_buffer,
+            const BufferReference& index_buffer,
+            const ImageViewReference& color_image_view,
+            const ImageViewReference& depth_image_view,
+            std::uint32_t index_counts) = 0;
     };
 
 

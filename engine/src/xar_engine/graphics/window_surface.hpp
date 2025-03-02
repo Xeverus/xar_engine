@@ -10,6 +10,7 @@ namespace xar_engine::graphics
     public:
         virtual ~IWindowSurface();
 
+        [[nodiscard]]
         virtual math::Vector2i32 get_pixel_size() const = 0;
     };
 }

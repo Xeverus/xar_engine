@@ -100,6 +100,11 @@ namespace xar_engine::graphics::vulkan
             void* data,
             std::uint32_t data_byte_size) override;
 
+        std::tuple<ESwapChainResult, std::uint32_t> begin_frame(const SwapChainReference& swap_chain) override;
+
+        [[nodiscard]]
+        std::uint32_t get_sample_count() const override;
+
 
     public: // IGraphicsBackendDeviceCommand
         void copy_buffer(
@@ -111,6 +116,10 @@ namespace xar_engine::graphics::vulkan
             const CommandBufferReference& command_buffer,
             const BufferReference& source_buffer,
             const ImageReference& target_image) override;
+
+        virtual ESwapChainResult end_frame(
+            const CommandBufferReference& command_buffer,
+            const SwapChainReference& swap_chain) override;
 
         void generate_image_mip_maps(
             const CommandBufferReference& command_buffer,
@@ -125,16 +134,30 @@ namespace xar_engine::graphics::vulkan
 
         void wait_idle() override;
 
+        void TMP_RECORD_FRAME(
+            const CommandBufferReference& command_buffer,
+            const SwapChainReference& swap_chain,
+            const GraphicsPipelineReference& graphics_pipeline,
+            std::uint32_t frame_index,
+            const DescriptorSetListReference& descriptor_set_list,
+            const BufferReference& vertex_buffer,
+            const BufferReference& index_buffer,
+            const ImageViewReference& color_image_view,
+            const ImageViewReference& depth_image_view,
+            std::uint32_t index_counts);
+
     private:
         impl::VulkanBuffer& get_object(const BufferReference& reference);
         VkCommandBuffer get_object(const CommandBufferReference& reference);
         impl::VulkanDescriptorPool get_object(const DescriptorPoolReference& reference);
         impl::VulkanDescriptorSet get_object(const DescriptorSetListReference& reference);
         impl::VulkanDescriptorSetLayout get_object(const DescriptorSetLayoutReference& reference);
+        impl::VulkanGraphicsPipeline get_object(const GraphicsPipelineReference& reference);
         impl::VulkanImage get_object(const ImageReference& reference);
         impl::VulkanImageView get_object(const ImageViewReference& reference);
         impl::VulkanSampler get_object(const SamplerReference& reference);
         impl::VulkanShader get_object(const ShaderReference& reference);
+        impl::VulkanSwapChain get_object(const SwapChainReference& reference);
 
     private:
         TResourceMap<BufferTag, impl::VulkanBuffer> _vulkan_buffer_map;

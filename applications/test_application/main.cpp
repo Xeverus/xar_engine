@@ -1,4 +1,3 @@
-#include <xar_engine/logging/console_logger.hpp>
 #include <xar_engine/logging/logger.hpp>
 
 #include <xar_engine/meta/overloaded.hpp>
@@ -10,7 +9,7 @@ int main()
 {
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
-    auto renderer = window->make_renderer(xar_engine::graphics::EGraphicsBackendType::VULKAN);
+    auto renderer = window->TMP_MAKE_RENDERER();
 
     window->set_on_update(
         [&]()

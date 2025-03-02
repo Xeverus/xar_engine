@@ -53,6 +53,8 @@ namespace xar_engine::graphics::vulkan::impl
 
         _depth_image_view_ref = {};
         _depth_image_ref = {};
+
+        _swap_chain_ref = {};
     }
 
     // DONE
@@ -70,7 +72,7 @@ namespace xar_engine::graphics::vulkan::impl
             _fragment_shader_ref,
             EImageFormat::R8G8B8A8_SRGB,
             findDepthFormat(),
-            msaaSamples);
+            _vulkan_graphics_backend->host_command().get_sample_count());
     }
 
     // DONE
@@ -142,7 +144,7 @@ namespace xar_engine::graphics::vulkan::impl
     // DONE
     void VulkanRenderer::init_ubo_data()
     {
-        _uniform_buffer_ref_list.resize(MAX_FRAMES_IN_FLIGHT);
+        _uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             _uniform_buffer_ref_list.push_back(_vulkan_graphics_backend->resource().make_uniform_buffer(sizeof(UniformBufferObject)));
@@ -173,7 +175,7 @@ namespace xar_engine::graphics::vulkan::impl
             },
             EImageFormat::R8G8B8A8_SRGB,
             1,
-            msaaSamples);
+            _vulkan_graphics_backend->host_command().get_sample_count());
 
 
         _color_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
@@ -194,7 +196,7 @@ namespace xar_engine::graphics::vulkan::impl
             },
             findDepthFormat(),
             1,
-            msaaSamples);
+            _vulkan_graphics_backend->host_command().get_sample_count());
 
         _depth_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
             _depth_image_ref,
@@ -239,17 +241,13 @@ namespace xar_engine::graphics::vulkan::impl
             tmp_command_buffer,
             _texture_image_ref,
             EImageLayout::TRANSFER_DESTINATION);
-        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
-
-        tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
         _vulkan_graphics_backend->device_command().copy_buffer_to_image(
             tmp_command_buffer,
             staging_buffer,
             _texture_image_ref);
-        _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
-
-        tmp_command_buffer = _vulkan_graphics_backend->resource().make_one_time_command_buffer();
-        _vulkan_graphics_backend->device_command().generate_image_mip_maps(tmp_command_buffer, _texture_image_ref);
+        _vulkan_graphics_backend->device_command().generate_image_mip_maps(
+            tmp_command_buffer,
+            _texture_image_ref);
         _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
@@ -270,16 +268,15 @@ namespace xar_engine::graphics::vulkan::impl
 
     void VulkanRenderer::run_frame_sandbox()
     {
-        const auto begin_frame_result = _swap_chain.begin_frame();
+        const auto begin_frame_result = _vulkan_graphics_backend->host_command().begin_frame(_swap_chain_ref);
 
-        if (begin_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR)
+        if (std::get<0>(begin_frame_result) == ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
                 tag,
                 "Acquire failed because Swapchain is out of date");
 
-            _vulkan_graphics_backend->device_command().wait_idle();
             _vulkan_graphics_backend->device_command().wait_idle();
             destroy_swapchain();
 
@@ -296,7 +293,7 @@ namespace xar_engine::graphics::vulkan::impl
                 "Acquire failed because Swapchain is out of date but swapchain was recreated");
             return;
         }
-        else if (begin_frame_result.vk_result != VK_SUCCESS && begin_frame_result.vk_result != VK_SUBOPTIMAL_KHR)
+        else if (std::get<0>(begin_frame_result) != ESwapChainResult::OK)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -305,208 +302,24 @@ namespace xar_engine::graphics::vulkan::impl
             return;
         }
 
-        const auto currentFrame = begin_frame_result.frame_index;
+        const auto currentFrame = std::get<1>(begin_frame_result);
 
-        // Record CMD buffer
-        {
-            vkResetCommandBuffer(
-                _vk_command_buffers[currentFrame],
-                0);
+        _vulkan_graphics_backend->device_command().TMP_RECORD_FRAME(
+            _command_buffer_list[currentFrame],
+            _swap_chain_ref,
+            _graphics_pipeline_ref,
+            currentFrame,
+            _descriptor_set_list_ref,
+            _vertex_buffer_ref,
+            _index_buffer_ref,
+            _color_image_view_ref,
+            _depth_image_view_ref,
+            indices.size());
 
-            VkCommandBufferBeginInfo beginInfo{};
-            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = 0; // Optional
-            beginInfo.pInheritanceInfo = nullptr; // Optional
+        updateUniformBuffer(currentFrame);
 
-            if (vkBeginCommandBuffer(
-                _vk_command_buffers[currentFrame],
-                &beginInfo) != VK_SUCCESS)
-            {
-                XAR_THROW(
-                    error::XarException,
-                    "failed to begin recording command buffer!");
-            }
-
-            struct Constants
-            {
-                float time;
-            };
-
-            const VkImageMemoryBarrier image_memory_barrier_start{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .image = begin_frame_result.vk_image,
-                .subresourceRange = {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1,
-                }
-            };
-
-            vkCmdPipelineBarrier(
-                _vk_command_buffers[currentFrame],
-                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
-                0,
-                0,
-                nullptr,
-                0,
-                nullptr,
-                1, // imageMemoryBarrierCount
-                &image_memory_barrier_start // pImageMemoryBarriers
-            );
-
-            VkClearValue clearColorColor{};
-            clearColorColor.color = {0.0f, 0.0f, 0.0f, 1.0f};
-
-            VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
-            vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-            vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
-            vkRenderingAttachmentInfoColor.imageView = _color_image_view.get_native();
-            vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-            vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-            vkRenderingAttachmentInfoColor.resolveImageView = begin_frame_result.vk_image_view;
-
-            VkClearValue clearDepthColor{};
-            clearDepthColor.depthStencil = {1.0f, 0};
-
-            VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
-            vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-            vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
-            vkRenderingAttachmentInfoDepth.imageView = _depth_image_view.get_native();
-            vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-            VkRenderingInfoKHR renderingInfo{};
-            renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
-            renderingInfo.colorAttachmentCount = 1;
-            renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
-            renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
-            renderingInfo.renderArea = VkRect2D{VkOffset2D{}, _swap_chain.get_extent()};
-            renderingInfo.layerCount = 1;
-
-            vkCmdBeginRenderingKHR(
-                _vk_command_buffers[currentFrame],
-                &renderingInfo);
-
-            vkCmdBindPipeline(
-                _vk_command_buffers[currentFrame],
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                _vulkan_graphics_pipeline.get_native_pipeline());
-
-            const Constants pc = {static_cast<float>(frameCounter)};
-            vkCmdPushConstants(
-                _vk_command_buffers[currentFrame],
-                _vulkan_graphics_pipeline.get_native_pipeline_layout(),
-                VK_SHADER_STAGE_FRAGMENT_BIT,
-                0,
-                sizeof(Constants),
-                &pc);
-
-            VkViewport viewport{};
-            viewport.x = 0.0f;
-            viewport.y = 0.0f;
-            viewport.width = (float) _swap_chain.get_extent().width;
-            viewport.height = (float) _swap_chain.get_extent().height;
-            viewport.minDepth = 0.0f;
-            viewport.maxDepth = 1.0f;
-            vkCmdSetViewport(
-                _vk_command_buffers[currentFrame],
-                0,
-                1,
-                &viewport);
-
-            VkRect2D scissor{};
-            scissor.offset = {0, 0};
-            scissor.extent = _swap_chain.get_extent();
-            vkCmdSetScissor(
-                _vk_command_buffers[currentFrame],
-                0,
-                1,
-                &scissor);
-
-            VkBuffer vertexBuffers[] = {_vertex_buffer.get_native()};
-            VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(
-                _vk_command_buffers[currentFrame],
-                0,
-                1,
-                vertexBuffers,
-                offsets);
-            vkCmdBindIndexBuffer(
-                _vk_command_buffers[currentFrame],
-                _index_buffer.get_native(),
-                0,
-                VK_INDEX_TYPE_UINT32);
-
-            vkCmdBindDescriptorSets(
-                _vk_command_buffers[currentFrame],
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                _vulkan_graphics_pipeline.get_native_pipeline_layout(),
-                0,
-                1,
-                &_vulkan_descriptor_sets.get_native()[currentFrame],
-                0,
-                nullptr);
-
-            vkCmdDrawIndexed(
-                _vk_command_buffers[currentFrame],
-                static_cast<uint32_t>(indices.size()),
-                1,
-                0,
-                0,
-                0);
-
-            vkCmdEndRenderingKHR(_vk_command_buffers[currentFrame]);
-
-            const VkImageMemoryBarrier image_memory_barrier_end{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .image = begin_frame_result.vk_image,
-                .subresourceRange = {
-                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .baseMipLevel = 0,
-                    .levelCount = 1,
-                    .baseArrayLayer = 0,
-                    .layerCount = 1,
-                }
-            };
-
-            vkCmdPipelineBarrier(
-                _vk_command_buffers[currentFrame],
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
-                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
-                0,
-                0,
-                nullptr,
-                0,
-                nullptr,
-                1, // imageMemoryBarrierCount
-                &image_memory_barrier_end // pImageMemoryBarriers
-            );
-
-            if (vkEndCommandBuffer(_vk_command_buffers[currentFrame]) != VK_SUCCESS)
-            {
-                XAR_THROW(
-                    error::XarException,
-                    "failed to record command buffer!");
-            }
-
-            updateUniformBuffer(currentFrame);
-        }
-
-        const auto end_frame_result = _swap_chain.end_frame(_vk_command_buffers[currentFrame]);
-        if (end_frame_result.vk_result == VK_ERROR_OUT_OF_DATE_KHR || end_frame_result.vk_result == VK_SUBOPTIMAL_KHR)
+        const auto end_result = _vulkan_graphics_backend->device_command().end_frame(_command_buffer_list[currentFrame], _swap_chain_ref);
+        if (end_result == ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -528,7 +341,7 @@ namespace xar_engine::graphics::vulkan::impl
                 tag,
                 "Present failed because Swapchain is out of date but swapchain was recreated");
         }
-        else if (end_frame_result.vk_result != VK_SUCCESS)
+        else if (end_result != ESwapChainResult::OK)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -548,7 +361,7 @@ namespace xar_engine::graphics::vulkan::impl
         ++frameCounter;
 
         using namespace std::chrono_literals;
-        std::this_thread::sleep_for(16ms);
+        std::this_thread::sleep_for(10ms);
     }
 
     // DONE
@@ -606,11 +419,13 @@ namespace xar_engine::graphics::vulkan::impl
     // DONE
     EImageFormat VulkanRenderer::findDepthFormat()
     {
-        const auto vk_format = _physical_device_list[0].find_supported_vk_format(
+        /*const auto vk_format = _physical_device_list[0].find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
-        );
+        );*/
+
+        const auto vk_format =  VK_FORMAT_D32_SFLOAT;
 
         switch (vk_format)
         {

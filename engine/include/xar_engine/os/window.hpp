@@ -5,12 +5,15 @@
 
 #include <xar_engine/graphics/graphics_backend_type.hpp>
 #include <xar_engine/graphics/renderer.hpp>
-#include <xar_engine/graphics/window_surface.hpp>
 
 #include <xar_engine/input/input_event.hpp>
 
 #include <xar_engine/math/vector.hpp>
 
+namespace xar_engine::graphics
+{
+    class IWindowSurface;
+}
 
 namespace xar_engine::os
 {
@@ -53,6 +56,8 @@ namespace xar_engine::os
         virtual const std::shared_ptr<graphics::IWindowSurface>& get_surface() const = 0;
         [[nodiscard]]
         virtual math::Vector2i32 get_surface_pixel_size() const = 0;
+
+        virtual std::shared_ptr<graphics::IRenderer> TMP_MAKE_RENDERER() const = 0;
     };
 
     struct IWindow::Parameters

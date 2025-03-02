@@ -205,7 +205,8 @@ namespace xar_engine::os
 
         _window_surface = std::make_shared<graphics::vulkan::VulkanWindowSurface>(
             vulkan_instance,
-            vk_surface_khr);
+            vk_surface_khr,
+            this);
     }
 
     GlfwWindow::~GlfwWindow()
@@ -365,5 +366,12 @@ namespace xar_engine::os
             width,
             height
         };
+    }
+
+    std::shared_ptr<graphics::IRenderer> GlfwWindow::TMP_MAKE_RENDERER() const
+    {
+        return std::make_shared<graphics::vulkan::impl::VulkanRenderer>(
+            meta::RefCountedSingleton::get_instance<graphics::vulkan::impl::VulkanInstance>(),
+            std::dynamic_pointer_cast<graphics::vulkan::VulkanWindowSurface>(get_surface()));
     }
 }
