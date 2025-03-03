@@ -16,29 +16,13 @@ namespace xar_engine::graphics::vulkan::impl
 
     public:
         VulkanDevice vulkan_device;
-
-        std::vector<VkDescriptorSet> vk_descriptor_set_list;
+        VkDescriptorSet vk_descriptor_set;
     };
 
     VulkanDescriptorSet::State::State(const VulkanDescriptorSet::Parameters& parameters)
         : vulkan_device{parameters.vulkan_device}
-        , vk_descriptor_set_list{}
+        , vk_descriptor_set{parameters.vk_descriptor_set}
     {
-        auto vk_descriptor_set_allocate_info = VkDescriptorSetAllocateInfo{};
-        vk_descriptor_set_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        vk_descriptor_set_allocate_info.descriptorPool = parameters.vulkan_descriptor_pool.get_native();
-        vk_descriptor_set_allocate_info.descriptorSetCount = static_cast<uint32_t>(parameters.vk_descriptor_set_layout_list.size());
-        vk_descriptor_set_allocate_info.pSetLayouts = parameters.vk_descriptor_set_layout_list.data();
-
-        vk_descriptor_set_list.resize(parameters.vk_descriptor_set_layout_list.size());
-        const auto vk_allocate_descritptor_sets_result = vkAllocateDescriptorSets(
-            vulkan_device.get_native(),
-            &vk_descriptor_set_allocate_info,
-            vk_descriptor_set_list.data());
-        XAR_THROW_IF(
-            vk_allocate_descritptor_sets_result != VK_SUCCESS,
-            error::XarException,
-            "Allocate descriptor sets failed");
     }
 
     VulkanDescriptorSet::State::~State() = default;
@@ -66,8 +50,8 @@ namespace xar_engine::graphics::vulkan::impl
             nullptr);
     }
 
-    const std::vector<VkDescriptorSet>& VulkanDescriptorSet::get_native() const
+    VkDescriptorSet VulkanDescriptorSet::get_native() const
     {
-        return _state->vk_descriptor_set_list;
+        return _state->vk_descriptor_set;
     }
 }

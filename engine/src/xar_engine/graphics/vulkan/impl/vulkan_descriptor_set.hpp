@@ -25,7 +25,7 @@ namespace xar_engine::graphics::vulkan::impl
         void write(const std::vector<VkWriteDescriptorSet>& vk_write_descriptor_set_list);
 
         [[nodiscard]]
-        const std::vector<VkDescriptorSet>& get_native() const;
+        VkDescriptorSet get_native() const;
 
     private:
         struct State;
@@ -38,6 +38,6 @@ namespace xar_engine::graphics::vulkan::impl
     {
         VulkanDevice vulkan_device;
         VulkanDescriptorPool vulkan_descriptor_pool;
-        std::vector<VkDescriptorSetLayout> vk_descriptor_set_layout_list;
+        VkDescriptorSet vk_descriptor_set;
     };
 }

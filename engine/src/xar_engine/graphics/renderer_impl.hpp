@@ -61,7 +61,7 @@ namespace xar_engine::graphics
 
         DescriptorPoolReference _descriptor_pool_ref;
         DescriptorSetLayoutReference _descriptor_set_layout_ref;
-        DescriptorSetListReference _descriptor_set_list_ref;
+        std::vector<DescriptorSetReference> _descriptor_set_list_ref;
 
         ImageReference _color_image_ref;
         ImageViewReference _color_image_view_ref;

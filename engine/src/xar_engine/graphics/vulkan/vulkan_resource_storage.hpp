@@ -33,8 +33,8 @@ namespace xar_engine::graphics::vulkan
         const impl::VulkanDescriptorPool& get(const DescriptorPoolReference& reference) const;
         impl::VulkanDescriptorPool& get(const DescriptorPoolReference& reference);
 
-        const impl::VulkanDescriptorSet& get(const DescriptorSetListReference& reference) const;
-        impl::VulkanDescriptorSet& get(const DescriptorSetListReference& reference);
+        const impl::VulkanDescriptorSet& get(const DescriptorSetReference& reference) const;
+        impl::VulkanDescriptorSet& get(const DescriptorSetReference& reference);
 
         const impl::VulkanDescriptorSetLayout& get(const DescriptorSetLayoutReference& reference) const;
         impl::VulkanDescriptorSetLayout& get(const DescriptorSetLayoutReference& reference);
@@ -67,7 +67,7 @@ namespace xar_engine::graphics::vulkan
 
         DescriptorPoolReference add(impl::VulkanDescriptorPool resource);
 
-        DescriptorSetListReference add(impl::VulkanDescriptorSet resource);
+        DescriptorSetReference add(impl::VulkanDescriptorSet resource);
 
         DescriptorSetLayoutReference add(impl::VulkanDescriptorSetLayout resource);
 
@@ -89,7 +89,7 @@ namespace xar_engine::graphics::vulkan
         TResourceMap<BufferTag, impl::VulkanBuffer> _vulkan_buffer_map;
         TResourceMap<CommandBufferTag, impl::VulkanCommandBuffer> _vulkan_command_buffer_map;
         TResourceMap<DescriptorPoolTag, impl::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
-        TResourceMap<DescriptorSetListTag, impl::VulkanDescriptorSet> _vulkan_descriptor_set_map;
+        TResourceMap<DescriptorSetTag, impl::VulkanDescriptorSet> _vulkan_descriptor_set_map;
         TResourceMap<DescriptorSetLayoutTag, impl::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
         TResourceMap<GrahicsPipelineTag, impl::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
         TResourceMap<ImageTag, impl::VulkanImage> _vulkan_image_map;

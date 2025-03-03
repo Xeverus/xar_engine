@@ -34,12 +34,12 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_descriptor_pool_map.get_object(reference);
     }
 
-    const impl::VulkanDescriptorSet& VulkanResourceStorage::get(const DescriptorSetListReference& reference) const
+    const impl::VulkanDescriptorSet& VulkanResourceStorage::get(const DescriptorSetReference& reference) const
     {
         return _vulkan_descriptor_set_map.get_object(reference);
     }
 
-    impl::VulkanDescriptorSet& VulkanResourceStorage::get(const DescriptorSetListReference& reference)
+    impl::VulkanDescriptorSet& VulkanResourceStorage::get(const DescriptorSetReference& reference)
     {
         return _vulkan_descriptor_set_map.get_object(reference);
     }
@@ -140,7 +140,7 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_descriptor_pool_map.add(std::move(resource));
     }
 
-    DescriptorSetListReference VulkanResourceStorage::add(impl::VulkanDescriptorSet resource)
+    DescriptorSetReference VulkanResourceStorage::add(impl::VulkanDescriptorSet resource)
     {
         return _vulkan_descriptor_set_map.add(std::move(resource));
     }

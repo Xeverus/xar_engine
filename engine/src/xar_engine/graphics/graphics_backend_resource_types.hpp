@@ -8,7 +8,7 @@ namespace xar_engine::graphics
     enum class BufferTag;
     enum class CommandBufferTag;
     enum class DescriptorPoolTag;
-    enum class DescriptorSetListTag;
+    enum class DescriptorSetTag;
     enum class DescriptorSetLayoutTag;
     enum class GrahicsPipelineTag;
     enum class ImageTag;
@@ -22,7 +22,7 @@ namespace xar_engine::graphics
     using BufferReference = TResourceReference<BufferTag>;
     using CommandBufferReference = TResourceReference<CommandBufferTag>;
     using DescriptorPoolReference = TResourceReference<DescriptorPoolTag>;
-    using DescriptorSetListReference = TResourceReference<DescriptorSetListTag>;
+    using DescriptorSetReference = TResourceReference<DescriptorSetTag>;
     using DescriptorSetLayoutReference = TResourceReference<DescriptorSetLayoutTag>;
     using GraphicsPipelineReference = TResourceReference<GrahicsPipelineTag>;
     using ImageReference = TResourceReference<ImageTag>;

@@ -230,7 +230,7 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    DescriptorSetListReference VulkanGraphicsBackend::make_descriptor_set_list(
+    std::vector<DescriptorSetReference> VulkanGraphicsBackend::make_descriptor_set_list(
         const DescriptorPoolReference& descriptor_pool,
         const DescriptorSetLayoutReference& descriptor_set_layout,
         const std::vector<BufferReference>& uniform_buffer_list,
@@ -241,14 +241,12 @@ namespace xar_engine::graphics::vulkan
             MAX_FRAMES_IN_FLIGHT,
             _vulkan_resource_storage.get(descriptor_set_layout).get_native());
 
-        auto descriptor_set_list = _vulkan_resource_storage.add(
-            impl::VulkanDescriptorSet{
-                {
-                    _vulkan_device,
-                    _vulkan_resource_storage.get(descriptor_pool),
-                    std::move(layouts),
-                }});
-        auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_set_list);
+        auto vulkan_descriptor_set_ref_list = std::vector<DescriptorSetReference>();
+        auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_pool).make_descriptor_set_list(layouts);
+        for (auto& vulkan_descriptor_set : vulkan_descriptor_set_list)
+        {
+            vulkan_descriptor_set_ref_list.push_back(_vulkan_resource_storage.add(vulkan_descriptor_set));
+        }
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
@@ -266,7 +264,7 @@ namespace xar_engine::graphics::vulkan
 
             std::vector<VkWriteDescriptorSet> descriptorWrites(2);
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = vulkan_descriptor_set_list.get_native()[i];
+            descriptorWrites[0].dstSet = vulkan_descriptor_set_list[i].get_native();
             descriptorWrites[0].dstBinding = 0;
             descriptorWrites[0].dstArrayElement = 0;
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -276,7 +274,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = vulkan_descriptor_set_list.get_native()[i];
+            descriptorWrites[1].dstSet = vulkan_descriptor_set_list[i].get_native();
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -285,10 +283,10 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[1].pImageInfo = &imageInfo; // Optional
             descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
-            vulkan_descriptor_set_list.write(descriptorWrites);
+            vulkan_descriptor_set_list[i].write(descriptorWrites);
         }
 
-        return descriptor_set_list;
+        return vulkan_descriptor_set_ref_list;
     }
 
     DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout()
@@ -688,8 +686,7 @@ namespace xar_engine::graphics::vulkan
         const SwapChainReference& swap_chain,
         const GraphicsPipelineReference& graphics_pipeline,
         std::uint32_t image_index,
-        std::uint32_t frame_buffer_index,
-        const DescriptorSetListReference& descriptor_set_list,
+        const DescriptorSetReference& descriptor_set,
         const BufferReference& vertex_buffer,
         const BufferReference& index_buffer,
         const ImageViewReference& color_image_view,
@@ -818,13 +815,14 @@ namespace xar_engine::graphics::vulkan
             0,
             VK_INDEX_TYPE_UINT32);
 
+        const auto vk_descriptor_set = _vulkan_resource_storage.get(descriptor_set).get_native();
         vkCmdBindDescriptorSets(
             _vulkan_resource_storage.get(command_buffer).get_native(),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             0,
             1,
-            &_vulkan_resource_storage.get(descriptor_set_list).get_native()[frame_buffer_index],
+            &vk_descriptor_set,
             0,
             nullptr);
 

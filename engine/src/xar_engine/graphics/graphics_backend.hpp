@@ -27,7 +27,7 @@ namespace xar_engine::graphics
 
         virtual DescriptorPoolReference make_descriptor_pool() = 0;
 
-        virtual DescriptorSetListReference make_descriptor_set_list(
+        virtual std::vector<DescriptorSetReference> make_descriptor_set_list(
             const DescriptorPoolReference& descriptor_pool,
             const DescriptorSetLayoutReference& descriptor_set_layout,
             const std::vector<BufferReference>& uniform_buffer_list,
@@ -132,8 +132,7 @@ namespace xar_engine::graphics
             const SwapChainReference& swap_chain,
             const GraphicsPipelineReference& graphics_pipeline,
             std::uint32_t image_index,
-            std::uint32_t frame_buffer_index,
-            const DescriptorSetListReference& descriptor_set_list,
+            const DescriptorSetReference& descriptor_set,
             const BufferReference& vertex_buffer,
             const BufferReference& index_buffer,
             const ImageViewReference& color_image_view,

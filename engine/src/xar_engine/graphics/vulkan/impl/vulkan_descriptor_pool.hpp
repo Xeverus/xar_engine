@@ -9,6 +9,8 @@
 
 namespace xar_engine::graphics::vulkan::impl
 {
+    class VulkanDescriptorSet;
+
     class VulkanDescriptorPool
     {
     public:
@@ -19,6 +21,10 @@ namespace xar_engine::graphics::vulkan::impl
         explicit VulkanDescriptorPool(const Parameters& parameters);
 
         ~VulkanDescriptorPool();
+
+
+        std::vector<VulkanDescriptorSet> make_descriptor_set_list(
+            const std::vector<VkDescriptorSetLayout>& vk_descriptor_set_layout_list);
 
         [[nodiscard]]
         VkDescriptorPool get_native() const;

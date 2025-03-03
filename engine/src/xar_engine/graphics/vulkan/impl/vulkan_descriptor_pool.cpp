@@ -4,6 +4,8 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_set.hpp>
+
 
 namespace xar_engine::graphics::vulkan::impl
 {
@@ -68,6 +70,41 @@ namespace xar_engine::graphics::vulkan::impl
     }
 
     VulkanDescriptorPool::~VulkanDescriptorPool() = default;
+
+    std::vector<VulkanDescriptorSet> VulkanDescriptorPool::make_descriptor_set_list(
+        const std::vector<VkDescriptorSetLayout>& vk_descriptor_set_layout_list)
+    {
+        auto vk_descriptor_set_allocate_info = VkDescriptorSetAllocateInfo{};
+        vk_descriptor_set_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        vk_descriptor_set_allocate_info.descriptorPool = _state->vk_descriptor_pool;
+        vk_descriptor_set_allocate_info.descriptorSetCount = static_cast<uint32_t>(vk_descriptor_set_layout_list.size());
+        vk_descriptor_set_allocate_info.pSetLayouts = vk_descriptor_set_layout_list.data();
+
+        auto vk_descriptor_set_list = std::vector<VkDescriptorSet>(vk_descriptor_set_layout_list.size());
+        const auto vk_allocate_descriptor_sets_result = vkAllocateDescriptorSets(
+            _state->vulkan_device.get_native(),
+            &vk_descriptor_set_allocate_info,
+            vk_descriptor_set_list.data());
+        XAR_THROW_IF(
+            vk_allocate_descriptor_sets_result != VK_SUCCESS,
+            error::XarException,
+            "Allocate descriptor sets failed");
+
+        auto vulkan_descriptor_set = std::vector<VulkanDescriptorSet>{};
+        vulkan_descriptor_set.reserve(vk_descriptor_set_layout_list.size());
+        for (auto vk_descriptor_set: vk_descriptor_set_list)
+        {
+            vulkan_descriptor_set.push_back(
+                VulkanDescriptorSet{
+                    VulkanDescriptorSet::Parameters{
+                        _state->vulkan_device,
+                        *this,
+                        vk_descriptor_set,
+                    }});
+        }
+
+        return vulkan_descriptor_set;
+    }
 
     VkDescriptorPool VulkanDescriptorPool::get_native() const
     {
