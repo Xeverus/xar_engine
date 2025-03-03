@@ -161,7 +161,7 @@ namespace xar_engine::graphics::vulkan
 
     BufferReference VulkanGraphicsBackend::make_staging_buffer(const std::uint32_t buffer_byte_size)
     {
-        return _vulkan_buffer_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanBuffer{
                 {
                     _vulkan_device,
@@ -174,7 +174,7 @@ namespace xar_engine::graphics::vulkan
 
     BufferReference VulkanGraphicsBackend::make_vertex_buffer(const std::uint32_t buffer_byte_size)
     {
-        return _vulkan_buffer_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanBuffer{
                 {
                     _vulkan_device,
@@ -186,7 +186,7 @@ namespace xar_engine::graphics::vulkan
 
     BufferReference VulkanGraphicsBackend::make_index_buffer(const std::uint32_t buffer_byte_size)
     {
-        return _vulkan_buffer_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanBuffer{
                 {
                     _vulkan_device,
@@ -198,7 +198,7 @@ namespace xar_engine::graphics::vulkan
 
     BufferReference VulkanGraphicsBackend::make_uniform_buffer(const std::uint32_t byte_size)
     {
-        return _vulkan_buffer_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanBuffer{
                 {
                     _vulkan_device,
@@ -217,7 +217,7 @@ namespace xar_engine::graphics::vulkan
 
         for (auto& vk_command_buffer: vk_command_buffer_list)
         {
-            _vulkan_command_buffer_list.push_back(_vulkan_command_buffer_map.add(vk_command_buffer));
+            _vulkan_command_buffer_list.push_back(_vulkan_resource_storage.add(vk_command_buffer));
         }
 
         return _vulkan_command_buffer_list;
@@ -225,12 +225,12 @@ namespace xar_engine::graphics::vulkan
 
     CommandBufferReference VulkanGraphicsBackend::make_one_time_command_buffer()
     {
-        return _vulkan_command_buffer_map.add(_vulkan_command_buffer_pool.make_one_time_buffer());
+        return _vulkan_resource_storage.add(_vulkan_command_buffer_pool.make_one_time_buffer());
     }
 
     DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool()
     {
-        return _vulkan_descriptor_pool_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanDescriptorPool{
                 {
                     _vulkan_device,
@@ -249,20 +249,20 @@ namespace xar_engine::graphics::vulkan
     {
         auto layouts = std::vector<VkDescriptorSetLayout>(
             MAX_FRAMES_IN_FLIGHT,
-            get_object(descriptor_set_layout).get_native());
+            _vulkan_resource_storage.get(descriptor_set_layout).get_native());
 
-        auto descriptor_set_list = _vulkan_descriptor_set_map.add(
+        auto descriptor_set_list = _vulkan_resource_storage.add(
             impl::VulkanDescriptorSet{
                 {
                     _vulkan_device,
-                    get_object(descriptor_pool),
+                    _vulkan_resource_storage.get(descriptor_pool),
                     std::move(layouts),
                 }});
-        auto vulkan_descriptor_set_list = get_object(descriptor_set_list);
+        auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_set_list);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            const auto& vulkan_uniform_buffer = get_object(uniform_buffer_list[i]);
+            const auto& vulkan_uniform_buffer = _vulkan_resource_storage.get(uniform_buffer_list[i]);
 
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = vulkan_uniform_buffer.get_native();
@@ -271,8 +271,8 @@ namespace xar_engine::graphics::vulkan
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = get_object(texture_image_view).get_native();
-            imageInfo.sampler = get_object(sampler).get_native();
+            imageInfo.imageView = _vulkan_resource_storage.get(texture_image_view).get_native();
+            imageInfo.sampler = _vulkan_resource_storage.get(sampler).get_native();
 
             std::vector<VkWriteDescriptorSet> descriptorWrites(2);
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -317,7 +317,7 @@ namespace xar_engine::graphics::vulkan
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        return _vulkan_descriptor_layout_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanDescriptorSetLayout{{
                                                 _vulkan_device,
                                                 {uboLayoutBinding, samplerLayoutBinding},
@@ -337,21 +337,21 @@ namespace xar_engine::graphics::vulkan
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(float);
 
-        return _vulkan_graphics_pipeline_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanGraphicsPipeline{
                 {
                     _vulkan_device,
                     {
                         std::make_tuple(
-                            get_object(vertex_shader).get_native(),
+                            _vulkan_resource_storage.get(vertex_shader).get_native(),
                             VK_SHADER_STAGE_VERTEX_BIT,
                             "main"),
                         std::make_tuple(
-                            get_object(fragment_shader).get_native(),
+                            _vulkan_resource_storage.get(fragment_shader).get_native(),
                             VK_SHADER_STAGE_FRAGMENT_BIT,
                             "main")
                     },
-                    get_object(descriptor_set_layout).get_native(),
+                    _vulkan_resource_storage.get(descriptor_set_layout).get_native(),
                     Vertex::getBindingDescription(),
                     Vertex::getAttributeDescriptions(),
                     {pushConstantRange},
@@ -391,7 +391,7 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        return _vulkan_image_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanImage{
                 {
                     _vulkan_device,
@@ -410,9 +410,9 @@ namespace xar_engine::graphics::vulkan
         EImageAspect image_aspect,
         const std::uint32_t mip_levels)
     {
-        const auto& vulkan_image = get_object(image);
+        const auto& vulkan_image = _vulkan_resource_storage.get(image);
 
-        return _vulkan_image_view_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanImageView{
                 {
                     _vulkan_device,
@@ -425,7 +425,7 @@ namespace xar_engine::graphics::vulkan
 
     SamplerReference VulkanGraphicsBackend::make_sampler(const float mip_levels)
     {
-        return _vulkan_sampler_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanSampler{
                 {
                     _vulkan_device,
@@ -437,7 +437,7 @@ namespace xar_engine::graphics::vulkan
 
     ShaderReference VulkanGraphicsBackend::make_shader(const std::vector<char>& shader_byte_code)
     {
-        return _vulkan_shader_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanShader{
                 {
                     _vulkan_device,
@@ -474,7 +474,7 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        return _vulkan_swap_chain_map.add(
+        return _vulkan_resource_storage.add(
             impl::VulkanSwapChain{
                 {
                     _vulkan_device,
@@ -494,7 +494,7 @@ namespace xar_engine::graphics::vulkan
         void* const data,
         const std::uint32_t data_byte_size)
     {
-        auto& vulkan_buffer = get_object(buffer);
+        auto& vulkan_buffer = _vulkan_resource_storage.get(buffer);
 
         void* const mapped_data = vulkan_buffer.map();
         memcpy(
@@ -506,7 +506,7 @@ namespace xar_engine::graphics::vulkan
 
     std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> VulkanGraphicsBackend::begin_frame(const SwapChainReference& swap_chain)
     {
-        const auto result = get_object(swap_chain).begin_frame();
+        const auto result = _vulkan_resource_storage.get(swap_chain).begin_frame();
 
         return {
             to_xargine(result.vk_result),
@@ -524,7 +524,7 @@ namespace xar_engine::graphics::vulkan
         const CommandBufferReference& command_buffer,
         const SwapChainReference& swap_chain)
     {
-        const auto result = get_object(swap_chain).end_frame(get_object(command_buffer));
+        const auto result = _vulkan_resource_storage.get(swap_chain).end_frame(_vulkan_resource_storage.get(command_buffer));
 
         return to_xargine(result.vk_result);
     }
@@ -534,9 +534,9 @@ namespace xar_engine::graphics::vulkan
         const BufferReference& source_buffer,
         const BufferReference& destination_buffer)
     {
-        const auto& vulkan_command_buffer = get_object(command_buffer);
-        const auto& vulkan_source_buffer = get_object(source_buffer);
-        const auto& vulkan_destination_buffer = get_object(destination_buffer);
+        const auto& vulkan_command_buffer = _vulkan_resource_storage.get(command_buffer);
+        const auto& vulkan_source_buffer = _vulkan_resource_storage.get(source_buffer);
+        const auto& vulkan_destination_buffer = _vulkan_resource_storage.get(destination_buffer);
 
         XAR_THROW_IF(
             vulkan_source_buffer.get_buffer_byte_size() != vulkan_destination_buffer.get_buffer_byte_size(),
@@ -561,7 +561,7 @@ namespace xar_engine::graphics::vulkan
         const BufferReference& source_buffer,
         const ImageReference& target_image)
     {
-        const auto& vulkan_target_image = get_object(target_image);
+        const auto& vulkan_target_image = _vulkan_resource_storage.get(target_image);
 
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
@@ -581,8 +581,8 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdCopyBufferToImage(
-            get_object(command_buffer),
-            get_object(source_buffer).get_native(),
+            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(source_buffer).get_native(),
             vulkan_target_image.get_native(),
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             1,
@@ -594,12 +594,12 @@ namespace xar_engine::graphics::vulkan
         const CommandBufferReference& command_buffer,
         const ImageReference& image)
     {
-        get_object(image).generate_mipmaps(get_object(command_buffer));
+        _vulkan_resource_storage.get(image).generate_mipmaps(_vulkan_resource_storage.get(command_buffer));
     }
 
     void VulkanGraphicsBackend::submit_one_time_command_buffer(const CommandBufferReference& command_buffer)
     {
-        _vulkan_command_buffer_pool.submit_one_time_buffer(get_object(command_buffer));
+        _vulkan_command_buffer_pool.submit_one_time_buffer(_vulkan_resource_storage.get(command_buffer));
     }
 
     void VulkanGraphicsBackend::transit_image_layout(
@@ -627,8 +627,8 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        get_object(image).transition_layout(
-            get_object(command_buffer),
+        _vulkan_resource_storage.get(image).transition_layout(
+            _vulkan_resource_storage.get(command_buffer),
             new_vk_image_layout);
     }
 
@@ -651,7 +651,7 @@ namespace xar_engine::graphics::vulkan
         const std::uint32_t index_counts)
     {
         vkResetCommandBuffer(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             0);
 
         VkCommandBufferBeginInfo beginInfo{};
@@ -660,7 +660,7 @@ namespace xar_engine::graphics::vulkan
         beginInfo.pInheritanceInfo = nullptr; // Optional
 
         if (vkBeginCommandBuffer(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             &beginInfo) != VK_SUCCESS)
         {
             XAR_THROW(
@@ -678,7 +678,7 @@ namespace xar_engine::graphics::vulkan
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .image = get_object(swap_chain).get_vk_image(image_index),
+            .image = _vulkan_resource_storage.get(swap_chain).get_vk_image(image_index),
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,
@@ -689,7 +689,7 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdPipelineBarrier(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
             0,
@@ -707,13 +707,13 @@ namespace xar_engine::graphics::vulkan
         VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
         vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
         vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
-        vkRenderingAttachmentInfoColor.imageView = get_object(color_image_view).get_native();
+        vkRenderingAttachmentInfoColor.imageView = _vulkan_resource_storage.get(color_image_view).get_native();
         vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
         vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-        vkRenderingAttachmentInfoColor.resolveImageView = get_object(swap_chain).get_vulkan_image_view(image_index).get_native();
+        vkRenderingAttachmentInfoColor.resolveImageView = _vulkan_resource_storage.get(swap_chain).get_vulkan_image_view(image_index).get_native();
 
         VkClearValue clearDepthColor{};
         clearDepthColor.depthStencil = {1.0f, 0};
@@ -721,7 +721,7 @@ namespace xar_engine::graphics::vulkan
         VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
         vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
         vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
-        vkRenderingAttachmentInfoDepth.imageView = get_object(depth_image_view).get_native();
+        vkRenderingAttachmentInfoDepth.imageView = _vulkan_resource_storage.get(depth_image_view).get_native();
         vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -731,22 +731,22 @@ namespace xar_engine::graphics::vulkan
         renderingInfo.colorAttachmentCount = 1;
         renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
         renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
-        renderingInfo.renderArea = VkRect2D{VkOffset2D{}, get_object(swap_chain).get_extent()};
+        renderingInfo.renderArea = VkRect2D{VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_extent()};
         renderingInfo.layerCount = 1;
 
         vkCmdBeginRenderingKHR(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             &renderingInfo);
 
         vkCmdBindPipeline(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            get_object(graphics_pipeline).get_native_pipeline());
+            _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline());
 
         const Constants pc = {static_cast<float>(0)};
         vkCmdPushConstants(
-            get_object(command_buffer),
-            get_object(graphics_pipeline).get_native_pipeline_layout(),
+            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             VK_SHADER_STAGE_FRAGMENT_BIT,
             0,
             sizeof(Constants),
@@ -755,65 +755,65 @@ namespace xar_engine::graphics::vulkan
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = (float) get_object(swap_chain).get_extent().width;
-        viewport.height = (float) get_object(swap_chain).get_extent().height;
+        viewport.width = (float) _vulkan_resource_storage.get(swap_chain).get_extent().width;
+        viewport.height = (float) _vulkan_resource_storage.get(swap_chain).get_extent().height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             0,
             1,
             &viewport);
 
         VkRect2D scissor{};
         scissor.offset = {0, 0};
-        scissor.extent = get_object(swap_chain).get_extent();
+        scissor.extent = _vulkan_resource_storage.get(swap_chain).get_extent();
         vkCmdSetScissor(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             0,
             1,
             &scissor);
 
-        VkBuffer vertexBuffers[] = {get_object(vertex_buffer).get_native()};
+        VkBuffer vertexBuffers[] = {_vulkan_resource_storage.get(vertex_buffer).get_native()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             0,
             1,
             vertexBuffers,
             offsets);
         vkCmdBindIndexBuffer(
-            get_object(command_buffer),
-            get_object(index_buffer).get_native(),
+            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(index_buffer).get_native(),
             0,
             VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            get_object(graphics_pipeline).get_native_pipeline_layout(),
+            _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             0,
             1,
-            &get_object(descriptor_set_list).get_native()[frame_buffer_index],
+            &_vulkan_resource_storage.get(descriptor_set_list).get_native()[frame_buffer_index],
             0,
             nullptr);
 
         vkCmdDrawIndexed(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             static_cast<uint32_t>(index_counts),
             1,
             0,
             0,
             0);
 
-        vkCmdEndRenderingKHR(get_object(command_buffer));
+        vkCmdEndRenderingKHR(_vulkan_resource_storage.get(command_buffer));
 
         const VkImageMemoryBarrier image_memory_barrier_end{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            .image = get_object(swap_chain).get_vk_image(image_index),
+            .image = _vulkan_resource_storage.get(swap_chain).get_vk_image(image_index),
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,
@@ -824,7 +824,7 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdPipelineBarrier(
-            get_object(command_buffer),
+            _vulkan_resource_storage.get(command_buffer),
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
             0,
@@ -836,66 +836,11 @@ namespace xar_engine::graphics::vulkan
             &image_memory_barrier_end // pImageMemoryBarriers
         );
 
-        if (vkEndCommandBuffer(get_object(command_buffer)) != VK_SUCCESS)
+        if (vkEndCommandBuffer(_vulkan_resource_storage.get(command_buffer)) != VK_SUCCESS)
         {
             XAR_THROW(
                 error::XarException,
                 "failed to record command buffer!");
         }
-    }
-
-    impl::VulkanBuffer& VulkanGraphicsBackend::get_object(const BufferReference& reference)
-    {
-        return _vulkan_buffer_map.get_object(reference);
-    }
-
-    VkCommandBuffer VulkanGraphicsBackend::get_object(const CommandBufferReference& reference)
-    {
-        return _vulkan_command_buffer_map.get_object(reference);
-    }
-
-    impl::VulkanDescriptorPool VulkanGraphicsBackend::get_object(const DescriptorPoolReference& reference)
-    {
-        return _vulkan_descriptor_pool_map.get_object(reference);
-    }
-
-    impl::VulkanDescriptorSet VulkanGraphicsBackend::get_object(const DescriptorSetListReference& reference)
-    {
-        return _vulkan_descriptor_set_map.get_object(reference);
-    }
-
-    impl::VulkanDescriptorSetLayout VulkanGraphicsBackend::get_object(const DescriptorSetLayoutReference& reference)
-    {
-        return _vulkan_descriptor_layout_map.get_object(reference);
-    }
-
-    impl::VulkanGraphicsPipeline VulkanGraphicsBackend::get_object(const GraphicsPipelineReference& reference)
-    {
-        return _vulkan_graphics_pipeline_map.get_object(reference);
-    }
-
-    impl::VulkanImage VulkanGraphicsBackend::get_object(const ImageReference& reference)
-    {
-        return _vulkan_image_map.get_object(reference);
-    }
-
-    impl::VulkanImageView VulkanGraphicsBackend::get_object(const ImageViewReference& reference)
-    {
-        return _vulkan_image_view_map.get_object(reference);
-    }
-
-    impl::VulkanSampler VulkanGraphicsBackend::get_object(const SamplerReference& reference)
-    {
-        return _vulkan_sampler_map.get_object(reference);
-    }
-
-    impl::VulkanShader VulkanGraphicsBackend::get_object(const ShaderReference& reference)
-    {
-        return _vulkan_shader_map.get_object(reference);
-    }
-
-    impl::VulkanSwapChain VulkanGraphicsBackend::get_object(const SwapChainReference& reference)
-    {
-        return _vulkan_swap_chain_map.get_object(reference);
     }
 }

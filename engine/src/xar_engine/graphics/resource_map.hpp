@@ -20,7 +20,7 @@ namespace xar_engine::graphics
     public:
         TResourceMap();
 
-        Resource add(Type object);
+        Resource add(Type&& object);
 
         const Type& get_object(const Resource& resource) const;
         Type& get_object(const Resource& resource);
@@ -39,7 +39,7 @@ namespace xar_engine::graphics
     }
 
     template <typename Tag, typename Type>
-    TResourceMap<Tag, Type>::Resource TResourceMap<Tag, Type>::add(Type object)
+    TResourceMap<Tag, Type>::Resource TResourceMap<Tag, Type>::add(Type&& object)
     {
         const auto resource_id = _next_id++;
         _resource_map.emplace(resource_id, std::move(object));

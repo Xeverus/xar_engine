@@ -4,22 +4,9 @@
 #include <vector>
 
 #include <xar_engine/graphics/graphics_backend.hpp>
-#include <xar_engine/graphics/resource_map.hpp>
 
+#include <xar_engine/graphics/vulkan/vulkan_resource_storage.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
-
-#include <xar_engine/graphics/vulkan/impl/vulkan_buffer.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_pool.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_set.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_set_layout.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_device.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_graphics_pipeline.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_physical_device.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_sampler.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_shader.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -145,33 +132,10 @@ namespace xar_engine::graphics::vulkan
             const BufferReference& index_buffer,
             const ImageViewReference& color_image_view,
             const ImageViewReference& depth_image_view,
-            std::uint32_t index_counts);
+            std::uint32_t index_counts) override;
 
     private:
-        impl::VulkanBuffer& get_object(const BufferReference& reference);
-        VkCommandBuffer get_object(const CommandBufferReference& reference);
-        impl::VulkanDescriptorPool get_object(const DescriptorPoolReference& reference);
-        impl::VulkanDescriptorSet get_object(const DescriptorSetListReference& reference);
-        impl::VulkanDescriptorSetLayout get_object(const DescriptorSetLayoutReference& reference);
-        impl::VulkanGraphicsPipeline get_object(const GraphicsPipelineReference& reference);
-        impl::VulkanImage get_object(const ImageReference& reference);
-        impl::VulkanImageView get_object(const ImageViewReference& reference);
-        impl::VulkanSampler get_object(const SamplerReference& reference);
-        impl::VulkanShader get_object(const ShaderReference& reference);
-        impl::VulkanSwapChain get_object(const SwapChainReference& reference);
-
-    private:
-        TResourceMap<BufferTag, impl::VulkanBuffer> _vulkan_buffer_map;
-        TResourceMap<CommandBufferTag, VkCommandBuffer> _vulkan_command_buffer_map;
-        TResourceMap<DescriptorPoolTag, impl::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
-        TResourceMap<DescriptorSetListTag, impl::VulkanDescriptorSet> _vulkan_descriptor_set_map;
-        TResourceMap<DescriptorSetLayoutTag, impl::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
-        TResourceMap<GrahicsPipelineTag, impl::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
-        TResourceMap<ImageTag, impl::VulkanImage> _vulkan_image_map;
-        TResourceMap<ImageViewTag, impl::VulkanImageView> _vulkan_image_view_map;
-        TResourceMap<SamplerTag, impl::VulkanSampler> _vulkan_sampler_map;
-        TResourceMap<ShaderTag, impl::VulkanShader> _vulkan_shader_map;
-        TResourceMap<SwapChainTag, impl::VulkanSwapChain> _vulkan_swap_chain_map;
+        VulkanResourceStorage _vulkan_resource_storage;
 
         std::shared_ptr<impl::VulkanInstance> _vulkan_instance;
         std::vector<impl::VulkanPhysicalDevice> _vulkan_physical_device_list;

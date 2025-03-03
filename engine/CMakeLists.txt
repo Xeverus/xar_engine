@@ -82,10 +82,13 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.cpp
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp
+        src/xar_engine/graphics/vulkan/vulkan_resource_storage.cpp
+        src/xar_engine/graphics/vulkan/vulkan_resource_storage.hpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.cpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
         src/xar_engine/graphics/graphics_backend.cpp
         src/xar_engine/graphics/graphics_backend.hpp
+        src/xar_engine/graphics/graphics_backend_resource_types.hpp
         src/xar_engine/graphics/graphics_backend_type.cpp
         src/xar_engine/graphics/renderer.cpp
         src/xar_engine/graphics/resource_reference.hpp

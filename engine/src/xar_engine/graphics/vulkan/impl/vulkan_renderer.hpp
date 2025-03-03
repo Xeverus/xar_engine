@@ -4,8 +4,6 @@
 #include <memory>
 #include <vector>
 
-#include <volk.h>
-
 #include <xar_engine/graphics/renderer.hpp>
 #include <xar_engine/graphics/graphics_backend.hpp>
 
@@ -74,10 +72,6 @@ namespace xar_engine::graphics::vulkan::impl
         uint32_t mipLevels;
         uint32_t frameCounter;
 
-        VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-
-
-        ///////////////////
         std::shared_ptr<VulkanWindowSurface> _vulkan_window_surface;
 
         std::unique_ptr<IGraphicsBackend> _vulkan_graphics_backend;
