@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 
+#include <xar_engine/graphics/graphics_backend_type.hpp>
 #include <xar_engine/graphics/graphics_backend_resource_types.hpp>
 #include <xar_engine/graphics/window_surface.hpp>
 
@@ -83,6 +84,9 @@ namespace xar_engine::graphics
 
         [[nodiscard]]
         virtual std::uint32_t get_sample_count() const = 0;
+
+        [[nodiscard]]
+        virtual EFormat find_depth_format() const = 0;
     };
 
 

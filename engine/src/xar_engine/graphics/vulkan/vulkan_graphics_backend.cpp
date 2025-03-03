@@ -101,14 +101,6 @@ namespace xar_engine::graphics::vulkan
                 }
             }
         }
-
-
-        struct Vertex
-        {
-            glm::vec3 position;
-            glm::vec3 color;
-            glm::vec2 textureCoords;
-        };
     }
 
 
@@ -308,7 +300,7 @@ namespace xar_engine::graphics::vulkan
         uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         uboLayoutBinding.descriptorCount = 1;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+        uboLayoutBinding.pImmutableSamplers = nullptr;
 
         VkDescriptorSetLayoutBinding samplerLayoutBinding{};
         samplerLayoutBinding.binding = 1;
@@ -318,10 +310,11 @@ namespace xar_engine::graphics::vulkan
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         return _vulkan_resource_storage.add(
-            impl::VulkanDescriptorSetLayout{{
-                                                _vulkan_device,
-                                                {uboLayoutBinding, samplerLayoutBinding},
-                                            }});
+            impl::VulkanDescriptorSetLayout{
+                {
+                    _vulkan_device,
+                    {uboLayoutBinding, samplerLayoutBinding},
+                }});
     }
 
     GraphicsPipelineReference VulkanGraphicsBackend::make_graphics_pipeline(
@@ -522,6 +515,45 @@ namespace xar_engine::graphics::vulkan
     std::uint32_t VulkanGraphicsBackend::get_sample_count() const
     {
         return _vk_sample_count_flag_bits;
+    }
+
+    EFormat VulkanGraphicsBackend::find_depth_format() const
+    {
+        const auto vk_format = _vulkan_device.get_physical_device().find_supported_vk_format(
+            {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+            VK_IMAGE_TILING_OPTIMAL,
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+        switch (vk_format)
+        {
+            case VK_FORMAT_D32_SFLOAT:
+            {
+                break;
+            }
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            {
+                XAR_THROW(
+                    error::XarException,
+                    "VK_FORMAT_D32_SFLOAT_S8_UINT not supported");
+                break;
+            }
+            case VK_FORMAT_D24_UNORM_S8_UINT:
+            {
+                XAR_THROW(
+                    error::XarException,
+                    "VK_FORMAT_D24_UNORM_S8_UINT not supported");
+                break;
+            }
+            default:
+            {
+                XAR_THROW(
+                    error::XarException,
+                    "VK_FORMAT not supported");
+                break;
+            }
+        }
+
+        return EFormat::D32_SFLOAT;
     }
 
     ESwapChainResult VulkanGraphicsBackend::end_frame(

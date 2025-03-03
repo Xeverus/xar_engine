@@ -56,8 +56,6 @@ namespace xar_engine::os
         virtual const std::shared_ptr<graphics::IWindowSurface>& get_surface() const = 0;
         [[nodiscard]]
         virtual math::Vector2i32 get_surface_pixel_size() const = 0;
-
-        virtual std::shared_ptr<graphics::IRenderer> TMP_MAKE_RENDERER() const = 0;
     };
 
     struct IWindow::Parameters

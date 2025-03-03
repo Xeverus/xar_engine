@@ -46,8 +46,6 @@ namespace xar_engine::os
         [[nodiscard]]
         math::Vector2i32 get_surface_pixel_size() const override;
 
-        std::shared_ptr<graphics::IRenderer> TMP_MAKE_RENDERER() const override;
-
     private:
         struct ResizeEvent
         {

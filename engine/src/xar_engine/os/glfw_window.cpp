@@ -5,7 +5,6 @@
 #include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
 
 #include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_renderer.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
@@ -366,12 +365,5 @@ namespace xar_engine::os
             width,
             height
         };
-    }
-
-    std::shared_ptr<graphics::IRenderer> GlfwWindow::TMP_MAKE_RENDERER() const
-    {
-        return std::make_shared<graphics::vulkan::impl::VulkanRenderer>(
-            meta::RefCountedSingleton::get_instance<graphics::vulkan::impl::VulkanInstance>(),
-            std::dynamic_pointer_cast<graphics::vulkan::VulkanWindowSurface>(get_surface()));
     }
 }

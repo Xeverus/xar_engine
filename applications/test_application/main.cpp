@@ -1,5 +1,8 @@
 #include <xar_engine/logging/logger.hpp>
 
+#include <xar_engine/graphics/graphics_backend_factory.hpp>
+#include <xar_engine/graphics/renderer.hpp>
+
 #include <xar_engine/meta/overloaded.hpp>
 
 #include <xar_engine/os/application.hpp>
@@ -9,7 +12,10 @@ int main()
 {
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
-    auto renderer = window->TMP_MAKE_RENDERER();
+    auto graphics_backend = xar_engine::graphics::GraphicsBackendFactory().make(xar_engine::graphics::EGraphicsBackendType::VULKAN);
+    auto renderer = xar_engine::graphics::RendererFactory().make(
+        graphics_backend,
+        window->get_surface());
 
     window->set_on_update(
         [&]()

@@ -94,6 +94,9 @@ namespace xar_engine::graphics::vulkan
         [[nodiscard]]
         std::uint32_t get_sample_count() const override;
 
+        [[nodiscard]]
+        EFormat find_depth_format() const override;
+
 
     public: // IGraphicsBackendDeviceCommand
         void copy_buffer(
@@ -137,12 +140,11 @@ namespace xar_engine::graphics::vulkan
             std::uint32_t index_counts) override;
 
     private:
-        VulkanResourceStorage _vulkan_resource_storage;
-
         std::shared_ptr<impl::VulkanInstance> _vulkan_instance;
         std::vector<impl::VulkanPhysicalDevice> _vulkan_physical_device_list;
         impl::VulkanDevice _vulkan_device;
         impl::VulkanCommandBufferPool _vulkan_command_buffer_pool;
+        VulkanResourceStorage _vulkan_resource_storage;
 
         VkSampleCountFlagBits _vk_sample_count_flag_bits;
     };

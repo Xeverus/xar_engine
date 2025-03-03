@@ -15,6 +15,7 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/asset/model.hpp
         include/xar_engine/asset/model_loader.hpp
         include/xar_engine/error/exception.hpp
+        include/xar_engine/graphics/graphics_backend_factory.hpp
         include/xar_engine/graphics/graphics_backend_type.hpp
         include/xar_engine/graphics/renderer.hpp
         include/xar_engine/input/button.hpp
@@ -70,8 +71,6 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/impl/vulkan_instance.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_physical_device.cpp
         src/xar_engine/graphics/vulkan/impl/vulkan_physical_device.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_renderer.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_renderer.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_sampler.cpp
         src/xar_engine/graphics/vulkan/impl/vulkan_sampler.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_shader.cpp
@@ -88,9 +87,12 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
         src/xar_engine/graphics/graphics_backend.cpp
         src/xar_engine/graphics/graphics_backend.hpp
+        src/xar_engine/graphics/graphics_backend_factory.cpp
         src/xar_engine/graphics/graphics_backend_resource_types.hpp
         src/xar_engine/graphics/graphics_backend_type.cpp
         src/xar_engine/graphics/renderer.cpp
+        src/xar_engine/graphics/renderer_impl.cpp
+        src/xar_engine/graphics/renderer_impl.hpp
         src/xar_engine/graphics/resource_reference.hpp
         src/xar_engine/graphics/resource_map.hpp
         src/xar_engine/graphics/window_surface.cpp
