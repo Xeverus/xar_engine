@@ -145,7 +145,5 @@ namespace xar_engine::graphics::vulkan
         impl::VulkanDevice _vulkan_device;
         impl::VulkanCommandBufferPool _vulkan_command_buffer_pool;
         VulkanResourceStorage _vulkan_resource_storage;
-
-        VkSampleCountFlagBits _vk_sample_count_flag_bits;
     };
 }

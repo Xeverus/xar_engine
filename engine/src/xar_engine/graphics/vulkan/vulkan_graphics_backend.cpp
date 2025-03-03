@@ -105,7 +105,6 @@ namespace xar_engine::graphics::vulkan
 
 
     VulkanGraphicsBackend::VulkanGraphicsBackend()
-        : _vk_sample_count_flag_bits{VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT}
     {
         _vulkan_instance = meta::RefCountedSingleton::get_instance<vulkan::impl::VulkanInstance>();
         _vulkan_physical_device_list = _vulkan_instance->get_physical_device_list();
@@ -115,8 +114,6 @@ namespace xar_engine::graphics::vulkan
             {
                 _vulkan_device,
             }};
-
-        _vk_sample_count_flag_bits = _vulkan_device.get_physical_device().get_vk_sample_count_flag_bits();
     }
 
 
@@ -514,7 +511,7 @@ namespace xar_engine::graphics::vulkan
 
     std::uint32_t VulkanGraphicsBackend::get_sample_count() const
     {
-        return _vk_sample_count_flag_bits;
+        return _vulkan_device.get_physical_device().get_vk_sample_count_flag_bits();
     }
 
     EFormat VulkanGraphicsBackend::find_depth_format() const

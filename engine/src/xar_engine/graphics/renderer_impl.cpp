@@ -19,7 +19,7 @@
 
 #include <xar_engine/graphics/graphics_backend.hpp>
 
-#include <xar_engine/logging/console_logger.hpp>
+#include <xar_engine/logging/logger.hpp>
 
 
 namespace xar_engine::graphics
@@ -144,6 +144,7 @@ namespace xar_engine::graphics
             vertices[i].textureCoords.y = model.meshes.back().texture_coords[0].coords[i * channels + 1];
         }
 
+
         indices.resize(model.meshes.back().indices.size());
         memcpy(
             indices.data(),
@@ -237,111 +238,6 @@ namespace xar_engine::graphics
             tmp_command_buffer,
             _texture_image_ref);
         _graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
-    }
-
-    void RendererImpl::run_frame_sandbox()
-    {
-        const auto begin_frame_result = _graphics_backend->host_command().begin_frame(_swap_chain_ref);
-
-        if (std::get<0>(begin_frame_result) == ESwapChainResult::RECREATION_REQUIRED)
-        {
-            XAR_LOG(
-                logging::LogLevel::ERROR,
-                tag,
-                "Acquire failed because Swapchain is out of date");
-
-            _graphics_backend->device_command().wait_idle();
-            _swap_chain_ref = {};
-
-            _swap_chain_ref = _graphics_backend->resource().make_swap_chain(
-                _window_surface,
-                MAX_FRAMES_IN_FLIGHT);
-
-            init_color_msaa();
-            init_depth();
-
-            XAR_LOG(
-                logging::LogLevel::DEBUG,
-                tag,
-                "Acquire failed because Swapchain is out of date but swapchain was recreated");
-            return;
-        }
-        else if (std::get<0>(begin_frame_result) != ESwapChainResult::OK)
-        {
-            XAR_LOG(
-                logging::LogLevel::ERROR,
-                tag,
-                "Acquire failed because Swapchain");
-            return;
-        }
-
-        const auto current_image_index = std::get<1>(begin_frame_result);
-        const auto frame_index = std::get<2>(begin_frame_result);
-
-        _graphics_backend->device_command().TMP_RECORD_FRAME(
-            _command_buffer_list[frame_index],
-            _swap_chain_ref,
-            _graphics_pipeline_ref,
-            current_image_index,
-            frame_index,
-            _descriptor_set_list_ref,
-            _vertex_buffer_ref,
-            _index_buffer_ref,
-            _color_image_view_ref,
-            _depth_image_view_ref,
-            indices.size());
-
-        updateUniformBuffer(frame_index);
-
-        const auto end_result = _graphics_backend->device_command().end_frame(
-            _command_buffer_list[frame_index],
-            _swap_chain_ref);
-        if (end_result == ESwapChainResult::RECREATION_REQUIRED)
-        {
-            XAR_LOG(
-                logging::LogLevel::ERROR,
-                tag,
-                "Present failed because Swapchain is out of date");
-
-            _graphics_backend->device_command().wait_idle();
-            _swap_chain_ref = {};
-
-            _swap_chain_ref = _graphics_backend->resource().make_swap_chain(
-                _window_surface,
-                MAX_FRAMES_IN_FLIGHT);
-
-            init_color_msaa();
-            init_depth();
-
-            XAR_LOG(
-                logging::LogLevel::DEBUG,
-                tag,
-                "Present failed because Swapchain is out of date but swapchain was recreated");
-        }
-        else if (end_result != ESwapChainResult::OK)
-        {
-            XAR_LOG(
-                logging::LogLevel::ERROR,
-                tag,
-                "Acquire failed because Swapchain");
-            return;
-        }
-
-        XAR_LOG(
-            xar_engine::logging::LogLevel::DEBUG,
-            tag,
-            "Frame buffer nr {}, frames in total {}",
-            frame_index,
-            frameCounter);
-
-        // change frame index
-        ++frameCounter;
-    }
-
-
-    void RendererImpl::cleanup_sandbox()
-    {
-        _graphics_backend->device_command().wait_idle();
     }
 
 
@@ -455,11 +351,104 @@ namespace xar_engine::graphics
 
     RendererImpl::~RendererImpl()
     {
-        cleanup_sandbox();
+        _graphics_backend->device_command().wait_idle();
     }
 
     void RendererImpl::update()
     {
-        run_frame_sandbox();
+        const auto begin_frame_result = _graphics_backend->host_command().begin_frame(_swap_chain_ref);
+
+        if (std::get<0>(begin_frame_result) == ESwapChainResult::RECREATION_REQUIRED)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                tag,
+                "Acquire failed because Swapchain is out of date");
+
+            _graphics_backend->device_command().wait_idle();
+            _swap_chain_ref = {};
+
+            _swap_chain_ref = _graphics_backend->resource().make_swap_chain(
+                _window_surface,
+                MAX_FRAMES_IN_FLIGHT);
+
+            init_color_msaa();
+            init_depth();
+
+            XAR_LOG(
+                logging::LogLevel::DEBUG,
+                tag,
+                "Acquire failed because Swapchain is out of date but swapchain was recreated");
+            return;
+        }
+        else if (std::get<0>(begin_frame_result) != ESwapChainResult::OK)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                tag,
+                "Acquire failed because Swapchain");
+            return;
+        }
+
+        const auto current_image_index = std::get<1>(begin_frame_result);
+        const auto frame_index = std::get<2>(begin_frame_result);
+
+        _graphics_backend->device_command().TMP_RECORD_FRAME(
+            _command_buffer_list[frame_index],
+            _swap_chain_ref,
+            _graphics_pipeline_ref,
+            current_image_index,
+            frame_index,
+            _descriptor_set_list_ref,
+            _vertex_buffer_ref,
+            _index_buffer_ref,
+            _color_image_view_ref,
+            _depth_image_view_ref,
+            indices.size());
+
+        updateUniformBuffer(frame_index);
+
+        const auto end_result = _graphics_backend->device_command().end_frame(
+            _command_buffer_list[frame_index],
+            _swap_chain_ref);
+        if (end_result == ESwapChainResult::RECREATION_REQUIRED)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                tag,
+                "Present failed because Swapchain is out of date");
+
+            _graphics_backend->device_command().wait_idle();
+            _swap_chain_ref = {};
+
+            _swap_chain_ref = _graphics_backend->resource().make_swap_chain(
+                _window_surface,
+                MAX_FRAMES_IN_FLIGHT);
+
+            init_color_msaa();
+            init_depth();
+
+            XAR_LOG(
+                logging::LogLevel::DEBUG,
+                tag,
+                "Present failed because Swapchain is out of date but swapchain was recreated");
+        }
+        else if (end_result != ESwapChainResult::OK)
+        {
+            XAR_LOG(
+                logging::LogLevel::ERROR,
+                tag,
+                "Acquire failed because Swapchain");
+            return;
+        }
+
+        XAR_LOG(
+            xar_engine::logging::LogLevel::DEBUG,
+            tag,
+            "Frame buffer nr {}, frames in total {}",
+            frame_index,
+            frameCounter);
+
+        ++frameCounter;
     }
 }
