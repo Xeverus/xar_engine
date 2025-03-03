@@ -51,6 +51,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/file/file.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_buffer.cpp
         src/xar_engine/graphics/vulkan/impl/vulkan_buffer.hpp
+        src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer.cpp
+        src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.cpp
         src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_pool.cpp
@@ -71,6 +73,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/impl/vulkan_instance.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_physical_device.cpp
         src/xar_engine/graphics/vulkan/impl/vulkan_physical_device.hpp
+        src/xar_engine/graphics/vulkan/impl/vulkan_queue.cpp
+        src/xar_engine/graphics/vulkan/impl/vulkan_queue.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_sampler.cpp
         src/xar_engine/graphics/vulkan/impl/vulkan_sampler.hpp
         src/xar_engine/graphics/vulkan/impl/vulkan_shader.cpp

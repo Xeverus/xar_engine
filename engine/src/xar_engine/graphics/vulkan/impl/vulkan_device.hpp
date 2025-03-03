@@ -33,9 +33,6 @@ namespace xar_engine::graphics::vulkan::impl
         [[nodiscard]]
         std::uint32_t get_graphics_family_index() const;
 
-        [[nodiscard]]
-        VkQueue get_graphics_queue() const;
-
     private:
         struct State;
 

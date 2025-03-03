@@ -2,6 +2,8 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+#include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer.hpp>
+
 
 namespace xar_engine::graphics::vulkan::impl
 {
@@ -59,60 +61,12 @@ namespace xar_engine::graphics::vulkan::impl
 
     VulkanCommandBufferPool::~VulkanCommandBufferPool() = default;
 
-    VkCommandBuffer VulkanCommandBufferPool::make_one_time_buffer()
+    std::vector<VulkanCommandBuffer> VulkanCommandBufferPool::make_buffer_list(const std::int32_t count)
     {
         auto vk_command_buffer_allocate_info = VkCommandBufferAllocateInfo{};
         vk_command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         vk_command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         vk_command_buffer_allocate_info.commandPool = _state->vk_command_pool;
-        vk_command_buffer_allocate_info.commandBufferCount = 1;
-
-        auto vk_command_buffer = VkCommandBuffer{};
-        vkAllocateCommandBuffers(
-            _state->vulkan_device.get_native(),
-            &vk_command_buffer_allocate_info,
-            &vk_command_buffer);
-
-        auto vk_command_buffer_begin_info = VkCommandBufferBeginInfo{};
-        vk_command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        vk_command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-        vkBeginCommandBuffer(
-            vk_command_buffer,
-            &vk_command_buffer_begin_info);
-
-        return vk_command_buffer;
-    }
-
-    void VulkanCommandBufferPool::submit_one_time_buffer(VkCommandBuffer vk_command_buffer)
-    {
-        vkEndCommandBuffer(vk_command_buffer);
-
-        auto vk_submit_info = VkSubmitInfo{};
-        vk_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        vk_submit_info.commandBufferCount = 1;
-        vk_submit_info.pCommandBuffers = &vk_command_buffer;
-
-        vkQueueSubmit(
-            _state->vulkan_device.get_graphics_queue(),
-            1,
-            &vk_submit_info,
-            VK_NULL_HANDLE);
-        vkQueueWaitIdle(_state->vulkan_device.get_graphics_queue());
-
-        vkFreeCommandBuffers(
-            _state->vulkan_device.get_native(),
-            _state->vk_command_pool,
-            1,
-            &vk_command_buffer);
-    }
-
-    std::vector<VkCommandBuffer> VulkanCommandBufferPool::make_buffers(const std::int32_t count)
-    {
-        auto vk_command_buffer_allocate_info = VkCommandBufferAllocateInfo{};
-        vk_command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        vk_command_buffer_allocate_info.commandPool = _state->vk_command_pool;
-        vk_command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         vk_command_buffer_allocate_info.commandBufferCount = count;
 
         auto vk_command_buffer_list = std::vector<VkCommandBuffer>(count);
@@ -126,6 +80,24 @@ namespace xar_engine::graphics::vulkan::impl
             error::XarException,
             "failed to allocate command buffers!");
 
-        return vk_command_buffer_list;
+        auto vulkan_command_buffer_list = std::vector<VulkanCommandBuffer>();
+        vulkan_command_buffer_list.reserve(count);
+        for (auto vk_command_buffer: vk_command_buffer_list)
+        {
+            vulkan_command_buffer_list.push_back(
+                VulkanCommandBuffer{
+                    {
+                        _state->vulkan_device,
+                        *this,
+                        vk_command_buffer,
+                    }});
+        }
+
+        return vulkan_command_buffer_list;
+    }
+
+    VkCommandPool VulkanCommandBufferPool::get_native() const
+    {
+        return _state->vk_command_pool;
     }
 }

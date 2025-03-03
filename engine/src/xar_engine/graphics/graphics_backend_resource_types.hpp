@@ -13,6 +13,7 @@ namespace xar_engine::graphics
     enum class GrahicsPipelineTag;
     enum class ImageTag;
     enum class ImageViewTag;
+    enum class QueueTag;
     enum class SamplerTag;
     enum class ShaderTag;
     enum class SurfaceTag;
@@ -26,6 +27,7 @@ namespace xar_engine::graphics
     using GraphicsPipelineReference = TResourceReference<GrahicsPipelineTag>;
     using ImageReference = TResourceReference<ImageTag>;
     using ImageViewReference = TResourceReference<ImageViewTag>;
+    using QueueReference = TResourceReference<QueueTag>;
     using SamplerReference = TResourceReference<SamplerTag>;
     using ShaderReference = TResourceReference<ShaderTag>;
     using SurfaceReference = TResourceReference<SurfaceTag>;
@@ -90,5 +92,11 @@ namespace xar_engine::graphics
         std::uint32_t binding_index;
         std::uint32_t stride;
         VertexInputBindingRate input_rate;
+    };
+
+    enum ECommandBufferType
+    {
+        REUSABLE,
+        ONE_TIME,
     };
 }

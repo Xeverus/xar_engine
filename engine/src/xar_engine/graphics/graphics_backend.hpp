@@ -23,8 +23,7 @@ namespace xar_engine::graphics
         virtual BufferReference make_index_buffer(std::uint32_t byte_size) = 0;
         virtual BufferReference make_uniform_buffer(std::uint32_t byte_size) = 0;
 
-        virtual std::vector<CommandBufferReference> make_command_buffers(std::uint32_t buffer_counts) = 0;
-        virtual CommandBufferReference make_one_time_command_buffer() = 0;
+        virtual std::vector<CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) = 0;
 
         virtual DescriptorPoolReference make_descriptor_pool() = 0;
 
@@ -113,7 +112,13 @@ namespace xar_engine::graphics
             const CommandBufferReference& command_buffer,
             const ImageReference& image) = 0;
 
-        virtual void submit_one_time_command_buffer(const CommandBufferReference& command_buffer) = 0;
+        virtual void begin_command_buffer(
+            const CommandBufferReference& command_buffer,
+            ECommandBufferType command_buffer_type) = 0;
+
+        virtual void end_command_buffer(const CommandBufferReference& command_buffer) = 0;
+
+        virtual void submit_command_buffer(const CommandBufferReference& command_buffer) = 0;
 
         virtual void transit_image_layout(
             const CommandBufferReference& command_buffer,

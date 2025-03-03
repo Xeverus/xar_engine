@@ -98,12 +98,14 @@ namespace xar_engine::graphics
 
         _vertex_buffer_ref = _graphics_backend->resource().make_vertex_buffer(bufferSize);
 
-        auto tmp_command_buffer = _graphics_backend->resource().make_one_time_command_buffer();
+        auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
+        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
         _graphics_backend->device_command().copy_buffer(
-            tmp_command_buffer,
+            tmp_command_buffer[0],
             staging_buffer,
             _vertex_buffer_ref);
-        _graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
+        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -119,12 +121,14 @@ namespace xar_engine::graphics
 
         _index_buffer_ref = _graphics_backend->resource().make_index_buffer(bufferSize);
 
-        auto tmp_command_buffer = _graphics_backend->resource().make_one_time_command_buffer();
+        auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
+        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
         _graphics_backend->device_command().copy_buffer(
-            tmp_command_buffer,
+            tmp_command_buffer[0],
             staging_buffer,
             _index_buffer_ref);
-        _graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
+        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -192,12 +196,14 @@ namespace xar_engine::graphics
             EImageAspect::DEPTH,
             1);
 
-        auto cmd_bf = _graphics_backend->resource().make_one_time_command_buffer();
+        auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
+        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
         _graphics_backend->device_command().transit_image_layout(
-            cmd_bf,
+            tmp_command_buffer[0],
             _depth_image_ref,
             EImageLayout::DEPTH_STENCIL_ATTACHMENT);
-        _graphics_backend->device_command().submit_one_time_command_buffer(cmd_bf);
+        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -225,19 +231,21 @@ namespace xar_engine::graphics
             mipLevels,
             1);
 
-        auto tmp_command_buffer = _graphics_backend->resource().make_one_time_command_buffer();
+        auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
+        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
         _graphics_backend->device_command().transit_image_layout(
-            tmp_command_buffer,
+            tmp_command_buffer[0],
             _texture_image_ref,
             EImageLayout::TRANSFER_DESTINATION);
         _graphics_backend->device_command().copy_buffer_to_image(
-            tmp_command_buffer,
+            tmp_command_buffer[0],
             staging_buffer,
             _texture_image_ref);
         _graphics_backend->device_command().generate_image_mip_maps(
-            tmp_command_buffer,
+            tmp_command_buffer[0],
             _texture_image_ref);
-        _graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
+        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -298,7 +306,7 @@ namespace xar_engine::graphics
         , frameCounter(0)
         , mipLevels(0)
     {
-        _command_buffer_list = _graphics_backend->resource().make_command_buffers(MAX_FRAMES_IN_FLIGHT);
+        _command_buffer_list = _graphics_backend->resource().make_command_buffer_list(MAX_FRAMES_IN_FLIGHT);
 
         _swap_chain_ref = _graphics_backend->resource().make_swap_chain(
             _window_surface,

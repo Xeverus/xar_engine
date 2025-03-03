@@ -1,6 +1,6 @@
 #include <xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp>
 
-#include <glm/glm.hpp>
+#include <xar_engine/graphics/vulkan/impl/vulkan_queue.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
@@ -109,6 +109,12 @@ namespace xar_engine::graphics::vulkan
         _vulkan_instance = meta::RefCountedSingleton::get_instance<vulkan::impl::VulkanInstance>();
         _vulkan_physical_device_list = _vulkan_instance->get_physical_device_list();
         _vulkan_device = vulkan::impl::VulkanDevice{{_vulkan_physical_device_list[0]}};
+        _vulkan_graphics_queue = impl::VulkanQueue{
+            {
+                _vulkan_device,
+                _vulkan_device.get_graphics_family_index(),
+            }
+        };
 
         _vulkan_command_buffer_pool = impl::VulkanCommandBufferPool{
             {
@@ -197,9 +203,9 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    std::vector<CommandBufferReference> VulkanGraphicsBackend::make_command_buffers(const std::uint32_t buffer_counts)
+    std::vector<CommandBufferReference> VulkanGraphicsBackend::make_command_buffer_list(const std::uint32_t buffer_counts)
     {
-        auto vk_command_buffer_list = _vulkan_command_buffer_pool.make_buffers(MAX_FRAMES_IN_FLIGHT);
+        auto vk_command_buffer_list = _vulkan_command_buffer_pool.make_buffer_list(MAX_FRAMES_IN_FLIGHT);
 
         auto _vulkan_command_buffer_list = std::vector<CommandBufferReference>{};
         _vulkan_command_buffer_list.reserve(buffer_counts);
@@ -210,11 +216,6 @@ namespace xar_engine::graphics::vulkan
         }
 
         return _vulkan_command_buffer_list;
-    }
-
-    CommandBufferReference VulkanGraphicsBackend::make_one_time_command_buffer()
-    {
-        return _vulkan_resource_storage.add(_vulkan_command_buffer_pool.make_one_time_buffer());
     }
 
     DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool()
@@ -472,6 +473,7 @@ namespace xar_engine::graphics::vulkan
             impl::VulkanSwapChain{
                 {
                     _vulkan_device,
+                    _vulkan_graphics_queue,
                     vulkan_window_surface,
                     vk_present_mode_to_use,
                     vk_format_to_use,
@@ -557,7 +559,7 @@ namespace xar_engine::graphics::vulkan
         const CommandBufferReference& command_buffer,
         const SwapChainReference& swap_chain)
     {
-        const auto result = _vulkan_resource_storage.get(swap_chain).end_frame(_vulkan_resource_storage.get(command_buffer));
+        const auto result = _vulkan_resource_storage.get(swap_chain).end_frame(_vulkan_resource_storage.get(command_buffer).get_native());
 
         return to_xargine(result.vk_result);
     }
@@ -567,7 +569,6 @@ namespace xar_engine::graphics::vulkan
         const BufferReference& source_buffer,
         const BufferReference& destination_buffer)
     {
-        const auto& vulkan_command_buffer = _vulkan_resource_storage.get(command_buffer);
         const auto& vulkan_source_buffer = _vulkan_resource_storage.get(source_buffer);
         const auto& vulkan_destination_buffer = _vulkan_resource_storage.get(destination_buffer);
 
@@ -582,7 +583,7 @@ namespace xar_engine::graphics::vulkan
         vk_buffer_copy.size = vulkan_source_buffer.get_buffer_byte_size();
 
         vkCmdCopyBuffer(
-            vulkan_command_buffer,
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             vulkan_source_buffer.get_native(),
             vulkan_destination_buffer.get_native(),
             1,
@@ -614,7 +615,7 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdCopyBufferToImage(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             _vulkan_resource_storage.get(source_buffer).get_native(),
             vulkan_target_image.get_native(),
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -627,12 +628,24 @@ namespace xar_engine::graphics::vulkan
         const CommandBufferReference& command_buffer,
         const ImageReference& image)
     {
-        _vulkan_resource_storage.get(image).generate_mipmaps(_vulkan_resource_storage.get(command_buffer));
+        _vulkan_resource_storage.get(image).generate_mipmaps(_vulkan_resource_storage.get(command_buffer).get_native());
     }
 
-    void VulkanGraphicsBackend::submit_one_time_command_buffer(const CommandBufferReference& command_buffer)
+    void VulkanGraphicsBackend::begin_command_buffer(
+        const CommandBufferReference& command_buffer,
+        const ECommandBufferType command_buffer_type)
     {
-        _vulkan_command_buffer_pool.submit_one_time_buffer(_vulkan_resource_storage.get(command_buffer));
+        _vulkan_resource_storage.get(command_buffer).begin(command_buffer_type == ECommandBufferType::ONE_TIME);
+    }
+
+    void VulkanGraphicsBackend::end_command_buffer(const CommandBufferReference& command_buffer)
+    {
+        _vulkan_resource_storage.get(command_buffer).end();
+    }
+
+    void VulkanGraphicsBackend::submit_command_buffer(const CommandBufferReference& command_buffer)
+    {
+        _vulkan_graphics_queue.submit(_vulkan_resource_storage.get(command_buffer));
     }
 
     void VulkanGraphicsBackend::transit_image_layout(
@@ -661,7 +674,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         _vulkan_resource_storage.get(image).transition_layout(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             new_vk_image_layout);
     }
 
@@ -683,23 +696,7 @@ namespace xar_engine::graphics::vulkan
         const ImageViewReference& depth_image_view,
         const std::uint32_t index_counts)
     {
-        vkResetCommandBuffer(
-            _vulkan_resource_storage.get(command_buffer),
-            0);
-
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = 0; // Optional
-        beginInfo.pInheritanceInfo = nullptr; // Optional
-
-        if (vkBeginCommandBuffer(
-            _vulkan_resource_storage.get(command_buffer),
-            &beginInfo) != VK_SUCCESS)
-        {
-            XAR_THROW(
-                error::XarException,
-                "failed to begin recording command buffer!");
-        }
+        _vulkan_resource_storage.get(command_buffer).begin(false);
 
         struct Constants
         {
@@ -722,7 +719,7 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdPipelineBarrier(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
             0,
@@ -768,17 +765,17 @@ namespace xar_engine::graphics::vulkan
         renderingInfo.layerCount = 1;
 
         vkCmdBeginRenderingKHR(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             &renderingInfo);
 
         vkCmdBindPipeline(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline());
 
         const Constants pc = {static_cast<float>(0)};
         vkCmdPushConstants(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             VK_SHADER_STAGE_FRAGMENT_BIT,
             0,
@@ -793,7 +790,7 @@ namespace xar_engine::graphics::vulkan
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             0,
             1,
             &viewport);
@@ -802,7 +799,7 @@ namespace xar_engine::graphics::vulkan
         scissor.offset = {0, 0};
         scissor.extent = _vulkan_resource_storage.get(swap_chain).get_extent();
         vkCmdSetScissor(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             0,
             1,
             &scissor);
@@ -810,19 +807,19 @@ namespace xar_engine::graphics::vulkan
         VkBuffer vertexBuffers[] = {_vulkan_resource_storage.get(vertex_buffer).get_native()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             0,
             1,
             vertexBuffers,
             offsets);
         vkCmdBindIndexBuffer(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             _vulkan_resource_storage.get(index_buffer).get_native(),
             0,
             VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             0,
@@ -832,14 +829,14 @@ namespace xar_engine::graphics::vulkan
             nullptr);
 
         vkCmdDrawIndexed(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             static_cast<uint32_t>(index_counts),
             1,
             0,
             0,
             0);
 
-        vkCmdEndRenderingKHR(_vulkan_resource_storage.get(command_buffer));
+        vkCmdEndRenderingKHR(_vulkan_resource_storage.get(command_buffer).get_native());
 
         const VkImageMemoryBarrier image_memory_barrier_end{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -857,7 +854,7 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdPipelineBarrier(
-            _vulkan_resource_storage.get(command_buffer),
+            _vulkan_resource_storage.get(command_buffer).get_native(),
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,  // srcStageMask
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
             0,
@@ -869,7 +866,7 @@ namespace xar_engine::graphics::vulkan
             &image_memory_barrier_end // pImageMemoryBarriers
         );
 
-        if (vkEndCommandBuffer(_vulkan_resource_storage.get(command_buffer)) != VK_SUCCESS)
+        if (vkEndCommandBuffer(_vulkan_resource_storage.get(command_buffer).get_native()) != VK_SUCCESS)
         {
             XAR_THROW(
                 error::XarException,

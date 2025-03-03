@@ -4,6 +4,7 @@
 #include <xar_engine/graphics/resource_map.hpp>
 
 #include <xar_engine/graphics/vulkan/impl/vulkan_buffer.hpp>
+#include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_pool.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_set.hpp>
@@ -12,6 +13,7 @@
 #include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_graphics_pipeline.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_physical_device.hpp>
+#include <xar_engine/graphics/vulkan/impl/vulkan_queue.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_sampler.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_shader.hpp>
 #include <xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp>
@@ -25,8 +27,8 @@ namespace xar_engine::graphics::vulkan
         const impl::VulkanBuffer& get(const BufferReference& reference) const;
         impl::VulkanBuffer& get(const BufferReference& reference);
 
-        const VkCommandBuffer& get(const CommandBufferReference& reference) const;
-        VkCommandBuffer& get(const CommandBufferReference& reference);
+        const impl::VulkanCommandBuffer& get(const CommandBufferReference& reference) const;
+        impl::VulkanCommandBuffer& get(const CommandBufferReference& reference);
 
         const impl::VulkanDescriptorPool& get(const DescriptorPoolReference& reference) const;
         impl::VulkanDescriptorPool& get(const DescriptorPoolReference& reference);
@@ -46,6 +48,9 @@ namespace xar_engine::graphics::vulkan
         const impl::VulkanImageView& get(const ImageViewReference& reference) const;
         impl::VulkanImageView& get(const ImageViewReference& reference);
 
+        const impl::VulkanQueue& get(const QueueReference& reference) const;
+        impl::VulkanQueue& get(const QueueReference& reference);
+
         const impl::VulkanSampler& get(const SamplerReference& reference) const;
         impl::VulkanSampler& get(const SamplerReference& reference);
 
@@ -58,7 +63,7 @@ namespace xar_engine::graphics::vulkan
 
         BufferReference add(impl::VulkanBuffer resource);
 
-        CommandBufferReference add(VkCommandBuffer resource);
+        CommandBufferReference add(impl::VulkanCommandBuffer resource);
 
         DescriptorPoolReference add(impl::VulkanDescriptorPool resource);
 
@@ -72,6 +77,8 @@ namespace xar_engine::graphics::vulkan
 
         ImageViewReference add(impl::VulkanImageView resource);
 
+        QueueReference add(impl::VulkanQueue resource);
+
         SamplerReference add(impl::VulkanSampler resource);
 
         ShaderReference add(impl::VulkanShader resource);
@@ -80,13 +87,14 @@ namespace xar_engine::graphics::vulkan
 
     private:
         TResourceMap<BufferTag, impl::VulkanBuffer> _vulkan_buffer_map;
-        TResourceMap<CommandBufferTag, VkCommandBuffer> _vulkan_command_buffer_map;
+        TResourceMap<CommandBufferTag, impl::VulkanCommandBuffer> _vulkan_command_buffer_map;
         TResourceMap<DescriptorPoolTag, impl::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
         TResourceMap<DescriptorSetListTag, impl::VulkanDescriptorSet> _vulkan_descriptor_set_map;
         TResourceMap<DescriptorSetLayoutTag, impl::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
         TResourceMap<GrahicsPipelineTag, impl::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
         TResourceMap<ImageTag, impl::VulkanImage> _vulkan_image_map;
         TResourceMap<ImageViewTag, impl::VulkanImageView> _vulkan_image_view_map;
+        TResourceMap<QueueTag, impl::VulkanQueue> _vulkan_queue_map;
         TResourceMap<SamplerTag, impl::VulkanSampler> _vulkan_sampler_map;
         TResourceMap<ShaderTag, impl::VulkanShader> _vulkan_shader_map;
         TResourceMap<SwapChainTag, impl::VulkanSwapChain> _vulkan_swap_chain_map;

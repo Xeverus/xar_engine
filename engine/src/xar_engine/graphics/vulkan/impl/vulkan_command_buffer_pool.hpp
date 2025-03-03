@@ -5,11 +5,15 @@
 
 #include <volk.h>
 
+#include <xar_engine/graphics/graphics_backend_resource_types.hpp>
+
 #include <xar_engine/graphics/vulkan/impl/vulkan_device.hpp>
 
 
 namespace xar_engine::graphics::vulkan::impl
 {
+    class VulkanCommandBuffer;
+
     class VulkanCommandBufferPool
     {
     public:
@@ -22,12 +26,10 @@ namespace xar_engine::graphics::vulkan::impl
         ~VulkanCommandBufferPool();
 
 
-        [[nodiscard]]
-        VkCommandBuffer make_one_time_buffer();
-        void submit_one_time_buffer(VkCommandBuffer vk_command_buffer);
+        std::vector<VulkanCommandBuffer> make_buffer_list(std::int32_t count);
 
         [[nodiscard]]
-        std::vector<VkCommandBuffer> make_buffers(std::int32_t count);
+        VkCommandPool get_native() const;
 
     private:
         struct State;

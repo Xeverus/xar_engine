@@ -5,6 +5,8 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
+#include <xar_engine/graphics/vulkan/impl/vulkan_queue.hpp>
+
 
 namespace xar_engine::graphics::vulkan::impl
 {
@@ -17,6 +19,7 @@ namespace xar_engine::graphics::vulkan::impl
 
     public:
         VulkanDevice vulkan_device;
+        VulkanQueue vulkan_queue;
         VulkanSurface vulkan_surface;
 
         VkSwapchainKHR vk_swap_chain;
@@ -37,6 +40,7 @@ namespace xar_engine::graphics::vulkan::impl
 
     VulkanSwapChain::State::State(const Parameters& parameters)
         : vulkan_device{parameters.vulkan_device}
+        , vulkan_queue(parameters.vulkan_queue)
         , vulkan_surface{parameters.vulkan_window_surface->get_vulkan_surface()}
         , vk_swap_chain{nullptr}
         , vk_extent_2d{}
@@ -252,7 +256,7 @@ namespace xar_engine::graphics::vulkan::impl
         vk_submit_info.pSignalSemaphores = signal_vk_semaphore_list;
 
         const auto vk_queue_submit_result = vkQueueSubmit(
-            _state->vulkan_device.get_graphics_queue(),
+            _state->vulkan_queue.get_native(),
             1,
             &vk_submit_info,
             _state->in_flight_vk_fence[_state->frame_buffer_index]);
@@ -272,7 +276,7 @@ namespace xar_engine::graphics::vulkan::impl
         vk_present_info_khr.pImageIndices = &_state->image_index;
         vk_present_info_khr.pResults = nullptr;
         const auto vk_queue_present_khr_result = vkQueuePresentKHR(
-            _state->vulkan_device.get_graphics_queue(),
+            _state->vulkan_queue.get_native(),
             &vk_present_info_khr);
 
         _state->frame_buffer_index = (_state->frame_buffer_index + 1) % _state->buffering_level;

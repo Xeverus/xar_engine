@@ -25,14 +25,12 @@ namespace xar_engine::graphics::vulkan::impl
         VulkanPhysicalDevice vulkan_physical_device;
 
         VkDevice vk_device;
-        VkQueue vk_graphics_queue;
         std::uint32_t graphics_queue_family_index;
     };
 
     VulkanDevice::State::State(const Parameters& parameters)
         : vulkan_physical_device(parameters.vulkan_physical_device)
         , vk_device(nullptr)
-        , vk_graphics_queue(nullptr)
         , graphics_queue_family_index(0)
     {
         const auto queue_priority = 1.0f;
@@ -85,11 +83,6 @@ namespace xar_engine::graphics::vulkan::impl
             logging_tag,
             "{} calling vkGetDeviceQueue",
             XAR_OBJECT_ID(this));
-        vkGetDeviceQueue(
-            vk_device,
-            graphics_queue_family_index,
-            0,
-            &vk_graphics_queue);
     }
 
     VulkanDevice::State::~State()
@@ -140,10 +133,5 @@ namespace xar_engine::graphics::vulkan::impl
     std::uint32_t VulkanDevice::get_graphics_family_index() const
     {
         return _state->graphics_queue_family_index;
-    }
-
-    VkQueue VulkanDevice::get_graphics_queue() const
-    {
-        return _state->vk_graphics_queue;
     }
 }

@@ -38,8 +38,7 @@ namespace xar_engine::graphics::vulkan
         BufferReference make_index_buffer(std::uint32_t byte_size) override;
         BufferReference make_uniform_buffer(std::uint32_t byte_size) override;
 
-        std::vector<CommandBufferReference> make_command_buffers(std::uint32_t buffer_counts) override;
-        CommandBufferReference make_one_time_command_buffer() override;
+        std::vector<CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) override;
 
         DescriptorPoolReference make_descriptor_pool() override;
 
@@ -109,7 +108,7 @@ namespace xar_engine::graphics::vulkan
             const BufferReference& source_buffer,
             const ImageReference& target_image) override;
 
-        virtual ESwapChainResult end_frame(
+        ESwapChainResult end_frame(
             const CommandBufferReference& command_buffer,
             const SwapChainReference& swap_chain) override;
 
@@ -117,7 +116,13 @@ namespace xar_engine::graphics::vulkan
             const CommandBufferReference& command_buffer,
             const ImageReference& image) override;
 
-        void submit_one_time_command_buffer(const CommandBufferReference& command_buffer) override;
+        void begin_command_buffer(
+            const CommandBufferReference& command_buffer,
+            ECommandBufferType command_buffer_type) override;
+
+        void end_command_buffer(const CommandBufferReference& command_buffer) override;
+
+        void submit_command_buffer(const CommandBufferReference& command_buffer) override;
 
         void transit_image_layout(
             const CommandBufferReference& command_buffer,
@@ -143,6 +148,7 @@ namespace xar_engine::graphics::vulkan
         std::shared_ptr<impl::VulkanInstance> _vulkan_instance;
         std::vector<impl::VulkanPhysicalDevice> _vulkan_physical_device_list;
         impl::VulkanDevice _vulkan_device;
+        impl::VulkanQueue _vulkan_graphics_queue;
         impl::VulkanCommandBufferPool _vulkan_command_buffer_pool;
         VulkanResourceStorage _vulkan_resource_storage;
     };

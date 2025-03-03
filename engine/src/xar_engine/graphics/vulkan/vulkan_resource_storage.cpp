@@ -14,12 +14,12 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_buffer_map.get_object(reference);
     }
 
-    const VkCommandBuffer& VulkanResourceStorage::get(const CommandBufferReference& reference) const
+    const impl::VulkanCommandBuffer& VulkanResourceStorage::get(const CommandBufferReference& reference) const
     {
         return _vulkan_command_buffer_map.get_object(reference);
     }
 
-    VkCommandBuffer& VulkanResourceStorage::get(const CommandBufferReference& reference)
+    impl::VulkanCommandBuffer& VulkanResourceStorage::get(const CommandBufferReference& reference)
     {
         return _vulkan_command_buffer_map.get_object(reference);
     }
@@ -84,6 +84,16 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_image_view_map.get_object(reference);
     }
 
+    const impl::VulkanQueue& VulkanResourceStorage::get(const QueueReference& reference) const
+    {
+        return _vulkan_queue_map.get_object(reference);
+    }
+
+    impl::VulkanQueue& VulkanResourceStorage::get(const QueueReference& reference)
+    {
+        return _vulkan_queue_map.get_object(reference);
+    }
+
     const impl::VulkanSampler& VulkanResourceStorage::get(const SamplerReference& reference) const
     {
         return _vulkan_sampler_map.get_object(reference);
@@ -120,7 +130,7 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_buffer_map.add(std::move(resource));
     }
 
-    CommandBufferReference VulkanResourceStorage::add(VkCommandBuffer resource)
+    CommandBufferReference VulkanResourceStorage::add(impl::VulkanCommandBuffer resource)
     {
         return _vulkan_command_buffer_map.add(std::move(resource));
     }
@@ -153,6 +163,11 @@ namespace xar_engine::graphics::vulkan
     ImageViewReference VulkanResourceStorage::add(impl::VulkanImageView resource)
     {
         return _vulkan_image_view_map.add(std::move(resource));
+    }
+
+    QueueReference VulkanResourceStorage::add(impl::VulkanQueue resource)
+    {
+        return _vulkan_queue_map.add(std::move(resource));
     }
 
     SamplerReference VulkanResourceStorage::add(impl::VulkanSampler resource)

@@ -42,7 +42,7 @@ namespace xar_engine::graphics
     TResourceMap<Tag, Type>::Resource TResourceMap<Tag, Type>::add(Type&& object)
     {
         const auto resource_id = _next_id++;
-        _resource_map.emplace(resource_id, std::move(object));
+        _resource_map.emplace(resource_id, std::forward<Type>(object));
 
         return Resource{resource_id, [this, resource_id](){
             _resource_map.erase(resource_id);
