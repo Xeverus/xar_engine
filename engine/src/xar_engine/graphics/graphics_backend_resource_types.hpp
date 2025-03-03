@@ -31,9 +31,11 @@ namespace xar_engine::graphics
     using SurfaceReference = TResourceReference<SurfaceTag>;
     using SwapChainReference = TResourceReference<SwapChainTag>;
 
-    enum class EImageFormat
+    enum class EFormat
     {
         D32_SFLOAT,
+        R32G32_SFLOAT,
+        R32G32B32_SFLOAT,
         R8G8B8A8_SRGB,
     };
 
@@ -61,5 +63,32 @@ namespace xar_engine::graphics
         OK,
         RECREATION_REQUIRED,
         ERROR,
+    };
+
+    enum class ShaderType
+    {
+        VERTEX,
+        FRAGMENT,
+    };
+
+    enum class VertexInputBindingRate
+    {
+        PER_VERTEX,
+        PER_INSTANCE,
+    };
+
+    struct VertexInputAttribute
+    {
+        std::uint32_t binding_index;
+        std::uint32_t location;
+        std::uint32_t offset;
+        EFormat format;
+    };
+
+    struct VertexInputBinding
+    {
+        std::uint32_t binding_index;
+        std::uint32_t stride;
+        VertexInputBindingRate input_rate;
     };
 }

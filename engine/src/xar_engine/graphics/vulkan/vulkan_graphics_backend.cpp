@@ -11,15 +11,23 @@ namespace xar_engine::graphics::vulkan
     {
         const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
-        VkFormat to_vk_format(const EImageFormat image_format)
+        VkFormat to_vk(const EFormat image_format)
         {
             switch (image_format)
             {
-                case EImageFormat::D32_SFLOAT:
+                case EFormat::D32_SFLOAT:
                 {
                     return VK_FORMAT_D32_SFLOAT;
                 }
-                case EImageFormat::R8G8B8A8_SRGB:
+                case EFormat::R32G32_SFLOAT:
+                {
+                    return VK_FORMAT_R32G32_SFLOAT;
+                }
+                case EFormat::R32G32B32_SFLOAT:
+                {
+                    return VK_FORMAT_R32G32B32_SFLOAT;
+                }
+                case EFormat::R8G8B8A8_SRGB:
                 {
                     return VK_FORMAT_R8G8B8A8_SRGB;
                 }
@@ -28,7 +36,7 @@ namespace xar_engine::graphics::vulkan
             return VK_FORMAT_UNDEFINED;
         }
 
-        VkImageAspectFlagBits to_vk_aspect(const EImageAspect image_aspect)
+        VkImageAspectFlagBits to_vk(const EImageAspect image_aspect)
         {
             switch (image_aspect)
             {
@@ -43,6 +51,35 @@ namespace xar_engine::graphics::vulkan
             }
 
             return VK_IMAGE_ASPECT_NONE;
+        }
+
+        std::vector<VkVertexInputBindingDescription> to_vk(const std::vector<VertexInputBinding>& vertex_input_binding_list)
+        {
+            auto vk_vertex_input_binding_list = std::vector<VkVertexInputBindingDescription>(vertex_input_binding_list.size());
+            for (auto i = 0; i < vertex_input_binding_list.size(); ++i)
+            {
+                vk_vertex_input_binding_list[i].binding = vertex_input_binding_list[i].binding_index;
+                vk_vertex_input_binding_list[i].stride = vertex_input_binding_list[i].stride;
+                vk_vertex_input_binding_list[i].inputRate =
+                    vertex_input_binding_list[i].input_rate == VertexInputBindingRate::PER_VERTEX
+                    ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
+            }
+
+            return vk_vertex_input_binding_list;
+        }
+
+        std::vector<VkVertexInputAttributeDescription> to_vk(const std::vector<VertexInputAttribute>& vertex_input_attribute_list)
+        {
+            auto vk_vertex_input_attribute_list = std::vector<VkVertexInputAttributeDescription>(vertex_input_attribute_list.size());
+            for (auto i = 0; i < vertex_input_attribute_list.size(); ++i)
+            {
+                vk_vertex_input_attribute_list[i].binding = vertex_input_attribute_list[i].binding_index;
+                vk_vertex_input_attribute_list[i].location = vertex_input_attribute_list[i].location;
+                vk_vertex_input_attribute_list[i].format = to_vk(vertex_input_attribute_list[i].format);
+                vk_vertex_input_attribute_list[i].offset = vertex_input_attribute_list[i].offset;
+            }
+
+            return vk_vertex_input_attribute_list;
         }
 
         ESwapChainResult to_xargine(const VkResult vk_result)
@@ -65,49 +102,12 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
+
         struct Vertex
         {
             glm::vec3 position;
             glm::vec3 color;
             glm::vec2 textureCoords;
-
-            static std::vector<VkVertexInputBindingDescription> getBindingDescription()
-            {
-                VkVertexInputBindingDescription bindingDescription{};
-                bindingDescription.binding = 0;
-                bindingDescription.stride = sizeof(Vertex);
-                bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-                return {bindingDescription};
-            }
-
-            static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-            {
-                std::vector<VkVertexInputAttributeDescription> attributeDescriptions(3);
-
-                attributeDescriptions[0].binding = 0;
-                attributeDescriptions[0].location = 0;
-                attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-                attributeDescriptions[0].offset = offsetof(
-                    Vertex,
-                    position);
-
-                attributeDescriptions[1].binding = 0;
-                attributeDescriptions[1].location = 1;
-                attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-                attributeDescriptions[1].offset = offsetof(
-                    Vertex,
-                    color);
-
-                attributeDescriptions[2].binding = 0;
-                attributeDescriptions[2].location = 2;
-                attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-                attributeDescriptions[2].offset = offsetof(
-                    Vertex,
-                    textureCoords);
-
-                return attributeDescriptions;
-            }
         };
     }
 
@@ -328,8 +328,10 @@ namespace xar_engine::graphics::vulkan
         const DescriptorSetLayoutReference& descriptor_set_layout,
         const ShaderReference& vertex_shader,
         const ShaderReference& fragment_shader,
-        const EImageFormat color_format,
-        const EImageFormat depth_format,
+        const std::vector<VertexInputAttribute>& vertex_input_attribute_list,
+        const std::vector<VertexInputBinding>& vertex_input_binding_list,
+        const EFormat color_format,
+        const EFormat depth_format,
         std::uint32_t sample_counts)
     {
         VkPushConstantRange pushConstantRange{};
@@ -342,29 +344,31 @@ namespace xar_engine::graphics::vulkan
                 {
                     _vulkan_device,
                     {
-                        std::make_tuple(
+                        {
                             _vulkan_resource_storage.get(vertex_shader).get_native(),
                             VK_SHADER_STAGE_VERTEX_BIT,
-                            "main"),
-                        std::make_tuple(
+                            "main"
+                        },
+                        {
                             _vulkan_resource_storage.get(fragment_shader).get_native(),
                             VK_SHADER_STAGE_FRAGMENT_BIT,
-                            "main")
+                            "main"
+                        }
                     },
                     _vulkan_resource_storage.get(descriptor_set_layout).get_native(),
-                    Vertex::getBindingDescription(),
-                    Vertex::getAttributeDescriptions(),
+                    to_vk(vertex_input_binding_list),
+                    to_vk(vertex_input_attribute_list),
                     {pushConstantRange},
                     static_cast<VkSampleCountFlagBits>(sample_counts),
-                    to_vk_format(color_format),
-                    to_vk_format(depth_format),
+                    to_vk(color_format),
+                    to_vk(depth_format),
                 }});
     }
 
     ImageReference VulkanGraphicsBackend::make_image(
         EImageType image_type,
         const math::Vector3i32 dimension,
-        const EImageFormat image_format,
+        const EFormat image_format,
         const std::uint32_t mip_levels,
         const std::uint32_t sample_count)
     {
@@ -396,7 +400,7 @@ namespace xar_engine::graphics::vulkan
                 {
                     _vulkan_device,
                     dimension,
-                    to_vk_format(image_format),
+                    to_vk(image_format),
                     VK_IMAGE_TILING_OPTIMAL,
                     static_cast<VkImageUsageFlagBits>(vk_image_usage),
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -418,7 +422,7 @@ namespace xar_engine::graphics::vulkan
                     _vulkan_device,
                     vulkan_image.get_native(),
                     vulkan_image.get_vk_format(),
-                    to_vk_aspect(image_aspect),
+                    to_vk(image_aspect),
                     mip_levels
                 }});
     }

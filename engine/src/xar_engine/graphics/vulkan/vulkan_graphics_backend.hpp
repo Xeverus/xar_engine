@@ -56,14 +56,16 @@ namespace xar_engine::graphics::vulkan
             const DescriptorSetLayoutReference& descriptor_set_layout,
             const ShaderReference& vertex_shader,
             const ShaderReference& fragment_shader,
-            EImageFormat color_format,
-            EImageFormat depth_format,
+            const std::vector<VertexInputAttribute>& vertex_input_attribute_list,
+            const std::vector<VertexInputBinding>& vertex_input_binding_list,
+            EFormat color_format,
+            EFormat depth_format,
             std::uint32_t sample_counts) override;
 
         ImageReference make_image(
             EImageType image_type,
             math::Vector3i32 dimension,
-            EImageFormat image_format,
+            EFormat image_format,
             std::uint32_t mip_levels,
             std::uint32_t sample_count) override;
 

@@ -32,6 +32,44 @@ namespace xar_engine::graphics::vulkan::impl
             glm::vec3 position;
             glm::vec3 color;
             glm::vec2 textureCoords;
+
+            static std::vector<VertexInputBinding> getBindingDescription()
+            {
+                VertexInputBinding binding{};
+                binding.binding_index = 0;
+                binding.stride = sizeof(Vertex);
+                binding.input_rate = VertexInputBindingRate::PER_VERTEX;
+
+                return {binding};
+            }
+
+            static std::vector<VertexInputAttribute> getAttributeDescriptions()
+            {
+                std::vector<VertexInputAttribute> attributeDescriptions(3);
+
+                attributeDescriptions[0].binding_index = 0;
+                attributeDescriptions[0].location = 0;
+                attributeDescriptions[0].format = EFormat::R32G32B32_SFLOAT;
+                attributeDescriptions[0].offset = offsetof(
+                    Vertex,
+                    position);
+
+                attributeDescriptions[1].binding_index = 0;
+                attributeDescriptions[1].location = 1;
+                attributeDescriptions[1].format = EFormat::R32G32B32_SFLOAT;
+                attributeDescriptions[1].offset = offsetof(
+                    Vertex,
+                    color);
+
+                attributeDescriptions[2].binding_index = 0;
+                attributeDescriptions[2].location = 2;
+                attributeDescriptions[2].format = EFormat::R32G32_SFLOAT;
+                attributeDescriptions[2].offset = offsetof(
+                    Vertex,
+                    textureCoords);
+
+                return attributeDescriptions;
+            }
         };
 
         struct UniformBufferObject
@@ -45,37 +83,7 @@ namespace xar_engine::graphics::vulkan::impl
         std::vector<std::uint32_t> indices;
     }
 
-    // DONE
-    void VulkanRenderer::destroy_swapchain()
-    {
-        _color_image_view_ref = {};
-        _color_image_ref = {};
-
-        _depth_image_view_ref = {};
-        _depth_image_ref = {};
-
-        _swap_chain_ref = {};
-    }
-
-    // DONE
-    void VulkanRenderer::init_descriptor_set_layout()
-    {
-        _descriptor_set_layout_ref = _vulkan_graphics_backend->resource().make_descriptor_set_layout();
-    }
-
-    // DONE
-    void VulkanRenderer::init_graphics_pipeline()
-    {
-        _graphics_pipeline_ref = _vulkan_graphics_backend->resource().make_graphics_pipeline(
-            _descriptor_set_layout_ref,
-            _vertex_shader_ref,
-            _fragment_shader_ref,
-            EImageFormat::R8G8B8A8_SRGB,
-            findDepthFormat(),
-            _vulkan_graphics_backend->host_command().get_sample_count());
-    }
-
-    // DONE
+    
     void VulkanRenderer::init_vertex_data()
     {
         VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -96,7 +104,7 @@ namespace xar_engine::graphics::vulkan::impl
         _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
-    // DONE
+    
     void VulkanRenderer::init_index_data()
     {
         VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
@@ -117,7 +125,7 @@ namespace xar_engine::graphics::vulkan::impl
         _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
-    // DONE
+    
     void VulkanRenderer::init_model()
     {
         const auto model = xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj");
@@ -141,29 +149,7 @@ namespace xar_engine::graphics::vulkan::impl
             sizeof(indices[0]) * indices.size());
     }
 
-    // DONE
-    void VulkanRenderer::init_ubo_data()
-    {
-        _uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-        {
-            _uniform_buffer_ref_list.push_back(_vulkan_graphics_backend->resource().make_uniform_buffer(sizeof(UniformBufferObject)));
-        }
-    }
-
-    // DONE
-    void VulkanRenderer::init_descriptors()
-    {
-        _descriptor_pool_ref = _vulkan_graphics_backend->resource().make_descriptor_pool();
-        _descriptor_set_list_ref = _vulkan_graphics_backend->resource().make_descriptor_set_list(
-            _descriptor_pool_ref,
-            _descriptor_set_layout_ref,
-            _uniform_buffer_ref_list,
-            _texture_image_view_ref,
-            _sampler_ref);
-    }
-
-    // DONE
+    
     void VulkanRenderer::init_color_msaa()
     {
         _color_image_ref = _vulkan_graphics_backend->resource().make_image(
@@ -173,7 +159,7 @@ namespace xar_engine::graphics::vulkan::impl
                 static_cast<std::int32_t>(_vulkan_window_surface->get_pixel_size().y),
                 1
             },
-            EImageFormat::R8G8B8A8_SRGB,
+            EFormat::R8G8B8A8_SRGB,
             1,
             _vulkan_graphics_backend->host_command().get_sample_count());
 
@@ -184,7 +170,7 @@ namespace xar_engine::graphics::vulkan::impl
             1);
     }
 
-    // DONE
+    
     void VulkanRenderer::init_depth()
     {
         _depth_image_ref = _vulkan_graphics_backend->resource().make_image(
@@ -211,7 +197,7 @@ namespace xar_engine::graphics::vulkan::impl
         _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(cmd_bf);
     }
 
-    // DONE
+    
     void VulkanRenderer::init_texture()
     {
         auto image = asset::ImageLoaderFactory().make()->load_image_from_file("assets/viking_room.png");
@@ -232,7 +218,7 @@ namespace xar_engine::graphics::vulkan::impl
         _texture_image_ref = _vulkan_graphics_backend->resource().make_image(
             EImageType::TEXTURE,
             {image.pixel_width, image.pixel_height, 1},
-            EImageFormat::R8G8B8A8_SRGB,
+            EFormat::R8G8B8A8_SRGB,
             mipLevels,
             1);
 
@@ -251,21 +237,6 @@ namespace xar_engine::graphics::vulkan::impl
         _vulkan_graphics_backend->device_command().submit_one_time_command_buffer(tmp_command_buffer);
     }
 
-    // DONE
-    void VulkanRenderer::init_texture_view()
-    {
-        _texture_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
-            _texture_image_ref,
-            EImageAspect::COLOR,
-            mipLevels);
-    }
-
-    // DONE
-    void VulkanRenderer::init_sampler()
-    {
-        _sampler_ref = _vulkan_graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
-    }
-
     void VulkanRenderer::run_frame_sandbox()
     {
         const auto begin_frame_result = _vulkan_graphics_backend->host_command().begin_frame(_swap_chain_ref);
@@ -278,7 +249,7 @@ namespace xar_engine::graphics::vulkan::impl
                 "Acquire failed because Swapchain is out of date");
 
             _vulkan_graphics_backend->device_command().wait_idle();
-            destroy_swapchain();
+            _swap_chain_ref = {};
 
             _swap_chain_ref = _vulkan_graphics_backend->resource().make_swap_chain(
                 _vulkan_window_surface,
@@ -329,7 +300,7 @@ namespace xar_engine::graphics::vulkan::impl
                 "Present failed because Swapchain is out of date");
 
             _vulkan_graphics_backend->device_command().wait_idle();
-            destroy_swapchain();
+            _swap_chain_ref = {};
 
             _swap_chain_ref = _vulkan_graphics_backend->resource().make_swap_chain(
                 _vulkan_window_surface,
@@ -363,13 +334,13 @@ namespace xar_engine::graphics::vulkan::impl
         ++frameCounter;
     }
 
-    // DONE
+    
     void VulkanRenderer::cleanup_sandbox()
     {
         _vulkan_graphics_backend->device_command().wait_idle();
     }
 
-    // DONE
+    
     void VulkanRenderer::updateUniformBuffer(uint32_t currentImageNr)
     {
         static auto startTime = std::chrono::high_resolution_clock::now();
@@ -415,8 +386,8 @@ namespace xar_engine::graphics::vulkan::impl
             sizeof(ubo));
     }
 
-    // DONE
-    EImageFormat VulkanRenderer::findDepthFormat()
+    
+    EFormat VulkanRenderer::findDepthFormat()
     {
         /*const auto vk_format = _physical_device_list[0].find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
@@ -455,7 +426,7 @@ namespace xar_engine::graphics::vulkan::impl
             }
         }
 
-        return EImageFormat::D32_SFLOAT;
+        return EFormat::D32_SFLOAT;
     }
 }
 
@@ -479,18 +450,46 @@ namespace xar_engine::graphics::vulkan::impl
         _vertex_shader_ref = _vulkan_graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.vert.spv"));
         _fragment_shader_ref = _vulkan_graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.frag.spv"));
 
-        init_descriptor_set_layout();
-        init_graphics_pipeline();
+        _descriptor_set_layout_ref = _vulkan_graphics_backend->resource().make_descriptor_set_layout();
+
+        _graphics_pipeline_ref = _vulkan_graphics_backend->resource().make_graphics_pipeline(
+            _descriptor_set_layout_ref,
+            _vertex_shader_ref,
+            _fragment_shader_ref,
+            Vertex::getAttributeDescriptions(),
+            Vertex::getBindingDescription(),
+            EFormat::R8G8B8A8_SRGB,
+            findDepthFormat(),
+            _vulkan_graphics_backend->host_command().get_sample_count());
+
         init_color_msaa();
         init_depth();
         init_texture();
-        init_texture_view();
-        init_sampler();
+
+        _texture_image_view_ref = _vulkan_graphics_backend->resource().make_image_view(
+            _texture_image_ref,
+            EImageAspect::COLOR,
+            mipLevels);
+
+        _sampler_ref = _vulkan_graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
+
         init_model();
         init_vertex_data();
         init_index_data();
-        init_ubo_data();
-        init_descriptors();
+
+        _uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            _uniform_buffer_ref_list.push_back(_vulkan_graphics_backend->resource().make_uniform_buffer(sizeof(UniformBufferObject)));
+        }
+
+        _descriptor_pool_ref = _vulkan_graphics_backend->resource().make_descriptor_pool();
+        _descriptor_set_list_ref = _vulkan_graphics_backend->resource().make_descriptor_set_list(
+            _descriptor_pool_ref,
+            _descriptor_set_layout_ref,
+            _uniform_buffer_ref_list,
+            _texture_image_view_ref,
+            _sampler_ref);
     }
 
     VulkanRenderer::~VulkanRenderer()

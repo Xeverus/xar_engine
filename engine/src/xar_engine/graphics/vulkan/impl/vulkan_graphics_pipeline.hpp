@@ -15,6 +15,7 @@ namespace xar_engine::graphics::vulkan::impl
     class VulkanGraphicsPipeline
     {
     public:
+        struct ShaderParameters;
         struct Parameters;
 
     public:
@@ -36,11 +37,18 @@ namespace xar_engine::graphics::vulkan::impl
         std::shared_ptr<State> _state;
     };
 
+    struct VulkanGraphicsPipeline::ShaderParameters
+    {
+        VkShaderModule vk_shader_module;
+        VkShaderStageFlagBits vk_shader_stage_flag_bits;
+        std::string entry_point;
+    };
+
     struct VulkanGraphicsPipeline::Parameters
     {
         VulkanDevice vulkan_device;
 
-        std::vector<std::tuple<VkShaderModule, VkShaderStageFlagBits, std::string>> vk_shader_module_list;
+        std::vector<ShaderParameters> vk_shader_module_list;
         VkDescriptorSetLayout vk_descriptor_set_layout;
         std::vector<VkVertexInputBindingDescription> vk_vertex_input_binding_descriptor_list;
         std::vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_descriptor_list;
