@@ -100,7 +100,7 @@ namespace xar_engine::graphics::vulkan
             void* data,
             std::uint32_t data_byte_size) override;
 
-        std::tuple<ESwapChainResult, std::uint32_t> begin_frame(const SwapChainReference& swap_chain) override;
+        std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(const SwapChainReference& swap_chain) override;
 
         [[nodiscard]]
         std::uint32_t get_sample_count() const override;
@@ -138,7 +138,8 @@ namespace xar_engine::graphics::vulkan
             const CommandBufferReference& command_buffer,
             const SwapChainReference& swap_chain,
             const GraphicsPipelineReference& graphics_pipeline,
-            std::uint32_t frame_index,
+            std::uint32_t image_index,
+            std::uint32_t frame_buffer_index,
             const DescriptorSetListReference& descriptor_set_list,
             const BufferReference& vertex_buffer,
             const BufferReference& index_buffer,

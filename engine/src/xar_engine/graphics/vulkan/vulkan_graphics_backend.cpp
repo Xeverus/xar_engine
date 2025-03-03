@@ -504,13 +504,14 @@ namespace xar_engine::graphics::vulkan
         vulkan_buffer.unmap();
     }
 
-    std::tuple<ESwapChainResult, std::uint32_t> VulkanGraphicsBackend::begin_frame(const SwapChainReference& swap_chain)
+    std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> VulkanGraphicsBackend::begin_frame(const SwapChainReference& swap_chain)
     {
         const auto result = get_object(swap_chain).begin_frame();
 
         return {
             to_xargine(result.vk_result),
-            result.frame_index
+            result.image_index,
+            result.frame_buffer_index
         };
     }
 
@@ -640,7 +641,8 @@ namespace xar_engine::graphics::vulkan
         const CommandBufferReference& command_buffer,
         const SwapChainReference& swap_chain,
         const GraphicsPipelineReference& graphics_pipeline,
-        std::uint32_t frame_index,
+        std::uint32_t image_index,
+        std::uint32_t frame_buffer_index,
         const DescriptorSetListReference& descriptor_set_list,
         const BufferReference& vertex_buffer,
         const BufferReference& index_buffer,
@@ -676,7 +678,7 @@ namespace xar_engine::graphics::vulkan
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .image = get_object(swap_chain).get_vk_image(frame_index),
+            .image = get_object(swap_chain).get_vk_image(image_index),
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,
@@ -711,7 +713,7 @@ namespace xar_engine::graphics::vulkan
         vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
         vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-        vkRenderingAttachmentInfoColor.resolveImageView = get_object(swap_chain).get_vulkan_image_view(frame_index).get_native();
+        vkRenderingAttachmentInfoColor.resolveImageView = get_object(swap_chain).get_vulkan_image_view(image_index).get_native();
 
         VkClearValue clearDepthColor{};
         clearDepthColor.depthStencil = {1.0f, 0};
@@ -792,7 +794,7 @@ namespace xar_engine::graphics::vulkan
             get_object(graphics_pipeline).get_native_pipeline_layout(),
             0,
             1,
-            &get_object(descriptor_set_list).get_native()[frame_index],
+            &get_object(descriptor_set_list).get_native()[frame_buffer_index],
             0,
             nullptr);
 
@@ -811,7 +813,7 @@ namespace xar_engine::graphics::vulkan
             .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            .image = get_object(swap_chain).get_vk_image(frame_index),
+            .image = get_object(swap_chain).get_vk_image(image_index),
             .subresourceRange = {
                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                 .baseMipLevel = 0,

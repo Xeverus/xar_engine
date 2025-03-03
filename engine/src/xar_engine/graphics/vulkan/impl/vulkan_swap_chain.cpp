@@ -24,7 +24,7 @@ namespace xar_engine::graphics::vulkan::impl
         VkSurfaceFormatKHR vk_surface_format_khr;
 
         std::uint32_t buffering_level;
-        std::uint32_t frame_index;
+        std::uint32_t frame_buffer_index;
         std::uint32_t image_index;
 
         std::vector<VkImage> vk_images;
@@ -42,7 +42,7 @@ namespace xar_engine::graphics::vulkan::impl
         , vk_extent_2d{}
         , vk_surface_format_khr{parameters.vk_surface_format_khr}
         , buffering_level{static_cast<std::uint32_t>(parameters.buffering_level)}
-        , frame_index{0}
+        , frame_buffer_index{0}
         , image_index{0}
         , vk_images{}
         , vulkan_image_view_list{}
@@ -203,20 +203,20 @@ namespace xar_engine::graphics::vulkan::impl
         vkWaitForFences(
             _state->vulkan_device.get_native(),
             1,
-            &_state->in_flight_vk_fence[_state->frame_index],
+            &_state->in_flight_vk_fence[_state->frame_buffer_index],
             VK_TRUE,
             UINT64_MAX);
         vkResetFences(
             _state->vulkan_device.get_native(),
             1,
-            &_state->in_flight_vk_fence[_state->frame_index]);
+            &_state->in_flight_vk_fence[_state->frame_buffer_index]);
 
         _state->image_index = uint32_t{0};
         const auto acquire_img_result = vkAcquireNextImageKHR(
             _state->vulkan_device.get_native(),
             get_native(),
             UINT64_MAX,
-            _state->image_available_vk_semaphore[_state->frame_index],
+            _state->image_available_vk_semaphore[_state->frame_buffer_index],
             VK_NULL_HANDLE,
             &_state->image_index);
 
@@ -225,20 +225,21 @@ namespace xar_engine::graphics::vulkan::impl
             vkResetFences(
                 _state->vulkan_device.get_native(),
                 1,
-                &_state->in_flight_vk_fence[_state->frame_index]);
+                &_state->in_flight_vk_fence[_state->frame_buffer_index]);
         }
 
         return {
             acquire_img_result,
-            _state->frame_index,
+            _state->image_index,
+            _state->frame_buffer_index,
         };
     }
 
     VulkanSwapChain::EndFrameResult VulkanSwapChain::end_frame(VkCommandBuffer vk_command_buffer)
     {
-        VkSemaphore wait_vk_semaphore_list[] = {_state->image_available_vk_semaphore[_state->frame_index]};
+        VkSemaphore wait_vk_semaphore_list[] = {_state->image_available_vk_semaphore[_state->frame_buffer_index]};
         VkPipelineStageFlags wait_vk_pipeline_stage_flags_list[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        VkSemaphore signal_vk_semaphore_list[] = {_state->render_finished_vk_semaphore[_state->frame_index]};
+        VkSemaphore signal_vk_semaphore_list[] = {_state->render_finished_vk_semaphore[_state->frame_buffer_index]};
 
         auto vk_submit_info = VkSubmitInfo{};
         vk_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -254,7 +255,7 @@ namespace xar_engine::graphics::vulkan::impl
             _state->vulkan_device.get_graphics_queue(),
             1,
             &vk_submit_info,
-            _state->in_flight_vk_fence[_state->frame_index]);
+            _state->in_flight_vk_fence[_state->frame_buffer_index]);
         XAR_THROW_IF(
             vk_queue_submit_result != VK_SUCCESS,
             error::XarException,
@@ -274,7 +275,7 @@ namespace xar_engine::graphics::vulkan::impl
             _state->vulkan_device.get_graphics_queue(),
             &vk_present_info_khr);
 
-        _state->frame_index = (_state->frame_index + 1) % _state->buffering_level;
+        _state->frame_buffer_index = (_state->frame_buffer_index + 1) % _state->buffering_level;
 
         return {vk_queue_present_khr_result};
     }

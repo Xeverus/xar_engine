@@ -135,7 +135,7 @@ namespace xar_engine::graphics
             void* data,
             std::uint32_t data_byte_size) = 0;
 
-        virtual std::tuple<ESwapChainResult, std::uint32_t> begin_frame(
+        virtual std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(
             const SwapChainReference& swap_chain) = 0;
 
         [[nodiscard]]
@@ -179,7 +179,8 @@ namespace xar_engine::graphics
             const CommandBufferReference& command_buffer,
             const SwapChainReference& swap_chain,
             const GraphicsPipelineReference& graphics_pipeline,
-            std::uint32_t frame_index,
+            std::uint32_t image_index,
+            std::uint32_t frame_buffer_index,
             const DescriptorSetListReference& descriptor_set_list,
             const BufferReference& vertex_buffer,
             const BufferReference& index_buffer,

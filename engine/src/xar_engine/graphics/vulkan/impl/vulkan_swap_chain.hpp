@@ -70,7 +70,8 @@ namespace xar_engine::graphics::vulkan::impl
     struct VulkanSwapChain::BeginFrameResult
     {
         VkResult vk_result;
-        std::uint32_t frame_index;
+        std::uint32_t image_index;
+        std::uint32_t frame_buffer_index;
     };
 
     struct VulkanSwapChain::EndFrameResult

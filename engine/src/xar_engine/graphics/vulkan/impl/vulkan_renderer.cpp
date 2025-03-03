@@ -302,13 +302,15 @@ namespace xar_engine::graphics::vulkan::impl
             return;
         }
 
-        const auto currentFrame = std::get<1>(begin_frame_result);
+        const auto current_image_index = std::get<1>(begin_frame_result);
+        const auto frame_index = std::get<2>(begin_frame_result);
 
         _vulkan_graphics_backend->device_command().TMP_RECORD_FRAME(
-            _command_buffer_list[currentFrame],
+            _command_buffer_list[frame_index],
             _swap_chain_ref,
             _graphics_pipeline_ref,
-            currentFrame,
+            current_image_index,
+            frame_index,
             _descriptor_set_list_ref,
             _vertex_buffer_ref,
             _index_buffer_ref,
@@ -316,9 +318,9 @@ namespace xar_engine::graphics::vulkan::impl
             _depth_image_view_ref,
             indices.size());
 
-        updateUniformBuffer(currentFrame);
+        updateUniformBuffer(frame_index);
 
-        const auto end_result = _vulkan_graphics_backend->device_command().end_frame(_command_buffer_list[currentFrame], _swap_chain_ref);
+        const auto end_result = _vulkan_graphics_backend->device_command().end_frame(_command_buffer_list[frame_index], _swap_chain_ref);
         if (end_result == ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
@@ -354,14 +356,11 @@ namespace xar_engine::graphics::vulkan::impl
             xar_engine::logging::LogLevel::DEBUG,
             tag,
             "Frame buffer nr {}, frames in total {}",
-            currentFrame,
+            frame_index,
             frameCounter);
 
         // change frame index
         ++frameCounter;
-
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(10ms);
     }
 
     // DONE
