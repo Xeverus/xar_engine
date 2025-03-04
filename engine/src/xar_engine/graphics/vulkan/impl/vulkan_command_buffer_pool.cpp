@@ -87,13 +87,22 @@ namespace xar_engine::graphics::vulkan::impl
             vulkan_command_buffer_list.push_back(
                 VulkanCommandBuffer{
                     {
-                        _state->vulkan_device,
                         *this,
                         vk_command_buffer,
                     }});
         }
 
         return vulkan_command_buffer_list;
+    }
+
+    const VulkanDevice& VulkanCommandBufferPool::get_device() const
+    {
+        return _state->vulkan_device;
+    }
+
+    VulkanDevice& VulkanCommandBufferPool::get_device()
+    {
+        return _state->vulkan_device;
     }
 
     VkCommandPool VulkanCommandBufferPool::get_native() const

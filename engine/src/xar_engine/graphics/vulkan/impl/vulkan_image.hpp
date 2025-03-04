@@ -28,6 +28,13 @@ namespace xar_engine::graphics::vulkan::impl
 
         void generate_mipmaps(VkCommandBuffer vk_command_buffer);
 
+
+        [[nodiscard]]
+        const VulkanDevice& get_device() const;
+
+        [[nodiscard]]
+        VulkanDevice& get_device();
+
         [[nodiscard]]
         VkImage get_native() const;
 

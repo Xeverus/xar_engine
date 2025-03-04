@@ -26,6 +26,13 @@ namespace xar_engine::graphics::vulkan::impl
         std::vector<VulkanDescriptorSet> make_descriptor_set_list(
             const std::vector<VkDescriptorSetLayout>& vk_descriptor_set_layout_list);
 
+
+        [[nodiscard]]
+        const VulkanDevice& get_device() const;
+
+        [[nodiscard]]
+        VulkanDevice& get_device();
+
         [[nodiscard]]
         VkDescriptorPool get_native() const;
 

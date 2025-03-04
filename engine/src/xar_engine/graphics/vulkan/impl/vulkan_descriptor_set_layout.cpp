@@ -14,6 +14,7 @@ namespace xar_engine::graphics::vulkan::impl
 
     public:
         VulkanDevice vulkan_device;
+
         VkDescriptorSetLayout vk_descriptor_set_layout;
     };
 

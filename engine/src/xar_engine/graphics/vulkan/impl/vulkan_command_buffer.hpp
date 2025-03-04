@@ -39,7 +39,6 @@ namespace xar_engine::graphics::vulkan::impl
 
     struct VulkanCommandBuffer::Parameters
     {
-        VulkanDevice vulkan_device;
         VulkanCommandBufferPool vulkan_command_buffer_pool;
         VkCommandBuffer vk_command_buffer;
     };

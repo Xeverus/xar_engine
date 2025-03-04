@@ -94,16 +94,24 @@ namespace xar_engine::graphics::vulkan::impl
         vulkan_descriptor_set.reserve(vk_descriptor_set_layout_list.size());
         for (auto vk_descriptor_set: vk_descriptor_set_list)
         {
-            vulkan_descriptor_set.push_back(
-                VulkanDescriptorSet{
-                    VulkanDescriptorSet::Parameters{
-                        _state->vulkan_device,
-                        *this,
-                        vk_descriptor_set,
-                    }});
+            vulkan_descriptor_set.emplace_back(
+                VulkanDescriptorSet::Parameters{
+                    *this,
+                    vk_descriptor_set,
+                });
         }
 
         return vulkan_descriptor_set;
+    }
+
+    const VulkanDevice& VulkanDescriptorPool::get_device() const
+    {
+        return _state->vulkan_device;
+    }
+
+    VulkanDevice& VulkanDescriptorPool::get_device()
+    {
+        return _state->vulkan_device;
     }
 
     VkDescriptorPool VulkanDescriptorPool::get_native() const

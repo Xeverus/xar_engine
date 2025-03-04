@@ -15,12 +15,12 @@ namespace xar_engine::graphics::vulkan::impl
         ~State();
 
     public:
-        VulkanDevice vulkan_device;
+        VulkanDescriptorPool vulkan_descriptor_pool;
         VkDescriptorSet vk_descriptor_set;
     };
 
     VulkanDescriptorSet::State::State(const VulkanDescriptorSet::Parameters& parameters)
-        : vulkan_device{parameters.vulkan_device}
+        : vulkan_descriptor_pool{parameters.vulkan_descriptor_pool}
         , vk_descriptor_set{parameters.vk_descriptor_set}
     {
     }
@@ -43,7 +43,7 @@ namespace xar_engine::graphics::vulkan::impl
     void VulkanDescriptorSet::write(const std::vector<VkWriteDescriptorSet>& vk_write_descriptor_set_list)
     {
         vkUpdateDescriptorSets(
-            _state->vulkan_device.get_native(),
+            _state->vulkan_descriptor_pool.get_device().get_native(),
             static_cast<std::uint32_t>(vk_write_descriptor_set_list.size()),
             vk_write_descriptor_set_list.data(),
             0,

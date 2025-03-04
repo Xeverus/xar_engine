@@ -324,6 +324,16 @@ namespace xar_engine::graphics::vulkan::impl
             &vk_image_memory_barrier);
     }
 
+    const VulkanDevice& VulkanImage::get_device() const
+    {
+        return _state->device;
+    }
+
+    VulkanDevice& VulkanImage::get_device()
+    {
+        return _state->device;
+    }
+
     VkImage VulkanImage::get_native() const
     {
         return _state->vk_image;

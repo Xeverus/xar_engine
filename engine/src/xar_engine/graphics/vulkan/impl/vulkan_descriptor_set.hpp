@@ -36,7 +36,6 @@ namespace xar_engine::graphics::vulkan::impl
 
     struct VulkanDescriptorSet::Parameters
     {
-        VulkanDevice vulkan_device;
         VulkanDescriptorPool vulkan_descriptor_pool;
         VkDescriptorSet vk_descriptor_set;
     };

@@ -210,10 +210,6 @@ namespace xar_engine::graphics::vulkan::impl
             &_state->in_flight_vk_fence[_state->frame_buffer_index],
             VK_TRUE,
             UINT64_MAX);
-        vkResetFences(
-            _state->vulkan_device.get_native(),
-            1,
-            &_state->in_flight_vk_fence[_state->frame_buffer_index]);
 
         _state->image_index = uint32_t{0};
         const auto acquire_img_result = vkAcquireNextImageKHR(
@@ -275,6 +271,7 @@ namespace xar_engine::graphics::vulkan::impl
         vk_present_info_khr.pSwapchains = vk_swap_chain_khr_list;
         vk_present_info_khr.pImageIndices = &_state->image_index;
         vk_present_info_khr.pResults = nullptr;
+
         const auto vk_queue_present_khr_result = vkQueuePresentKHR(
             _state->vulkan_queue.get_native(),
             &vk_present_info_khr);

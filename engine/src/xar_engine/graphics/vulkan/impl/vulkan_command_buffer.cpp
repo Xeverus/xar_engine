@@ -13,14 +13,12 @@ namespace xar_engine::graphics::vulkan::impl
         ~State();
 
     public:
-        VulkanDevice vulkan_device;
         VulkanCommandBufferPool vulkan_command_buffer_pool;
         VkCommandBuffer vk_command_buffer;
     };
 
     VulkanCommandBuffer::State::State(const VulkanCommandBuffer::Parameters& parameters)
-        : vulkan_device(parameters.vulkan_device)
-        , vulkan_command_buffer_pool(parameters.vulkan_command_buffer_pool)
+        : vulkan_command_buffer_pool(parameters.vulkan_command_buffer_pool)
         , vk_command_buffer(parameters.vk_command_buffer)
     {
     }
@@ -28,7 +26,7 @@ namespace xar_engine::graphics::vulkan::impl
     VulkanCommandBuffer::State::~State()
     {
         vkFreeCommandBuffers(
-            vulkan_device.get_native(),
+            vulkan_command_buffer_pool.get_device().get_native(),
             vulkan_command_buffer_pool.get_native(),
             1,
             &vk_command_buffer);
