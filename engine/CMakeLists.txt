@@ -110,6 +110,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp
         src/xar_engine/graphics/vulkan/vulkan_resource_storage.cpp
         src/xar_engine/graphics/vulkan/vulkan_resource_storage.hpp
+        src/xar_engine/graphics/vulkan/vulkan_type_converters.cpp
+        src/xar_engine/graphics/vulkan/vulkan_type_converters.hpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.cpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
 
