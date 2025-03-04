@@ -14,8 +14,8 @@ namespace xar_engine::graphics::vulkan
     class VulkanGraphicsBackend
         : public IGraphicsBackend
           , public IGraphicsBackendResource
-          , public IGraphicsBackendHostCommand
-          , public IGraphicsBackendDeviceCommand
+          , public IGraphicsBackendHost
+          , public IGraphicsBackendCommand
     {
     public:
         VulkanGraphicsBackend();
@@ -25,11 +25,11 @@ namespace xar_engine::graphics::vulkan
         const IGraphicsBackendResource& resource() const override;
         IGraphicsBackendResource& resource() override;
 
-        const IGraphicsBackendHostCommand& host() const override;
-        IGraphicsBackendHostCommand& host() override;
+        const IGraphicsBackendHost& host() const override;
+        IGraphicsBackendHost& host() override;
 
-        const IGraphicsBackendDeviceCommand& command() const override;
-        IGraphicsBackendDeviceCommand& command() override;
+        const IGraphicsBackendCommand& command() const override;
+        IGraphicsBackendCommand& command() override;
 
 
     public: // IGraphicsBackendResource
@@ -124,6 +124,33 @@ namespace xar_engine::graphics::vulkan
 
         void submit_command_buffer(const CommandBufferReference& command_buffer) override;
 
+        void set_vertex_buffer_list(
+            const CommandBufferReference& command_buffer,
+            const std::vector<BufferReference>& vertex_buffer_list,
+            const std::vector<std::uint32_t>& vertex_buffer_offset_list,
+            std::uint32_t first_slot) override;
+
+        void set_index_buffer(
+            const CommandBufferReference& command_buffer,
+            const BufferReference& index_buffer,
+            std::uint32_t first_index) override;
+
+        void push_constants(
+            const CommandBufferReference& command_buffer,
+            const GraphicsPipelineReference& graphics_pipeline,
+            EShaderType shader_type,
+            std::uint32_t offset,
+            std::uint32_t byte_size,
+            void* data_byte) override;
+
+        void draw_indexed(
+            const CommandBufferReference& command_buffer,
+            std::uint32_t index_counts,
+            std::uint32_t instance_counts,
+            std::uint32_t first_index,
+            std::uint32_t vertex_offset,
+            std::uint32_t first_instance) override;
+
         void transit_image_layout(
             const CommandBufferReference& command_buffer,
             const ImageReference& image,
@@ -131,17 +158,19 @@ namespace xar_engine::graphics::vulkan
 
         void wait_idle() override;
 
-        void TMP_RECORD_FRAME(
+        void TMP_FRAME_START(
             const CommandBufferReference& command_buffer,
             const SwapChainReference& swap_chain,
             const GraphicsPipelineReference& graphics_pipeline,
             std::uint32_t image_index,
             const DescriptorSetReference& descriptor_set,
-            const BufferReference& vertex_buffer,
-            const BufferReference& index_buffer,
             const ImageViewReference& color_image_view,
-            const ImageViewReference& depth_image_view,
-            std::uint32_t index_counts) override;
+            const ImageViewReference& depth_image_view) override;
+
+        void TMP_FRAME_END(
+            const CommandBufferReference& command_buffer,
+            const SwapChainReference& swap_chain,
+            std::uint32_t image_index) override;
 
     private:
         std::shared_ptr<impl::VulkanInstance> _vulkan_instance;

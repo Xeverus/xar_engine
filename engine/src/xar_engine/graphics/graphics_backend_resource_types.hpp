@@ -68,7 +68,7 @@ namespace xar_engine::graphics
         ERROR,
     };
 
-    enum class ShaderType
+    enum class EShaderType
     {
         VERTEX,
         FRAGMENT,

@@ -7,9 +7,9 @@ namespace xar_engine::graphics
 {
     IGraphicsBackendResource::~IGraphicsBackendResource() = default;
 
-    IGraphicsBackendHostCommand::~IGraphicsBackendHostCommand() = default;
+    IGraphicsBackendHost::~IGraphicsBackendHost() = default;
 
-    IGraphicsBackendDeviceCommand::~IGraphicsBackendDeviceCommand() = default;
+    IGraphicsBackendCommand::~IGraphicsBackendCommand() = default;
 
     IGraphicsBackend::~IGraphicsBackend() = default;
 }

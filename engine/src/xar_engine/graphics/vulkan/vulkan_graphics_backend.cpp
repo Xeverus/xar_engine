@@ -82,6 +82,21 @@ namespace xar_engine::graphics::vulkan
             return vk_vertex_input_attribute_list;
         }
 
+        VkShaderStageFlagBits to_vk(const EShaderType shader_type)
+        {
+            switch (shader_type)
+            {
+                case EShaderType::FRAGMENT:
+                {
+                    return VK_SHADER_STAGE_FRAGMENT_BIT;
+                }
+                case EShaderType::VERTEX:
+                {
+                    return VK_SHADER_STAGE_VERTEX_BIT;
+                }
+            }
+        }
+
         ESwapChainResult to_xargine(const VkResult vk_result)
         {
             switch (vk_result)
@@ -133,22 +148,22 @@ namespace xar_engine::graphics::vulkan
         return *this;
     }
 
-    const IGraphicsBackendHostCommand& VulkanGraphicsBackend::host() const
+    const IGraphicsBackendHost& VulkanGraphicsBackend::host() const
     {
         return *this;
     }
 
-    IGraphicsBackendHostCommand& VulkanGraphicsBackend::host()
+    IGraphicsBackendHost& VulkanGraphicsBackend::host()
     {
         return *this;
     }
 
-    const IGraphicsBackendDeviceCommand& VulkanGraphicsBackend::command() const
+    const IGraphicsBackendCommand& VulkanGraphicsBackend::command() const
     {
         return *this;
     }
 
-    IGraphicsBackendDeviceCommand& VulkanGraphicsBackend::command()
+    IGraphicsBackendCommand& VulkanGraphicsBackend::command()
     {
         return *this;
     }
@@ -243,7 +258,7 @@ namespace xar_engine::graphics::vulkan
 
         auto vulkan_descriptor_set_ref_list = std::vector<DescriptorSetReference>();
         auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_pool).make_descriptor_set_list(layouts);
-        for (auto& vulkan_descriptor_set : vulkan_descriptor_set_list)
+        for (auto& vulkan_descriptor_set: vulkan_descriptor_set_list)
         {
             vulkan_descriptor_set_ref_list.push_back(_vulkan_resource_storage.add(vulkan_descriptor_set));
         }
@@ -646,6 +661,81 @@ namespace xar_engine::graphics::vulkan
         _vulkan_graphics_queue.submit(_vulkan_resource_storage.get(command_buffer));
     }
 
+    void VulkanGraphicsBackend::set_vertex_buffer_list(
+        const CommandBufferReference& command_buffer,
+        const std::vector<BufferReference>& vertex_buffer_list,
+        const std::vector<std::uint32_t>& vertex_buffer_offset_list,
+        std::uint32_t first_slot)
+    {
+        XAR_THROW_IF(
+            vertex_buffer_list.size() != vertex_buffer_offset_list.size(),
+            error::XarException,
+            "Number of buffers {} is different than number of offsets {}",
+            vertex_buffer_list.size(),
+            vertex_buffer_offset_list.size());
+
+        auto vk_buffer_list = std::vector<VkBuffer>();
+        auto vk_buffer_size_list = std::vector<VkDeviceSize>();
+        for (auto i = 0; i < vertex_buffer_list.size(); ++i)
+        {
+            vk_buffer_list.push_back(_vulkan_resource_storage.get(vertex_buffer_list[i]).get_native());
+            vk_buffer_size_list.push_back(static_cast<VkDeviceSize>(vertex_buffer_offset_list[i]));
+        }
+
+        vkCmdBindVertexBuffers(
+            _vulkan_resource_storage.get(command_buffer).get_native(),
+            first_slot,
+            vertex_buffer_list.size(),
+            vk_buffer_list.data(),
+            vk_buffer_size_list.data());
+    }
+
+    void VulkanGraphicsBackend::set_index_buffer(
+        const CommandBufferReference& command_buffer,
+        const BufferReference& index_buffer,
+        const std::uint32_t first_index)
+    {
+        vkCmdBindIndexBuffer(
+            _vulkan_resource_storage.get(command_buffer).get_native(),
+            _vulkan_resource_storage.get(index_buffer).get_native(),
+            first_index,
+            VK_INDEX_TYPE_UINT32);
+    }
+
+    void VulkanGraphicsBackend::push_constants(
+        const CommandBufferReference& command_buffer,
+        const GraphicsPipelineReference& graphics_pipeline,
+        const EShaderType shader_type,
+        const std::uint32_t offset,
+        const std::uint32_t byte_size,
+        void* const data_byte)
+    {
+        vkCmdPushConstants(
+            _vulkan_resource_storage.get(command_buffer).get_native(),
+            _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
+            to_vk(shader_type),
+            offset,
+            byte_size,
+            data_byte);
+    }
+
+    void VulkanGraphicsBackend::draw_indexed(
+        const CommandBufferReference& command_buffer,
+        const std::uint32_t index_counts,
+        const std::uint32_t instance_counts,
+        const std::uint32_t first_index,
+        const std::uint32_t vertex_offset,
+        const std::uint32_t first_instance)
+    {
+        vkCmdDrawIndexed(
+            _vulkan_resource_storage.get(command_buffer).get_native(),
+            static_cast<std::uint32_t>(index_counts),
+            static_cast<std::uint32_t>(instance_counts),
+            static_cast<std::uint32_t>(first_index),
+            static_cast<std::int32_t>(vertex_offset),
+            static_cast<std::uint32_t>(first_instance));
+    }
+
     void VulkanGraphicsBackend::transit_image_layout(
         const CommandBufferReference& command_buffer,
         const ImageReference& image,
@@ -681,17 +771,14 @@ namespace xar_engine::graphics::vulkan
         _vulkan_device.wait_idle();
     }
 
-    void VulkanGraphicsBackend::TMP_RECORD_FRAME(
+    void VulkanGraphicsBackend::TMP_FRAME_START(
         const CommandBufferReference& command_buffer,
         const SwapChainReference& swap_chain,
         const GraphicsPipelineReference& graphics_pipeline,
         std::uint32_t image_index,
         const DescriptorSetReference& descriptor_set,
-        const BufferReference& vertex_buffer,
-        const BufferReference& index_buffer,
         const ImageViewReference& color_image_view,
-        const ImageViewReference& depth_image_view,
-        const std::uint32_t index_counts)
+        const ImageViewReference& depth_image_view)
     {
         _vulkan_resource_storage.get(command_buffer).begin(false);
 
@@ -753,7 +840,9 @@ namespace xar_engine::graphics::vulkan
         vk_rendering_info_khr.colorAttachmentCount = 1;
         vk_rendering_info_khr.pColorAttachments = &color_vk_rendering_attachment_info_khr;
         vk_rendering_info_khr.pDepthAttachment = &depth_vk_rendering_attachment_info_khr;
-        vk_rendering_info_khr.renderArea = VkRect2D{VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_extent()};
+        vk_rendering_info_khr.renderArea = VkRect2D{
+            VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_extent()
+        };
         vk_rendering_info_khr.layerCount = 1;
 
         vkCmdBeginRenderingKHR(
@@ -787,35 +876,6 @@ namespace xar_engine::graphics::vulkan
             1,
             &scissor_vk_rect_2d);
 
-        /////////// from
-        static float pcc = 0.0f;
-        struct Constants
-        {
-            float time = pcc++;
-        } pc;
-
-        vkCmdPushConstants(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
-            _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
-            VK_SHADER_STAGE_FRAGMENT_BIT,
-            0,
-            sizeof(Constants),
-            &pc);
-
-        VkBuffer vertex_vk_buffer_list[] = {_vulkan_resource_storage.get(vertex_buffer).get_native()};
-        VkDeviceSize vk_offset_list[] = {0};
-        vkCmdBindVertexBuffers(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
-            0,
-            1,
-            vertex_vk_buffer_list,
-            vk_offset_list);
-        vkCmdBindIndexBuffer(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
-            _vulkan_resource_storage.get(index_buffer).get_native(),
-            0,
-            VK_INDEX_TYPE_UINT32);
-
         const auto vk_descriptor_set = _vulkan_resource_storage.get(descriptor_set).get_native();
         vkCmdBindDescriptorSets(
             _vulkan_resource_storage.get(command_buffer).get_native(),
@@ -826,16 +886,13 @@ namespace xar_engine::graphics::vulkan
             &vk_descriptor_set,
             0,
             nullptr);
+    }
 
-        vkCmdDrawIndexed(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
-            static_cast<uint32_t>(index_counts),
-            1,
-            0,
-            0,
-            0);
-        ///////////////
-
+    void VulkanGraphicsBackend::TMP_FRAME_END(
+        const CommandBufferReference& command_buffer,
+        const SwapChainReference& swap_chain,
+        const std::uint32_t image_index)
+    {
         vkCmdEndRenderingKHR(_vulkan_resource_storage.get(command_buffer).get_native());
 
         const VkImageMemoryBarrier image_memory_barrier_end{

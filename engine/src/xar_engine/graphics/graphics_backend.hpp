@@ -68,10 +68,10 @@ namespace xar_engine::graphics
     };
 
 
-    class IGraphicsBackendHostCommand
+    class IGraphicsBackendHost
     {
     public:
-        virtual ~IGraphicsBackendHostCommand();
+        virtual ~IGraphicsBackendHost();
 
         virtual void update_buffer(
             const BufferReference& buffer,
@@ -89,10 +89,10 @@ namespace xar_engine::graphics
     };
 
 
-    class IGraphicsBackendDeviceCommand
+    class IGraphicsBackendCommand
     {
     public:
-        virtual ~IGraphicsBackendDeviceCommand();
+        virtual ~IGraphicsBackendCommand();
 
         virtual void copy_buffer(
             const CommandBufferReference& command_buffer,
@@ -120,6 +120,33 @@ namespace xar_engine::graphics
 
         virtual void submit_command_buffer(const CommandBufferReference& command_buffer) = 0;
 
+        virtual void set_vertex_buffer_list(
+            const CommandBufferReference& command_buffer,
+            const std::vector<BufferReference>& vertex_buffer_list,
+            const std::vector<std::uint32_t>& vertex_buffer_offset_list,
+            std::uint32_t first_slot) = 0;
+
+        virtual void set_index_buffer(
+            const CommandBufferReference& command_buffer,
+            const BufferReference& index_buffer,
+            std::uint32_t first_index) = 0;
+
+        virtual void push_constants(
+            const CommandBufferReference& command_buffer,
+            const GraphicsPipelineReference& graphics_pipeline,
+            EShaderType shader_type,
+            std::uint32_t offset,
+            std::uint32_t byte_size,
+            void* data_byte) = 0;
+
+        virtual void draw_indexed(
+            const CommandBufferReference& command_buffer,
+            std::uint32_t index_counts,
+            std::uint32_t instance_counts,
+            std::uint32_t first_index,
+            std::uint32_t vertex_offset,
+            std::uint32_t first_instance) = 0;
+
         virtual void transit_image_layout(
             const CommandBufferReference& command_buffer,
             const ImageReference& image,
@@ -127,17 +154,19 @@ namespace xar_engine::graphics
 
         virtual void wait_idle() = 0;
 
-        virtual void TMP_RECORD_FRAME(
+        virtual void TMP_FRAME_START(
             const CommandBufferReference& command_buffer,
             const SwapChainReference& swap_chain,
             const GraphicsPipelineReference& graphics_pipeline,
             std::uint32_t image_index,
             const DescriptorSetReference& descriptor_set,
-            const BufferReference& vertex_buffer,
-            const BufferReference& index_buffer,
             const ImageViewReference& color_image_view,
-            const ImageViewReference& depth_image_view,
-            std::uint32_t index_counts) = 0;
+            const ImageViewReference& depth_image_view) = 0;
+
+        virtual void TMP_FRAME_END(
+            const CommandBufferReference& command_buffer,
+            const SwapChainReference& swap_chain,
+            std::uint32_t image_index) = 0;
     };
 
 
@@ -151,11 +180,11 @@ namespace xar_engine::graphics
         virtual IGraphicsBackendResource& resource() = 0;
 
         [[nodiscard]]
-        virtual const IGraphicsBackendHostCommand& host() const = 0;
-        virtual IGraphicsBackendHostCommand& host() = 0;
+        virtual const IGraphicsBackendHost& host() const = 0;
+        virtual IGraphicsBackendHost& host() = 0;
 
         [[nodiscard]]
-        virtual const IGraphicsBackendDeviceCommand& command() const = 0;
-        virtual IGraphicsBackendDeviceCommand& command() = 0;
+        virtual const IGraphicsBackendCommand& command() const = 0;
+        virtual IGraphicsBackendCommand& command() = 0;
     };
 }

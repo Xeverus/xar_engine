@@ -401,17 +401,51 @@ namespace xar_engine::graphics
         const auto current_image_index = std::get<1>(begin_frame_result);
         const auto frame_index = std::get<2>(begin_frame_result);
 
-        _graphics_backend->command().TMP_RECORD_FRAME(
+        _graphics_backend->command().TMP_FRAME_START(
             _command_buffer_list[frame_index],
             _swap_chain_ref,
             _graphics_pipeline_ref,
             current_image_index,
             _descriptor_set_list_ref[frame_index],
-            _vertex_buffer_ref,
-            _index_buffer_ref,
             _color_image_view_ref,
-            _depth_image_view_ref,
-            indices.size());
+            _depth_image_view_ref);
+
+        static float pcc = 0.0f;
+        struct Constants
+        {
+            float time = pcc++;
+        } pc;
+
+        _graphics_backend->command().push_constants(
+            _command_buffer_list[frame_index],
+            _graphics_pipeline_ref,
+            EShaderType::FRAGMENT,
+            0,
+            sizeof(Constants),
+            &pc);
+
+        _graphics_backend->command().set_vertex_buffer_list(
+            _command_buffer_list[frame_index],
+            {_vertex_buffer_ref},
+            {0},
+            0);
+        _graphics_backend->command().set_index_buffer(
+            _command_buffer_list[frame_index],
+            _index_buffer_ref,
+            0);
+
+        _graphics_backend->command().draw_indexed(
+            _command_buffer_list[frame_index],
+            indices.size(),
+            1,
+            0,
+            0,
+            0);
+
+        _graphics_backend->command().TMP_FRAME_END(
+            _command_buffer_list[frame_index],
+            _swap_chain_ref,
+            current_image_index);
 
         updateUniformBuffer(frame_index);
 
