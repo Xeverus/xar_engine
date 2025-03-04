@@ -151,11 +151,11 @@ namespace xar_engine::graphics
         virtual IGraphicsBackendResource& resource() = 0;
 
         [[nodiscard]]
-        virtual const IGraphicsBackendHostCommand& host_command() const = 0;
-        virtual IGraphicsBackendHostCommand& host_command() = 0;
+        virtual const IGraphicsBackendHostCommand& host() const = 0;
+        virtual IGraphicsBackendHostCommand& host() = 0;
 
         [[nodiscard]]
-        virtual const IGraphicsBackendDeviceCommand& device_command() const = 0;
-        virtual IGraphicsBackendDeviceCommand& device_command() = 0;
+        virtual const IGraphicsBackendDeviceCommand& command() const = 0;
+        virtual IGraphicsBackendDeviceCommand& command() = 0;
     };
 }

@@ -34,10 +34,6 @@ namespace xar_engine::graphics
         void init_depth();
         void init_texture();
 
-        void run_frame_sandbox();
-
-        void cleanup_sandbox();
-
     private:
         void updateUniformBuffer(uint32_t currentImage);
 

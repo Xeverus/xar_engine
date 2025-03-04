@@ -25,11 +25,11 @@ namespace xar_engine::graphics::vulkan
         const IGraphicsBackendResource& resource() const override;
         IGraphicsBackendResource& resource() override;
 
-        const IGraphicsBackendHostCommand& host_command() const override;
-        IGraphicsBackendHostCommand& host_command() override;
+        const IGraphicsBackendHostCommand& host() const override;
+        IGraphicsBackendHostCommand& host() override;
 
-        const IGraphicsBackendDeviceCommand& device_command() const override;
-        IGraphicsBackendDeviceCommand& device_command() override;
+        const IGraphicsBackendDeviceCommand& command() const override;
+        IGraphicsBackendDeviceCommand& command() override;
 
 
     public: // IGraphicsBackendResource

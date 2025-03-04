@@ -33,6 +33,7 @@ namespace xar_engine::graphics
     using SurfaceReference = TResourceReference<SurfaceTag>;
     using SwapChainReference = TResourceReference<SwapChainTag>;
 
+
     enum class EFormat
     {
         D32_SFLOAT,

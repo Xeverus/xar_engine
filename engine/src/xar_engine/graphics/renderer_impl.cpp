@@ -91,7 +91,7 @@ namespace xar_engine::graphics
         const auto bufferSize = sizeof(vertices[0]) * vertices.size();
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(bufferSize);
-        _graphics_backend->host_command().update_buffer(
+        _graphics_backend->host().update_buffer(
             staging_buffer,
             vertices.data(),
             bufferSize);
@@ -99,13 +99,13 @@ namespace xar_engine::graphics
         _vertex_buffer_ref = _graphics_backend->resource().make_vertex_buffer(bufferSize);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
-        _graphics_backend->device_command().copy_buffer(
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().copy_buffer(
             tmp_command_buffer[0],
             staging_buffer,
             _vertex_buffer_ref);
-        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
-        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -114,7 +114,7 @@ namespace xar_engine::graphics
         const auto bufferSize = sizeof(indices[0]) * indices.size();
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(bufferSize);
-        _graphics_backend->host_command().update_buffer(
+        _graphics_backend->host().update_buffer(
             staging_buffer,
             indices.data(),
             bufferSize);
@@ -122,13 +122,13 @@ namespace xar_engine::graphics
         _index_buffer_ref = _graphics_backend->resource().make_index_buffer(bufferSize);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
-        _graphics_backend->device_command().copy_buffer(
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().copy_buffer(
             tmp_command_buffer[0],
             staging_buffer,
             _index_buffer_ref);
-        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
-        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -168,7 +168,7 @@ namespace xar_engine::graphics
             },
             EFormat::R8G8B8A8_SRGB,
             1,
-            _graphics_backend->host_command().get_sample_count());
+            _graphics_backend->host().get_sample_count());
 
 
         _color_image_view_ref = _graphics_backend->resource().make_image_view(
@@ -187,9 +187,9 @@ namespace xar_engine::graphics
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().y),
                 1
             },
-            _graphics_backend->host_command().find_depth_format(),
+            _graphics_backend->host().find_depth_format(),
             1,
-            _graphics_backend->host_command().get_sample_count());
+            _graphics_backend->host().get_sample_count());
 
         _depth_image_view_ref = _graphics_backend->resource().make_image_view(
             _depth_image_ref,
@@ -197,13 +197,13 @@ namespace xar_engine::graphics
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
-        _graphics_backend->device_command().transit_image_layout(
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _depth_image_ref,
             EImageLayout::DEPTH_STENCIL_ATTACHMENT);
-        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
-        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -219,7 +219,7 @@ namespace xar_engine::graphics
         const auto imageSize = asset::image::get_byte_size(image);
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(imageSize);
-        _graphics_backend->host_command().update_buffer(
+        _graphics_backend->host().update_buffer(
             staging_buffer,
             image.bytes.data(),
             static_cast<size_t>(imageSize));
@@ -232,20 +232,20 @@ namespace xar_engine::graphics
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->device_command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
-        _graphics_backend->device_command().transit_image_layout(
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _texture_image_ref,
             EImageLayout::TRANSFER_DESTINATION);
-        _graphics_backend->device_command().copy_buffer_to_image(
+        _graphics_backend->command().copy_buffer_to_image(
             tmp_command_buffer[0],
             staging_buffer,
             _texture_image_ref);
-        _graphics_backend->device_command().generate_image_mip_maps(
+        _graphics_backend->command().generate_image_mip_maps(
             tmp_command_buffer[0],
             _texture_image_ref);
-        _graphics_backend->device_command().end_command_buffer(tmp_command_buffer[0]);
-        _graphics_backend->device_command().submit_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
+        _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
     }
 
 
@@ -288,7 +288,7 @@ namespace xar_engine::graphics
 
         ubo.proj[1][1] *= -1;
 
-        _graphics_backend->host_command().update_buffer(
+        _graphics_backend->host().update_buffer(
             _uniform_buffer_ref_list[currentImageNr],
             &ubo,
             sizeof(ubo));
@@ -324,8 +324,8 @@ namespace xar_engine::graphics
             Vertex::getAttributeDescriptions(),
             Vertex::getBindingDescription(),
             EFormat::R8G8B8A8_SRGB,
-            _graphics_backend->host_command().find_depth_format(),
-            _graphics_backend->host_command().get_sample_count());
+            _graphics_backend->host().find_depth_format(),
+            _graphics_backend->host().get_sample_count());
 
         init_color_msaa();
         init_depth();
@@ -359,12 +359,12 @@ namespace xar_engine::graphics
 
     RendererImpl::~RendererImpl()
     {
-        _graphics_backend->device_command().wait_idle();
+        _graphics_backend->command().wait_idle();
     }
 
     void RendererImpl::update()
     {
-        const auto begin_frame_result = _graphics_backend->host_command().begin_frame(_swap_chain_ref);
+        const auto begin_frame_result = _graphics_backend->host().begin_frame(_swap_chain_ref);
 
         if (std::get<0>(begin_frame_result) == ESwapChainResult::RECREATION_REQUIRED)
         {
@@ -373,7 +373,7 @@ namespace xar_engine::graphics
                 tag,
                 "Acquire failed because Swapchain is out of date");
 
-            _graphics_backend->device_command().wait_idle();
+            _graphics_backend->command().wait_idle();
             _swap_chain_ref = {};
 
             _swap_chain_ref = _graphics_backend->resource().make_swap_chain(
@@ -401,7 +401,7 @@ namespace xar_engine::graphics
         const auto current_image_index = std::get<1>(begin_frame_result);
         const auto frame_index = std::get<2>(begin_frame_result);
 
-        _graphics_backend->device_command().TMP_RECORD_FRAME(
+        _graphics_backend->command().TMP_RECORD_FRAME(
             _command_buffer_list[frame_index],
             _swap_chain_ref,
             _graphics_pipeline_ref,
@@ -415,7 +415,7 @@ namespace xar_engine::graphics
 
         updateUniformBuffer(frame_index);
 
-        const auto end_result = _graphics_backend->device_command().end_frame(
+        const auto end_result = _graphics_backend->command().end_frame(
             _command_buffer_list[frame_index],
             _swap_chain_ref);
         if (end_result == ESwapChainResult::RECREATION_REQUIRED)
@@ -425,7 +425,7 @@ namespace xar_engine::graphics
                 tag,
                 "Present failed because Swapchain is out of date");
 
-            _graphics_backend->device_command().wait_idle();
+            _graphics_backend->command().wait_idle();
             _swap_chain_ref = {};
 
             _swap_chain_ref = _graphics_backend->resource().make_swap_chain(

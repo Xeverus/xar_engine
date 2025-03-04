@@ -14,6 +14,5 @@ layout (push_constant) uniform Constants {
 void main() {
     float multiplier = (1.0 + sin(constants.frame * 0.05)) * 0.5;
     outColor = texture(texSampler, textureCoords);
-    // outColor = outColor * vec4(textureCoords, 0.0, 1.0);
-    // outColor.xy = outColor.xy * multiplier;
+    outColor.r *= multiplier;
 }

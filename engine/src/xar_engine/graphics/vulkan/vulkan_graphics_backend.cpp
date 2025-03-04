@@ -133,22 +133,22 @@ namespace xar_engine::graphics::vulkan
         return *this;
     }
 
-    const IGraphicsBackendHostCommand& VulkanGraphicsBackend::host_command() const
+    const IGraphicsBackendHostCommand& VulkanGraphicsBackend::host() const
     {
         return *this;
     }
 
-    IGraphicsBackendHostCommand& VulkanGraphicsBackend::host_command()
+    IGraphicsBackendHostCommand& VulkanGraphicsBackend::host()
     {
         return *this;
     }
 
-    const IGraphicsBackendDeviceCommand& VulkanGraphicsBackend::device_command() const
+    const IGraphicsBackendDeviceCommand& VulkanGraphicsBackend::command() const
     {
         return *this;
     }
 
-    IGraphicsBackendDeviceCommand& VulkanGraphicsBackend::device_command()
+    IGraphicsBackendDeviceCommand& VulkanGraphicsBackend::command()
     {
         return *this;
     }
@@ -695,11 +695,6 @@ namespace xar_engine::graphics::vulkan
     {
         _vulkan_resource_storage.get(command_buffer).begin(false);
 
-        struct Constants
-        {
-            float time;
-        };
-
         const VkImageMemoryBarrier image_memory_barrier_start{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -728,49 +723,77 @@ namespace xar_engine::graphics::vulkan
             &image_memory_barrier_start // pImageMemoryBarriers
         );
 
-        VkClearValue clearColorColor{};
-        clearColorColor.color = {0.0f, 0.0f, 0.0f, 1.0f};
+        auto color_vk_clear_color = VkClearValue{};
+        color_vk_clear_color.color = {0.0f, 0.0f, 0.0f, 1.0f};
 
-        VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoColor{};
-        vkRenderingAttachmentInfoColor.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-        vkRenderingAttachmentInfoColor.clearValue = clearColorColor;
-        vkRenderingAttachmentInfoColor.imageView = _vulkan_resource_storage.get(color_image_view).get_native();
-        vkRenderingAttachmentInfoColor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        vkRenderingAttachmentInfoColor.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        vkRenderingAttachmentInfoColor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        vkRenderingAttachmentInfoColor.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-        vkRenderingAttachmentInfoColor.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
-        vkRenderingAttachmentInfoColor.resolveImageView = _vulkan_resource_storage.get(swap_chain).get_vulkan_image_view(image_index).get_native();
+        auto color_vk_rendering_attachment_info_khr = VkRenderingAttachmentInfoKHR{};
+        color_vk_rendering_attachment_info_khr.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+        color_vk_rendering_attachment_info_khr.clearValue = color_vk_clear_color;
+        color_vk_rendering_attachment_info_khr.imageView = _vulkan_resource_storage.get(color_image_view).get_native();
+        color_vk_rendering_attachment_info_khr.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        color_vk_rendering_attachment_info_khr.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        color_vk_rendering_attachment_info_khr.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        color_vk_rendering_attachment_info_khr.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+        color_vk_rendering_attachment_info_khr.resolveImageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR;
+        color_vk_rendering_attachment_info_khr.resolveImageView = _vulkan_resource_storage.get(swap_chain).get_vulkan_image_view(image_index).get_native();
 
-        VkClearValue clearDepthColor{};
-        clearDepthColor.depthStencil = {1.0f, 0};
+        auto depth_vk_clear_value = VkClearValue{};
+        depth_vk_clear_value.depthStencil = {1.0f, 0};
 
-        VkRenderingAttachmentInfoKHR vkRenderingAttachmentInfoDepth{};
-        vkRenderingAttachmentInfoDepth.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
-        vkRenderingAttachmentInfoDepth.clearValue = clearDepthColor;
-        vkRenderingAttachmentInfoDepth.imageView = _vulkan_resource_storage.get(depth_image_view).get_native();
-        vkRenderingAttachmentInfoDepth.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        vkRenderingAttachmentInfoDepth.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        vkRenderingAttachmentInfoDepth.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        auto depth_vk_rendering_attachment_info_khr = VkRenderingAttachmentInfoKHR{};
+        depth_vk_rendering_attachment_info_khr.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
+        depth_vk_rendering_attachment_info_khr.clearValue = depth_vk_clear_value;
+        depth_vk_rendering_attachment_info_khr.imageView = _vulkan_resource_storage.get(depth_image_view).get_native();
+        depth_vk_rendering_attachment_info_khr.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depth_vk_rendering_attachment_info_khr.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depth_vk_rendering_attachment_info_khr.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-        VkRenderingInfoKHR renderingInfo{};
-        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
-        renderingInfo.colorAttachmentCount = 1;
-        renderingInfo.pColorAttachments = &vkRenderingAttachmentInfoColor;
-        renderingInfo.pDepthAttachment = &vkRenderingAttachmentInfoDepth;
-        renderingInfo.renderArea = VkRect2D{VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_extent()};
-        renderingInfo.layerCount = 1;
+        auto vk_rendering_info_khr = VkRenderingInfoKHR{};
+        vk_rendering_info_khr.sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR;
+        vk_rendering_info_khr.colorAttachmentCount = 1;
+        vk_rendering_info_khr.pColorAttachments = &color_vk_rendering_attachment_info_khr;
+        vk_rendering_info_khr.pDepthAttachment = &depth_vk_rendering_attachment_info_khr;
+        vk_rendering_info_khr.renderArea = VkRect2D{VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_extent()};
+        vk_rendering_info_khr.layerCount = 1;
 
         vkCmdBeginRenderingKHR(
             _vulkan_resource_storage.get(command_buffer).get_native(),
-            &renderingInfo);
+            &vk_rendering_info_khr);
 
         vkCmdBindPipeline(
             _vulkan_resource_storage.get(command_buffer).get_native(),
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline());
 
-        const Constants pc = {static_cast<float>(0)};
+        auto vk_viewport = VkViewport{};
+        vk_viewport.x = 0.0f;
+        vk_viewport.y = 0.0f;
+        vk_viewport.width = (float) _vulkan_resource_storage.get(swap_chain).get_extent().width;
+        vk_viewport.height = (float) _vulkan_resource_storage.get(swap_chain).get_extent().height;
+        vk_viewport.minDepth = 0.0f;
+        vk_viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(
+            _vulkan_resource_storage.get(command_buffer).get_native(),
+            0,
+            1,
+            &vk_viewport);
+
+        auto scissor_vk_rect_2d = VkRect2D{};
+        scissor_vk_rect_2d.offset = {0, 0};
+        scissor_vk_rect_2d.extent = _vulkan_resource_storage.get(swap_chain).get_extent();
+        vkCmdSetScissor(
+            _vulkan_resource_storage.get(command_buffer).get_native(),
+            0,
+            1,
+            &scissor_vk_rect_2d);
+
+        /////////// from
+        static float pcc = 0.0f;
+        struct Constants
+        {
+            float time = pcc++;
+        } pc;
+
         vkCmdPushConstants(
             _vulkan_resource_storage.get(command_buffer).get_native(),
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
@@ -779,36 +802,14 @@ namespace xar_engine::graphics::vulkan
             sizeof(Constants),
             &pc);
 
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = (float) _vulkan_resource_storage.get(swap_chain).get_extent().width;
-        viewport.height = (float) _vulkan_resource_storage.get(swap_chain).get_extent().height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
-            0,
-            1,
-            &viewport);
-
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = _vulkan_resource_storage.get(swap_chain).get_extent();
-        vkCmdSetScissor(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
-            0,
-            1,
-            &scissor);
-
-        VkBuffer vertexBuffers[] = {_vulkan_resource_storage.get(vertex_buffer).get_native()};
-        VkDeviceSize offsets[] = {0};
+        VkBuffer vertex_vk_buffer_list[] = {_vulkan_resource_storage.get(vertex_buffer).get_native()};
+        VkDeviceSize vk_offset_list[] = {0};
         vkCmdBindVertexBuffers(
             _vulkan_resource_storage.get(command_buffer).get_native(),
             0,
             1,
-            vertexBuffers,
-            offsets);
+            vertex_vk_buffer_list,
+            vk_offset_list);
         vkCmdBindIndexBuffer(
             _vulkan_resource_storage.get(command_buffer).get_native(),
             _vulkan_resource_storage.get(index_buffer).get_native(),
@@ -833,6 +834,7 @@ namespace xar_engine::graphics::vulkan
             0,
             0,
             0);
+        ///////////////
 
         vkCmdEndRenderingKHR(_vulkan_resource_storage.get(command_buffer).get_native());
 
@@ -864,11 +866,6 @@ namespace xar_engine::graphics::vulkan
             &image_memory_barrier_end // pImageMemoryBarriers
         );
 
-        if (vkEndCommandBuffer(_vulkan_resource_storage.get(command_buffer).get_native()) != VK_SUCCESS)
-        {
-            XAR_THROW(
-                error::XarException,
-                "failed to record command buffer!");
-        }
+        _vulkan_resource_storage.get(command_buffer).end();
     }
 }
