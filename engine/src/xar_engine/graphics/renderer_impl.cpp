@@ -17,7 +17,7 @@
 
 #include <xar_engine/file/file.hpp>
 
-#include <xar_engine/graphics/graphics_backend.hpp>
+#include <xar_engine/graphics/api/graphics_backend.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 
@@ -35,37 +35,37 @@ namespace xar_engine::graphics
             glm::vec3 color;
             glm::vec2 textureCoords;
 
-            static std::vector<VertexInputBinding> getBindingDescription()
+            static std::vector<api::VertexInputBinding> getBindingDescription()
             {
-                VertexInputBinding binding{};
+                api::VertexInputBinding binding{};
                 binding.binding_index = 0;
                 binding.stride = sizeof(Vertex);
-                binding.input_rate = VertexInputBindingRate::PER_VERTEX;
+                binding.input_rate = api::VertexInputBindingRate::PER_VERTEX;
 
                 return {binding};
             }
 
-            static std::vector<VertexInputAttribute> getAttributeDescriptions()
+            static std::vector<api::VertexInputAttribute> getAttributeDescriptions()
             {
-                std::vector<VertexInputAttribute> attributeDescriptions(3);
+                std::vector<api::VertexInputAttribute> attributeDescriptions(3);
 
                 attributeDescriptions[0].binding_index = 0;
                 attributeDescriptions[0].location = 0;
-                attributeDescriptions[0].format = EFormat::R32G32B32_SFLOAT;
+                attributeDescriptions[0].format = api::EFormat::R32G32B32_SFLOAT;
                 attributeDescriptions[0].offset = offsetof(
                     Vertex,
                     position);
 
                 attributeDescriptions[1].binding_index = 0;
                 attributeDescriptions[1].location = 1;
-                attributeDescriptions[1].format = EFormat::R32G32B32_SFLOAT;
+                attributeDescriptions[1].format = api::EFormat::R32G32B32_SFLOAT;
                 attributeDescriptions[1].offset = offsetof(
                     Vertex,
                     color);
 
                 attributeDescriptions[2].binding_index = 0;
                 attributeDescriptions[2].location = 2;
-                attributeDescriptions[2].format = EFormat::R32G32_SFLOAT;
+                attributeDescriptions[2].format = api::EFormat::R32G32_SFLOAT;
                 attributeDescriptions[2].offset = offsetof(
                     Vertex,
                     textureCoords);
@@ -99,7 +99,7 @@ namespace xar_engine::graphics
         _vertex_buffer_ref = _graphics_backend->resource().make_vertex_buffer(bufferSize);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().copy_buffer(
             tmp_command_buffer[0],
             staging_buffer,
@@ -122,7 +122,7 @@ namespace xar_engine::graphics
         _index_buffer_ref = _graphics_backend->resource().make_index_buffer(bufferSize);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().copy_buffer(
             tmp_command_buffer[0],
             staging_buffer,
@@ -160,20 +160,20 @@ namespace xar_engine::graphics
     void RendererImpl::init_color_msaa()
     {
         _color_image_ref = _graphics_backend->resource().make_image(
-            EImageType::COLOR_ATTACHMENT,
+            api::EImageType::COLOR_ATTACHMENT,
             {
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().x),
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().y),
                 1
             },
-            EFormat::R8G8B8A8_SRGB,
+            api::EFormat::R8G8B8A8_SRGB,
             1,
             _graphics_backend->host().get_sample_count());
 
 
         _color_image_view_ref = _graphics_backend->resource().make_image_view(
             _color_image_ref,
-            EImageAspect::COLOR,
+            api::EImageAspect::COLOR,
             1);
     }
 
@@ -181,7 +181,7 @@ namespace xar_engine::graphics
     void RendererImpl::init_depth()
     {
         _depth_image_ref = _graphics_backend->resource().make_image(
-            EImageType::DEPTH_ATTACHMENT,
+            api::EImageType::DEPTH_ATTACHMENT,
             {
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().x),
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().y),
@@ -193,15 +193,15 @@ namespace xar_engine::graphics
 
         _depth_image_view_ref = _graphics_backend->resource().make_image_view(
             _depth_image_ref,
-            EImageAspect::DEPTH,
+            api::EImageAspect::DEPTH,
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _depth_image_ref,
-            EImageLayout::DEPTH_STENCIL_ATTACHMENT);
+            api::EImageLayout::DEPTH_STENCIL_ATTACHMENT);
         _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
         _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
     }
@@ -225,18 +225,18 @@ namespace xar_engine::graphics
             static_cast<size_t>(imageSize));
 
         _texture_image_ref = _graphics_backend->resource().make_image(
-            EImageType::TEXTURE,
+            api::EImageType::TEXTURE,
             {image.pixel_width, image.pixel_height, 1},
-            EFormat::R8G8B8A8_SRGB,
+            api::EFormat::R8G8B8A8_SRGB,
             mipLevels,
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _texture_image_ref,
-            EImageLayout::TRANSFER_DESTINATION);
+            api::EImageLayout::TRANSFER_DESTINATION);
         _graphics_backend->command().copy_buffer_to_image(
             tmp_command_buffer[0],
             staging_buffer,
@@ -299,7 +299,7 @@ namespace xar_engine::graphics
 namespace xar_engine::graphics
 {
     RendererImpl::RendererImpl(
-        std::shared_ptr<IGraphicsBackend> graphics_backend,
+        std::shared_ptr<api::IGraphicsBackend> graphics_backend,
         std::shared_ptr<IWindowSurface> window_surface)
         : _graphics_backend(std::move(graphics_backend))
         , _window_surface(std::move(window_surface))
@@ -323,7 +323,7 @@ namespace xar_engine::graphics
             _fragment_shader_ref,
             Vertex::getAttributeDescriptions(),
             Vertex::getBindingDescription(),
-            EFormat::R8G8B8A8_SRGB,
+            api::EFormat::R8G8B8A8_SRGB,
             _graphics_backend->host().find_depth_format(),
             _graphics_backend->host().get_sample_count());
 
@@ -333,7 +333,7 @@ namespace xar_engine::graphics
 
         _texture_image_view_ref = _graphics_backend->resource().make_image_view(
             _texture_image_ref,
-            EImageAspect::COLOR,
+            api::EImageAspect::COLOR,
             mipLevels);
 
         _sampler_ref = _graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
@@ -366,7 +366,7 @@ namespace xar_engine::graphics
     {
         const auto begin_frame_result = _graphics_backend->host().begin_frame(_swap_chain_ref);
 
-        if (std::get<0>(begin_frame_result) == ESwapChainResult::RECREATION_REQUIRED)
+        if (std::get<0>(begin_frame_result) == api::ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -389,7 +389,7 @@ namespace xar_engine::graphics
                 "Acquire failed because Swapchain is out of date but swapchain was recreated");
             return;
         }
-        else if (std::get<0>(begin_frame_result) != ESwapChainResult::OK)
+        else if (std::get<0>(begin_frame_result) != api::ESwapChainResult::OK)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -419,7 +419,7 @@ namespace xar_engine::graphics
         _graphics_backend->command().push_constants(
             _command_buffer_list[frame_index],
             _graphics_pipeline_ref,
-            EShaderType::FRAGMENT,
+            api::EShaderType::FRAGMENT,
             0,
             sizeof(Constants),
             &pc);
@@ -452,7 +452,7 @@ namespace xar_engine::graphics
         const auto end_result = _graphics_backend->command().end_frame(
             _command_buffer_list[frame_index],
             _swap_chain_ref);
-        if (end_result == ESwapChainResult::RECREATION_REQUIRED)
+        if (end_result == api::ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -474,7 +474,7 @@ namespace xar_engine::graphics
                 tag,
                 "Present failed because Swapchain is out of date but swapchain was recreated");
         }
-        else if (end_result != ESwapChainResult::OK)
+        else if (end_result != api::ESwapChainResult::OK)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,

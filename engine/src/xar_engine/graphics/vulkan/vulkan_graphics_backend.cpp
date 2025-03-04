@@ -1,6 +1,6 @@
 #include <xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp>
 
-#include <xar_engine/graphics/vulkan/impl/vulkan_queue.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_queue.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
@@ -11,23 +11,23 @@ namespace xar_engine::graphics::vulkan
     {
         const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
-        VkFormat to_vk(const EFormat image_format)
+        VkFormat to_vk(const api::EFormat image_format)
         {
             switch (image_format)
             {
-                case EFormat::D32_SFLOAT:
+                case api::EFormat::D32_SFLOAT:
                 {
                     return VK_FORMAT_D32_SFLOAT;
                 }
-                case EFormat::R32G32_SFLOAT:
+                case api::EFormat::R32G32_SFLOAT:
                 {
                     return VK_FORMAT_R32G32_SFLOAT;
                 }
-                case EFormat::R32G32B32_SFLOAT:
+                case api::EFormat::R32G32B32_SFLOAT:
                 {
                     return VK_FORMAT_R32G32B32_SFLOAT;
                 }
-                case EFormat::R8G8B8A8_SRGB:
+                case api::EFormat::R8G8B8A8_SRGB:
                 {
                     return VK_FORMAT_R8G8B8A8_SRGB;
                 }
@@ -36,15 +36,15 @@ namespace xar_engine::graphics::vulkan
             return VK_FORMAT_UNDEFINED;
         }
 
-        VkImageAspectFlagBits to_vk(const EImageAspect image_aspect)
+        VkImageAspectFlagBits to_vk(const api::EImageAspect image_aspect)
         {
             switch (image_aspect)
             {
-                case EImageAspect::COLOR:
+                case api::EImageAspect::COLOR:
                 {
                     return VK_IMAGE_ASPECT_COLOR_BIT;
                 }
-                case EImageAspect::DEPTH:
+                case api::EImageAspect::DEPTH:
                 {
                     return VK_IMAGE_ASPECT_DEPTH_BIT;
                 }
@@ -53,7 +53,7 @@ namespace xar_engine::graphics::vulkan
             return VK_IMAGE_ASPECT_NONE;
         }
 
-        std::vector<VkVertexInputBindingDescription> to_vk(const std::vector<VertexInputBinding>& vertex_input_binding_list)
+        std::vector<VkVertexInputBindingDescription> to_vk(const std::vector<api::VertexInputBinding>& vertex_input_binding_list)
         {
             auto vk_vertex_input_binding_list = std::vector<VkVertexInputBindingDescription>(vertex_input_binding_list.size());
             for (auto i = 0; i < vertex_input_binding_list.size(); ++i)
@@ -61,14 +61,14 @@ namespace xar_engine::graphics::vulkan
                 vk_vertex_input_binding_list[i].binding = vertex_input_binding_list[i].binding_index;
                 vk_vertex_input_binding_list[i].stride = vertex_input_binding_list[i].stride;
                 vk_vertex_input_binding_list[i].inputRate =
-                    vertex_input_binding_list[i].input_rate == VertexInputBindingRate::PER_VERTEX
+                    vertex_input_binding_list[i].input_rate == api::VertexInputBindingRate::PER_VERTEX
                     ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
             }
 
             return vk_vertex_input_binding_list;
         }
 
-        std::vector<VkVertexInputAttributeDescription> to_vk(const std::vector<VertexInputAttribute>& vertex_input_attribute_list)
+        std::vector<VkVertexInputAttributeDescription> to_vk(const std::vector<api::VertexInputAttribute>& vertex_input_attribute_list)
         {
             auto vk_vertex_input_attribute_list = std::vector<VkVertexInputAttributeDescription>(vertex_input_attribute_list.size());
             for (auto i = 0; i < vertex_input_attribute_list.size(); ++i)
@@ -82,37 +82,37 @@ namespace xar_engine::graphics::vulkan
             return vk_vertex_input_attribute_list;
         }
 
-        VkShaderStageFlagBits to_vk(const EShaderType shader_type)
+        VkShaderStageFlagBits to_vk(const api::EShaderType shader_type)
         {
             switch (shader_type)
             {
-                case EShaderType::FRAGMENT:
+                case api::EShaderType::FRAGMENT:
                 {
                     return VK_SHADER_STAGE_FRAGMENT_BIT;
                 }
-                case EShaderType::VERTEX:
+                case api::EShaderType::VERTEX:
                 {
                     return VK_SHADER_STAGE_VERTEX_BIT;
                 }
             }
         }
 
-        ESwapChainResult to_xargine(const VkResult vk_result)
+        api::ESwapChainResult to_xargine(const VkResult vk_result)
         {
             switch (vk_result)
             {
                 case VK_SUCCESS:
                 {
-                    return ESwapChainResult::OK;
+                    return api::ESwapChainResult::OK;
                 }
                 case VK_ERROR_OUT_OF_DATE_KHR:
                 case VK_SUBOPTIMAL_KHR:
                 {
-                    return ESwapChainResult::RECREATION_REQUIRED;
+                    return api::ESwapChainResult::RECREATION_REQUIRED;
                 }
                 default:
                 {
-                    return ESwapChainResult::ERROR;
+                    return api::ESwapChainResult::ERROR;
                 }
             }
         }
@@ -121,58 +121,58 @@ namespace xar_engine::graphics::vulkan
 
     VulkanGraphicsBackend::VulkanGraphicsBackend()
     {
-        _vulkan_instance = meta::RefCountedSingleton::get_instance<vulkan::impl::VulkanInstance>();
+        _vulkan_instance = meta::RefCountedSingleton::get_instance<vulkan::native::VulkanInstance>();
         _vulkan_physical_device_list = _vulkan_instance->get_physical_device_list();
-        _vulkan_device = vulkan::impl::VulkanDevice{{_vulkan_physical_device_list[0]}};
-        _vulkan_graphics_queue = impl::VulkanQueue{
+        _vulkan_device = vulkan::native::VulkanDevice{{_vulkan_physical_device_list[0]}};
+        _vulkan_graphics_queue = native::VulkanQueue{
             {
                 _vulkan_device,
                 _vulkan_device.get_graphics_family_index(),
             }
         };
 
-        _vulkan_command_buffer_pool = impl::VulkanCommandBufferPool{
+        _vulkan_command_buffer_pool = native::VulkanCommandBufferPool{
             {
                 _vulkan_device,
             }};
     }
 
 
-    const IGraphicsBackendResource& VulkanGraphicsBackend::resource() const
+    const api::IGraphicsBackendResource& VulkanGraphicsBackend::resource() const
     {
         return *this;
     }
 
-    IGraphicsBackendResource& VulkanGraphicsBackend::resource()
+    api::IGraphicsBackendResource& VulkanGraphicsBackend::resource()
     {
         return *this;
     }
 
-    const IGraphicsBackendHost& VulkanGraphicsBackend::host() const
+    const api::IGraphicsBackendHost& VulkanGraphicsBackend::host() const
     {
         return *this;
     }
 
-    IGraphicsBackendHost& VulkanGraphicsBackend::host()
+    api::IGraphicsBackendHost& VulkanGraphicsBackend::host()
     {
         return *this;
     }
 
-    const IGraphicsBackendCommand& VulkanGraphicsBackend::command() const
+    const api::IGraphicsBackendCommand& VulkanGraphicsBackend::command() const
     {
         return *this;
     }
 
-    IGraphicsBackendCommand& VulkanGraphicsBackend::command()
+    api::IGraphicsBackendCommand& VulkanGraphicsBackend::command()
     {
         return *this;
     }
 
 
-    BufferReference VulkanGraphicsBackend::make_staging_buffer(const std::uint32_t buffer_byte_size)
+    api::BufferReference VulkanGraphicsBackend::make_staging_buffer(const std::uint32_t buffer_byte_size)
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanBuffer{
+            native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{buffer_byte_size},
@@ -182,10 +182,10 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    BufferReference VulkanGraphicsBackend::make_vertex_buffer(const std::uint32_t buffer_byte_size)
+    api::BufferReference VulkanGraphicsBackend::make_vertex_buffer(const std::uint32_t buffer_byte_size)
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanBuffer{
+            native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{buffer_byte_size},
@@ -194,10 +194,10 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    BufferReference VulkanGraphicsBackend::make_index_buffer(const std::uint32_t buffer_byte_size)
+    api::BufferReference VulkanGraphicsBackend::make_index_buffer(const std::uint32_t buffer_byte_size)
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanBuffer{
+            native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{buffer_byte_size},
@@ -206,10 +206,10 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    BufferReference VulkanGraphicsBackend::make_uniform_buffer(const std::uint32_t byte_size)
+    api::BufferReference VulkanGraphicsBackend::make_uniform_buffer(const std::uint32_t byte_size)
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanBuffer{
+            native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{byte_size},
@@ -218,11 +218,11 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    std::vector<CommandBufferReference> VulkanGraphicsBackend::make_command_buffer_list(const std::uint32_t buffer_counts)
+    std::vector<api::CommandBufferReference> VulkanGraphicsBackend::make_command_buffer_list(const std::uint32_t buffer_counts)
     {
         auto vk_command_buffer_list = _vulkan_command_buffer_pool.make_buffer_list(MAX_FRAMES_IN_FLIGHT);
 
-        auto _vulkan_command_buffer_list = std::vector<CommandBufferReference>{};
+        auto _vulkan_command_buffer_list = std::vector<api::CommandBufferReference>{};
         _vulkan_command_buffer_list.reserve(buffer_counts);
 
         for (auto& vk_command_buffer: vk_command_buffer_list)
@@ -233,10 +233,10 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_command_buffer_list;
     }
 
-    DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool()
+    api::DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool()
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanDescriptorPool{
+            native::VulkanDescriptorPool{
                 {
                     _vulkan_device,
                     MAX_FRAMES_IN_FLIGHT,
@@ -245,18 +245,18 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    std::vector<DescriptorSetReference> VulkanGraphicsBackend::make_descriptor_set_list(
-        const DescriptorPoolReference& descriptor_pool,
-        const DescriptorSetLayoutReference& descriptor_set_layout,
-        const std::vector<BufferReference>& uniform_buffer_list,
-        const ImageViewReference& texture_image_view,
-        const SamplerReference& sampler)
+    std::vector<api::DescriptorSetReference> VulkanGraphicsBackend::make_descriptor_set_list(
+        const api::DescriptorPoolReference& descriptor_pool,
+        const api::DescriptorSetLayoutReference& descriptor_set_layout,
+        const std::vector<api::BufferReference>& uniform_buffer_list,
+        const api::ImageViewReference& texture_image_view,
+        const api::SamplerReference& sampler)
     {
         auto layouts = std::vector<VkDescriptorSetLayout>(
             MAX_FRAMES_IN_FLIGHT,
             _vulkan_resource_storage.get(descriptor_set_layout).get_native());
 
-        auto vulkan_descriptor_set_ref_list = std::vector<DescriptorSetReference>();
+        auto vulkan_descriptor_set_ref_list = std::vector<api::DescriptorSetReference>();
         auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_pool).make_descriptor_set_list(layouts);
         for (auto& vulkan_descriptor_set: vulkan_descriptor_set_list)
         {
@@ -304,7 +304,7 @@ namespace xar_engine::graphics::vulkan
         return vulkan_descriptor_set_ref_list;
     }
 
-    DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout()
+    api::DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout()
     {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
@@ -321,21 +321,21 @@ namespace xar_engine::graphics::vulkan
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         return _vulkan_resource_storage.add(
-            impl::VulkanDescriptorSetLayout{
+            native::VulkanDescriptorSetLayout{
                 {
                     _vulkan_device,
                     {uboLayoutBinding, samplerLayoutBinding},
                 }});
     }
 
-    GraphicsPipelineReference VulkanGraphicsBackend::make_graphics_pipeline(
-        const DescriptorSetLayoutReference& descriptor_set_layout,
-        const ShaderReference& vertex_shader,
-        const ShaderReference& fragment_shader,
-        const std::vector<VertexInputAttribute>& vertex_input_attribute_list,
-        const std::vector<VertexInputBinding>& vertex_input_binding_list,
-        const EFormat color_format,
-        const EFormat depth_format,
+    api::GraphicsPipelineReference VulkanGraphicsBackend::make_graphics_pipeline(
+        const api::DescriptorSetLayoutReference& descriptor_set_layout,
+        const api::ShaderReference& vertex_shader,
+        const api::ShaderReference& fragment_shader,
+        const std::vector<api::VertexInputAttribute>& vertex_input_attribute_list,
+        const std::vector<api::VertexInputBinding>& vertex_input_binding_list,
+        const api::EFormat color_format,
+        const api::EFormat depth_format,
         std::uint32_t sample_counts)
     {
         VkPushConstantRange pushConstantRange{};
@@ -344,7 +344,7 @@ namespace xar_engine::graphics::vulkan
         pushConstantRange.size = sizeof(float);
 
         return _vulkan_resource_storage.add(
-            impl::VulkanGraphicsPipeline{
+            native::VulkanGraphicsPipeline{
                 {
                     _vulkan_device,
                     {
@@ -369,28 +369,28 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    ImageReference VulkanGraphicsBackend::make_image(
-        EImageType image_type,
+    api::ImageReference VulkanGraphicsBackend::make_image(
+        api::EImageType image_type,
         const math::Vector3i32 dimension,
-        const EFormat image_format,
+        const api::EFormat image_format,
         const std::uint32_t mip_levels,
         const std::uint32_t sample_count)
     {
         auto vk_image_usage = 0;
         switch (image_type)
         {
-            case EImageType::COLOR_ATTACHMENT:
+            case api::EImageType::COLOR_ATTACHMENT:
             {
                 vk_image_usage =
                     VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
                 break;
             }
-            case EImageType::DEPTH_ATTACHMENT:
+            case api::EImageType::DEPTH_ATTACHMENT:
             {
                 vk_image_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
                 break;
             }
-            case EImageType::TEXTURE:
+            case api::EImageType::TEXTURE:
             {
                 vk_image_usage =
                     VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -400,7 +400,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         return _vulkan_resource_storage.add(
-            impl::VulkanImage{
+            native::VulkanImage{
                 {
                     _vulkan_device,
                     dimension,
@@ -413,15 +413,15 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    ImageViewReference VulkanGraphicsBackend::make_image_view(
-        const ImageReference& image,
-        EImageAspect image_aspect,
-        const std::uint32_t mip_levels)
+    api::ImageViewReference VulkanGraphicsBackend::make_image_view(
+        const api::ImageReference& image,
+        api::EImageAspect image_aspect,
+        std::uint32_t mip_levels)
     {
         const auto& vulkan_image = _vulkan_resource_storage.get(image);
 
         return _vulkan_resource_storage.add(
-            impl::VulkanImageView{
+            native::VulkanImageView{
                 {
                     _vulkan_device,
                     vulkan_image.get_native(),
@@ -431,10 +431,10 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
-    SamplerReference VulkanGraphicsBackend::make_sampler(const float mip_levels)
+    api::SamplerReference VulkanGraphicsBackend::make_sampler(const float mip_levels)
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanSampler{
+            native::VulkanSampler{
                 {
                     _vulkan_device,
                     _vulkan_device.get_physical_device().get_vk_device_properties().limits.maxSamplerAnisotropy,
@@ -443,17 +443,17 @@ namespace xar_engine::graphics::vulkan
             });
     }
 
-    ShaderReference VulkanGraphicsBackend::make_shader(const std::vector<char>& shader_byte_code)
+    api::ShaderReference VulkanGraphicsBackend::make_shader(const std::vector<char>& shader_byte_code)
     {
         return _vulkan_resource_storage.add(
-            impl::VulkanShader{
+            native::VulkanShader{
                 {
                     _vulkan_device,
                     shader_byte_code,
                 }});
     }
 
-    SwapChainReference VulkanGraphicsBackend::make_swap_chain(
+    api::SwapChainReference VulkanGraphicsBackend::make_swap_chain(
         std::shared_ptr<IWindowSurface> window_surface,
         const std::uint32_t buffering_level)
     {
@@ -483,7 +483,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         return _vulkan_resource_storage.add(
-            impl::VulkanSwapChain{
+            native::VulkanSwapChain{
                 {
                     _vulkan_device,
                     _vulkan_graphics_queue,
@@ -499,7 +499,7 @@ namespace xar_engine::graphics::vulkan
 
 
     void VulkanGraphicsBackend::update_buffer(
-        const xar_engine::graphics::BufferReference& buffer,
+        const api::BufferReference& buffer,
         void* const data,
         const std::uint32_t data_byte_size)
     {
@@ -513,7 +513,7 @@ namespace xar_engine::graphics::vulkan
         vulkan_buffer.unmap();
     }
 
-    std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> VulkanGraphicsBackend::begin_frame(const SwapChainReference& swap_chain)
+    std::tuple<api::ESwapChainResult, std::uint32_t, std::uint32_t> VulkanGraphicsBackend::begin_frame(const api::SwapChainReference& swap_chain)
     {
         const auto result = _vulkan_resource_storage.get(swap_chain).begin_frame();
 
@@ -529,7 +529,7 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_device.get_physical_device().get_vk_sample_count_flag_bits();
     }
 
-    EFormat VulkanGraphicsBackend::find_depth_format() const
+    api::EFormat VulkanGraphicsBackend::find_depth_format() const
     {
         const auto vk_format = _vulkan_device.get_physical_device().find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
@@ -565,12 +565,12 @@ namespace xar_engine::graphics::vulkan
             }
         }
 
-        return EFormat::D32_SFLOAT;
+        return api::EFormat::D32_SFLOAT;
     }
 
-    ESwapChainResult VulkanGraphicsBackend::end_frame(
-        const CommandBufferReference& command_buffer,
-        const SwapChainReference& swap_chain)
+    api::ESwapChainResult VulkanGraphicsBackend::end_frame(
+        const api::CommandBufferReference& command_buffer,
+        const api::SwapChainReference& swap_chain)
     {
         const auto result = _vulkan_resource_storage.get(swap_chain).end_frame(_vulkan_resource_storage.get(command_buffer).get_native());
 
@@ -578,9 +578,9 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::copy_buffer(
-        const CommandBufferReference& command_buffer,
-        const BufferReference& source_buffer,
-        const BufferReference& destination_buffer)
+        const api::CommandBufferReference& command_buffer,
+        const api::BufferReference& source_buffer,
+        const api::BufferReference& destination_buffer)
     {
         const auto& vulkan_source_buffer = _vulkan_resource_storage.get(source_buffer);
         const auto& vulkan_destination_buffer = _vulkan_resource_storage.get(destination_buffer);
@@ -604,9 +604,9 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::copy_buffer_to_image(
-        const CommandBufferReference& command_buffer,
-        const BufferReference& source_buffer,
-        const ImageReference& target_image)
+        const api::CommandBufferReference& command_buffer,
+        const api::BufferReference& source_buffer,
+        const api::ImageReference& target_image)
     {
         const auto& vulkan_target_image = _vulkan_resource_storage.get(target_image);
 
@@ -638,32 +638,32 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::generate_image_mip_maps(
-        const CommandBufferReference& command_buffer,
-        const ImageReference& image)
+        const api::CommandBufferReference& command_buffer,
+        const api::ImageReference& image)
     {
         _vulkan_resource_storage.get(image).generate_mipmaps(_vulkan_resource_storage.get(command_buffer).get_native());
     }
 
     void VulkanGraphicsBackend::begin_command_buffer(
-        const CommandBufferReference& command_buffer,
-        const ECommandBufferType command_buffer_type)
+        const api::CommandBufferReference& command_buffer,
+        const api::ECommandBufferType command_buffer_type)
     {
-        _vulkan_resource_storage.get(command_buffer).begin(command_buffer_type == ECommandBufferType::ONE_TIME);
+        _vulkan_resource_storage.get(command_buffer).begin(command_buffer_type == api::ECommandBufferType::ONE_TIME);
     }
 
-    void VulkanGraphicsBackend::end_command_buffer(const CommandBufferReference& command_buffer)
+    void VulkanGraphicsBackend::end_command_buffer(const api::CommandBufferReference& command_buffer)
     {
         _vulkan_resource_storage.get(command_buffer).end();
     }
 
-    void VulkanGraphicsBackend::submit_command_buffer(const CommandBufferReference& command_buffer)
+    void VulkanGraphicsBackend::submit_command_buffer(const api::CommandBufferReference& command_buffer)
     {
         _vulkan_graphics_queue.submit(_vulkan_resource_storage.get(command_buffer));
     }
 
     void VulkanGraphicsBackend::set_vertex_buffer_list(
-        const CommandBufferReference& command_buffer,
-        const std::vector<BufferReference>& vertex_buffer_list,
+        const api::CommandBufferReference& command_buffer,
+        const std::vector<api::BufferReference>& vertex_buffer_list,
         const std::vector<std::uint32_t>& vertex_buffer_offset_list,
         std::uint32_t first_slot)
     {
@@ -691,8 +691,8 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::set_index_buffer(
-        const CommandBufferReference& command_buffer,
-        const BufferReference& index_buffer,
+        const api::CommandBufferReference& command_buffer,
+        const api::BufferReference& index_buffer,
         const std::uint32_t first_index)
     {
         vkCmdBindIndexBuffer(
@@ -703,9 +703,9 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::push_constants(
-        const CommandBufferReference& command_buffer,
-        const GraphicsPipelineReference& graphics_pipeline,
-        const EShaderType shader_type,
+        const api::CommandBufferReference& command_buffer,
+        const api::GraphicsPipelineReference& graphics_pipeline,
+        const api::EShaderType shader_type,
         const std::uint32_t offset,
         const std::uint32_t byte_size,
         void* const data_byte)
@@ -720,7 +720,7 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::draw_indexed(
-        const CommandBufferReference& command_buffer,
+        const api::CommandBufferReference& command_buffer,
         const std::uint32_t index_counts,
         const std::uint32_t instance_counts,
         const std::uint32_t first_index,
@@ -737,19 +737,19 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::transit_image_layout(
-        const CommandBufferReference& command_buffer,
-        const ImageReference& image,
-        EImageLayout new_image_layout)
+        const api::CommandBufferReference& command_buffer,
+        const api::ImageReference& image,
+        api::EImageLayout new_image_layout)
     {
         VkImageLayout new_vk_image_layout = {};
         switch (new_image_layout)
         {
-            case EImageLayout::TRANSFER_DESTINATION:
+            case api::EImageLayout::TRANSFER_DESTINATION:
             {
                 new_vk_image_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 break;
             }
-            case EImageLayout::DEPTH_STENCIL_ATTACHMENT:
+            case api::EImageLayout::DEPTH_STENCIL_ATTACHMENT:
             {
                 new_vk_image_layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 break;
@@ -772,13 +772,13 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::TMP_FRAME_START(
-        const CommandBufferReference& command_buffer,
-        const SwapChainReference& swap_chain,
-        const GraphicsPipelineReference& graphics_pipeline,
+        const api::CommandBufferReference& command_buffer,
+        const api::SwapChainReference& swap_chain,
+        const api::GraphicsPipelineReference& graphics_pipeline,
         std::uint32_t image_index,
-        const DescriptorSetReference& descriptor_set,
-        const ImageViewReference& color_image_view,
-        const ImageViewReference& depth_image_view)
+        const api::DescriptorSetReference& descriptor_set,
+        const api::ImageViewReference& color_image_view,
+        const api::ImageViewReference& depth_image_view)
     {
         _vulkan_resource_storage.get(command_buffer).begin(false);
 
@@ -889,8 +889,8 @@ namespace xar_engine::graphics::vulkan
     }
 
     void VulkanGraphicsBackend::TMP_FRAME_END(
-        const CommandBufferReference& command_buffer,
-        const SwapChainReference& swap_chain,
+        const api::CommandBufferReference& command_buffer,
+        const api::SwapChainReference& swap_chain,
         const std::uint32_t image_index)
     {
         vkCmdEndRenderingKHR(_vulkan_resource_storage.get(command_buffer).get_native());

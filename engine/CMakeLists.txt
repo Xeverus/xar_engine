@@ -15,8 +15,8 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/asset/model.hpp
         include/xar_engine/asset/model_loader.hpp
         include/xar_engine/error/exception.hpp
-        include/xar_engine/graphics/graphics_backend_factory.hpp
-        include/xar_engine/graphics/graphics_backend_type.hpp
+        include/xar_engine/graphics/api/graphics_backend_factory.hpp
+        include/xar_engine/graphics/api/graphics_backend_type.hpp
         include/xar_engine/graphics/renderer.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
@@ -49,58 +49,76 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/error/exception_utils.hpp
         src/xar_engine/file/file.cpp
         src/xar_engine/file/file.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_buffer.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_buffer.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_pool.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_pool.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_set.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_set.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_set_layout.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_descriptor_set_layout.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_device.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_device.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_graphics_pipeline.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_graphics_pipeline.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_image.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_image.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_image_view.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_image_view.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_instance.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_instance.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_physical_device.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_physical_device.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_queue.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_queue.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_sampler.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_sampler.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_shader.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_shader.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_surface.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_surface.hpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_swap_chain.cpp
-        src/xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp
+
+        src/xar_engine/graphics/api/buffer_resource.hpp
+        src/xar_engine/graphics/api/command_buffer_resource.hpp
+        src/xar_engine/graphics/api/descriptor_pool_resource.hpp
+        src/xar_engine/graphics/api/descriptor_set_resource.hpp
+        src/xar_engine/graphics/api/descriptor_set_layout_resource.hpp
+        src/xar_engine/graphics/api/format.hpp
+        src/xar_engine/graphics/api/graphics_backend.cpp
+        src/xar_engine/graphics/api/graphics_backend.hpp
+        src/xar_engine/graphics/api/graphics_backend_factory.cpp
+        src/xar_engine/graphics/api/graphics_backend_type.cpp
+        src/xar_engine/graphics/api/graphics_pipeline_resource.hpp
+        src/xar_engine/graphics/api/image_resource.hpp
+        src/xar_engine/graphics/api/image_view_resource.hpp
+        src/xar_engine/graphics/api/queue_resource.hpp
+        src/xar_engine/graphics/api/resource_map.hpp
+        src/xar_engine/graphics/api/resource_reference.hpp
+        src/xar_engine/graphics/api/sampler_resource.hpp
+        src/xar_engine/graphics/api/shader_resource.hpp
+        src/xar_engine/graphics/api/surface_resource.hpp
+        src/xar_engine/graphics/api/swap_chain_resource.hpp
+
+        src/xar_engine/graphics/vulkan/native/vulkan_buffer.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_buffer.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_command_buffer.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_command_buffer.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_command_buffer_pool.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_command_buffer_pool.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_descriptor_pool.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_descriptor_pool.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_descriptor_set.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_descriptor_set.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_descriptor_set_layout.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_descriptor_set_layout.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_device.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_device.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_graphics_pipeline.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_graphics_pipeline.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_image.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_image.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_image_view.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_image_view.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_instance.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_instance.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_physical_device.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_physical_device.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_queue.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_queue.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_sampler.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_sampler.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_shader.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_shader.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_surface.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_surface.hpp
+        src/xar_engine/graphics/vulkan/native/vulkan_swap_chain.cpp
+        src/xar_engine/graphics/vulkan/native/vulkan_swap_chain.hpp
+
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.cpp
         src/xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp
         src/xar_engine/graphics/vulkan/vulkan_resource_storage.cpp
         src/xar_engine/graphics/vulkan/vulkan_resource_storage.hpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.cpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
-        src/xar_engine/graphics/graphics_backend.cpp
-        src/xar_engine/graphics/graphics_backend.hpp
-        src/xar_engine/graphics/graphics_backend_factory.cpp
-        src/xar_engine/graphics/graphics_backend_resource_types.hpp
-        src/xar_engine/graphics/graphics_backend_type.cpp
+
         src/xar_engine/graphics/renderer.cpp
         src/xar_engine/graphics/renderer_impl.cpp
         src/xar_engine/graphics/renderer_impl.hpp
-        src/xar_engine/graphics/resource_reference.hpp
-        src/xar_engine/graphics/resource_map.hpp
         src/xar_engine/graphics/window_surface.cpp
         src/xar_engine/graphics/window_surface.hpp
+
         src/xar_engine/input/button.cpp
         src/xar_engine/input/input_event.cpp
         src/xar_engine/logging/console_logger.cpp

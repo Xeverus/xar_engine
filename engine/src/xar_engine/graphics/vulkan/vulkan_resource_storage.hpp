@@ -1,22 +1,35 @@
 #pragma once
 
-#include <xar_engine/graphics/graphics_backend_resource_types.hpp>
-#include <xar_engine/graphics/resource_map.hpp>
+#include <xar_engine/graphics/api/resource_map.hpp>
 
-#include <xar_engine/graphics/vulkan/impl/vulkan_buffer.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_command_buffer_pool.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_pool.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_set.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_descriptor_set_layout.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_device.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_graphics_pipeline.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_physical_device.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_queue.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_sampler.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_shader.hpp>
-#include <xar_engine/graphics/vulkan/impl/vulkan_swap_chain.hpp>
+#include <xar_engine/graphics/api/buffer_resource.hpp>
+#include <xar_engine/graphics/api/command_buffer_resource.hpp>
+#include <xar_engine/graphics/api/descriptor_pool_resource.hpp>
+#include <xar_engine/graphics/api/descriptor_set_layout_resource.hpp>
+#include <xar_engine/graphics/api/descriptor_set_resource.hpp>
+#include <xar_engine/graphics/api/graphics_pipeline_resource.hpp>
+#include <xar_engine/graphics/api/image_resource.hpp>
+#include <xar_engine/graphics/api/image_view_resource.hpp>
+#include <xar_engine/graphics/api/queue_resource.hpp>
+#include <xar_engine/graphics/api/sampler_resource.hpp>
+#include <xar_engine/graphics/api/shader_resource.hpp>
+#include <xar_engine/graphics/api/surface_resource.hpp>
+#include <xar_engine/graphics/api/swap_chain_resource.hpp>
+
+#include <xar_engine/graphics/vulkan/native/vulkan_buffer.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_command_buffer.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_command_buffer_pool.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_descriptor_set.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_descriptor_set_layout.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_device.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_instance.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_graphics_pipeline.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_physical_device.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_queue.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_sampler.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_shader.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_swap_chain.hpp>
 
 
 namespace xar_engine::graphics::vulkan
@@ -24,79 +37,79 @@ namespace xar_engine::graphics::vulkan
     class VulkanResourceStorage
     {
     public:
-        const impl::VulkanBuffer& get(const BufferReference& reference) const;
-        impl::VulkanBuffer& get(const BufferReference& reference);
+        const native::VulkanBuffer& get(const api::BufferReference& reference) const;
+        native::VulkanBuffer& get(const api::BufferReference& reference);
 
-        const impl::VulkanCommandBuffer& get(const CommandBufferReference& reference) const;
-        impl::VulkanCommandBuffer& get(const CommandBufferReference& reference);
+        const native::VulkanCommandBuffer& get(const api::CommandBufferReference& reference) const;
+        native::VulkanCommandBuffer& get(const api::CommandBufferReference& reference);
 
-        const impl::VulkanDescriptorPool& get(const DescriptorPoolReference& reference) const;
-        impl::VulkanDescriptorPool& get(const DescriptorPoolReference& reference);
+        const native::VulkanDescriptorPool& get(const api::DescriptorPoolReference& reference) const;
+        native::VulkanDescriptorPool& get(const api::DescriptorPoolReference& reference);
 
-        const impl::VulkanDescriptorSet& get(const DescriptorSetReference& reference) const;
-        impl::VulkanDescriptorSet& get(const DescriptorSetReference& reference);
+        const native::VulkanDescriptorSet& get(const api::DescriptorSetReference& reference) const;
+        native::VulkanDescriptorSet& get(const api::DescriptorSetReference& reference);
 
-        const impl::VulkanDescriptorSetLayout& get(const DescriptorSetLayoutReference& reference) const;
-        impl::VulkanDescriptorSetLayout& get(const DescriptorSetLayoutReference& reference);
+        const native::VulkanDescriptorSetLayout& get(const api::DescriptorSetLayoutReference& reference) const;
+        native::VulkanDescriptorSetLayout& get(const api::DescriptorSetLayoutReference& reference);
 
-        const impl::VulkanGraphicsPipeline& get(const GraphicsPipelineReference& reference) const;
-        impl::VulkanGraphicsPipeline& get(const GraphicsPipelineReference& reference);
+        const native::VulkanGraphicsPipeline& get(const api::GraphicsPipelineReference& reference) const;
+        native::VulkanGraphicsPipeline& get(const api::GraphicsPipelineReference& reference);
 
-        const impl::VulkanImage& get(const ImageReference& reference) const;
-        impl::VulkanImage& get(const ImageReference& reference);
+        const native::VulkanImage& get(const api::ImageReference& reference) const;
+        native::VulkanImage& get(const api::ImageReference& reference);
 
-        const impl::VulkanImageView& get(const ImageViewReference& reference) const;
-        impl::VulkanImageView& get(const ImageViewReference& reference);
+        const native::VulkanImageView& get(const api::ImageViewReference& reference) const;
+        native::VulkanImageView& get(const api::ImageViewReference& reference);
 
-        const impl::VulkanQueue& get(const QueueReference& reference) const;
-        impl::VulkanQueue& get(const QueueReference& reference);
+        const native::VulkanQueue& get(const api::QueueReference& reference) const;
+        native::VulkanQueue& get(const api::QueueReference& reference);
 
-        const impl::VulkanSampler& get(const SamplerReference& reference) const;
-        impl::VulkanSampler& get(const SamplerReference& reference);
+        const native::VulkanSampler& get(const api::SamplerReference& reference) const;
+        native::VulkanSampler& get(const api::SamplerReference& reference);
 
-        const impl::VulkanShader& get(const ShaderReference& reference) const;
-        impl::VulkanShader& get(const ShaderReference& reference);
+        const native::VulkanShader& get(const api::ShaderReference& reference) const;
+        native::VulkanShader& get(const api::ShaderReference& reference);
 
-        const impl::VulkanSwapChain& get(const SwapChainReference& reference) const;
-        impl::VulkanSwapChain& get(const SwapChainReference& reference);
+        const native::VulkanSwapChain& get(const api::SwapChainReference& reference) const;
+        native::VulkanSwapChain& get(const api::SwapChainReference& reference);
 
 
-        BufferReference add(impl::VulkanBuffer resource);
+        api::BufferReference add(native::VulkanBuffer resource);
 
-        CommandBufferReference add(impl::VulkanCommandBuffer resource);
+        api::CommandBufferReference add(native::VulkanCommandBuffer resource);
 
-        DescriptorPoolReference add(impl::VulkanDescriptorPool resource);
+        api::DescriptorPoolReference add(native::VulkanDescriptorPool resource);
 
-        DescriptorSetReference add(impl::VulkanDescriptorSet resource);
+        api::DescriptorSetReference add(native::VulkanDescriptorSet resource);
 
-        DescriptorSetLayoutReference add(impl::VulkanDescriptorSetLayout resource);
+        api::DescriptorSetLayoutReference add(native::VulkanDescriptorSetLayout resource);
 
-        GraphicsPipelineReference add(impl::VulkanGraphicsPipeline resource);
+        api::GraphicsPipelineReference add(native::VulkanGraphicsPipeline resource);
 
-        ImageReference add(impl::VulkanImage resource);
+        api::ImageReference add(native::VulkanImage resource);
 
-        ImageViewReference add(impl::VulkanImageView resource);
+        api::ImageViewReference add(native::VulkanImageView resource);
 
-        QueueReference add(impl::VulkanQueue resource);
+        api::QueueReference add(native::VulkanQueue resource);
 
-        SamplerReference add(impl::VulkanSampler resource);
+        api::SamplerReference add(native::VulkanSampler resource);
 
-        ShaderReference add(impl::VulkanShader resource);
+        api::ShaderReference add(native::VulkanShader resource);
 
-        SwapChainReference add(impl::VulkanSwapChain resource);
+        api::SwapChainReference add(native::VulkanSwapChain resource);
 
     private:
-        TResourceMap<BufferTag, impl::VulkanBuffer> _vulkan_buffer_map;
-        TResourceMap<CommandBufferTag, impl::VulkanCommandBuffer> _vulkan_command_buffer_map;
-        TResourceMap<DescriptorPoolTag, impl::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
-        TResourceMap<DescriptorSetTag, impl::VulkanDescriptorSet> _vulkan_descriptor_set_map;
-        TResourceMap<DescriptorSetLayoutTag, impl::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
-        TResourceMap<GrahicsPipelineTag, impl::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
-        TResourceMap<ImageTag, impl::VulkanImage> _vulkan_image_map;
-        TResourceMap<ImageViewTag, impl::VulkanImageView> _vulkan_image_view_map;
-        TResourceMap<QueueTag, impl::VulkanQueue> _vulkan_queue_map;
-        TResourceMap<SamplerTag, impl::VulkanSampler> _vulkan_sampler_map;
-        TResourceMap<ShaderTag, impl::VulkanShader> _vulkan_shader_map;
-        TResourceMap<SwapChainTag, impl::VulkanSwapChain> _vulkan_swap_chain_map;
+        api::TResourceMap<api::BufferTag, native::VulkanBuffer> _vulkan_buffer_map;
+        api::TResourceMap<api::CommandBufferTag, native::VulkanCommandBuffer> _vulkan_command_buffer_map;
+        api::TResourceMap<api::DescriptorPoolTag, native::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
+        api::TResourceMap<api::DescriptorSetTag, native::VulkanDescriptorSet> _vulkan_descriptor_set_map;
+        api::TResourceMap<api::DescriptorSetLayoutTag, native::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
+        api::TResourceMap<api::GrahicsPipelineTag, native::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
+        api::TResourceMap<api::ImageTag, native::VulkanImage> _vulkan_image_map;
+        api::TResourceMap<api::ImageViewTag, native::VulkanImageView> _vulkan_image_view_map;
+        api::TResourceMap<api::QueueTag, native::VulkanQueue> _vulkan_queue_map;
+        api::TResourceMap<api::SamplerTag, native::VulkanSampler> _vulkan_sampler_map;
+        api::TResourceMap<api::ShaderTag, native::VulkanShader> _vulkan_shader_map;
+        api::TResourceMap<api::SwapChainTag, native::VulkanSwapChain> _vulkan_swap_chain_map;
     };
 }

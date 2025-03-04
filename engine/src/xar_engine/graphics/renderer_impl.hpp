@@ -4,22 +4,34 @@
 #include <memory>
 #include <vector>
 
-#include <xar_engine/graphics/graphics_backend_resource_types.hpp>
 #include <xar_engine/graphics/renderer.hpp>
+
+#include <xar_engine/graphics/api/buffer_resource.hpp>
+#include <xar_engine/graphics/api/command_buffer_resource.hpp>
+#include <xar_engine/graphics/api/descriptor_pool_resource.hpp>
+#include <xar_engine/graphics/api/descriptor_set_layout_resource.hpp>
+#include <xar_engine/graphics/api/descriptor_set_resource.hpp>
+#include <xar_engine/graphics/api/graphics_backend_type.hpp>
+#include <xar_engine/graphics/api/graphics_pipeline_resource.hpp>
+#include <xar_engine/graphics/api/image_resource.hpp>
+#include <xar_engine/graphics/api/image_view_resource.hpp>
+#include <xar_engine/graphics/api/queue_resource.hpp>
+#include <xar_engine/graphics/api/sampler_resource.hpp>
+#include <xar_engine/graphics/api/shader_resource.hpp>
+#include <xar_engine/graphics/api/surface_resource.hpp>
+#include <xar_engine/graphics/api/swap_chain_resource.hpp>
 
 #include <xar_engine/os/window.hpp>
 
 
 namespace xar_engine::graphics
 {
-    class IGraphicsBackend;
-
     class RendererImpl
         : public IRenderer
     {
     public:
         RendererImpl(
-            std::shared_ptr<IGraphicsBackend> graphics_backend,
+            std::shared_ptr<api::IGraphicsBackend> graphics_backend,
             std::shared_ptr<IWindowSurface> window_surface);
 
         ~RendererImpl() override;
@@ -39,32 +51,32 @@ namespace xar_engine::graphics
 
     private:
         std::shared_ptr<IWindowSurface> _window_surface;
-        std::shared_ptr<IGraphicsBackend> _graphics_backend;
+        std::shared_ptr<api::IGraphicsBackend> _graphics_backend;
 
-        std::vector<CommandBufferReference> _command_buffer_list;
+        std::vector<api::CommandBufferReference> _command_buffer_list;
 
-        SwapChainReference _swap_chain_ref;
-        ShaderReference _vertex_shader_ref;
-        ShaderReference _fragment_shader_ref;
+        api::SwapChainReference _swap_chain_ref;
+        api::ShaderReference _vertex_shader_ref;
+        api::ShaderReference _fragment_shader_ref;
 
-        BufferReference _vertex_buffer_ref;
-        BufferReference _index_buffer_ref;
-        std::vector<BufferReference> _uniform_buffer_ref_list;
+        api::BufferReference _vertex_buffer_ref;
+        api::BufferReference _index_buffer_ref;
+        std::vector<api::BufferReference> _uniform_buffer_ref_list;
 
-        ImageReference _texture_image_ref;
-        ImageViewReference _texture_image_view_ref;
-        SamplerReference _sampler_ref;
+        api::ImageReference _texture_image_ref;
+        api::ImageViewReference _texture_image_view_ref;
+        api::SamplerReference _sampler_ref;
 
-        DescriptorPoolReference _descriptor_pool_ref;
-        DescriptorSetLayoutReference _descriptor_set_layout_ref;
-        std::vector<DescriptorSetReference> _descriptor_set_list_ref;
+        api::DescriptorPoolReference _descriptor_pool_ref;
+        api::DescriptorSetLayoutReference _descriptor_set_layout_ref;
+        std::vector<api::DescriptorSetReference> _descriptor_set_list_ref;
 
-        ImageReference _color_image_ref;
-        ImageViewReference _color_image_view_ref;
-        ImageReference _depth_image_ref;
-        ImageViewReference _depth_image_view_ref;
+        api::ImageReference _color_image_ref;
+        api::ImageViewReference _color_image_view_ref;
+        api::ImageReference _depth_image_ref;
+        api::ImageViewReference _depth_image_view_ref;
 
-        GraphicsPipelineReference _graphics_pipeline_ref;
+        api::GraphicsPipelineReference _graphics_pipeline_ref;
 
         uint32_t mipLevels;
         uint32_t frameCounter;

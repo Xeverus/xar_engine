@@ -4,183 +4,183 @@
 namespace xar_engine::graphics::vulkan
 {
 
-    const impl::VulkanBuffer& VulkanResourceStorage::get(const BufferReference& reference) const
+    const native::VulkanBuffer& VulkanResourceStorage::get(const api::BufferReference& reference) const
     {
         return _vulkan_buffer_map.get_object(reference);
     }
 
-    impl::VulkanBuffer& VulkanResourceStorage::get(const BufferReference& reference)
+    native::VulkanBuffer& VulkanResourceStorage::get(const api::BufferReference& reference)
     {
         return _vulkan_buffer_map.get_object(reference);
     }
 
-    const impl::VulkanCommandBuffer& VulkanResourceStorage::get(const CommandBufferReference& reference) const
+    const native::VulkanCommandBuffer& VulkanResourceStorage::get(const api::CommandBufferReference& reference) const
     {
         return _vulkan_command_buffer_map.get_object(reference);
     }
 
-    impl::VulkanCommandBuffer& VulkanResourceStorage::get(const CommandBufferReference& reference)
+    native::VulkanCommandBuffer& VulkanResourceStorage::get(const api::CommandBufferReference& reference)
     {
         return _vulkan_command_buffer_map.get_object(reference);
     }
 
-    const impl::VulkanDescriptorPool& VulkanResourceStorage::get(const DescriptorPoolReference& reference) const
+    const native::VulkanDescriptorPool& VulkanResourceStorage::get(const api::DescriptorPoolReference& reference) const
     {
         return _vulkan_descriptor_pool_map.get_object(reference);
     }
 
-    impl::VulkanDescriptorPool& VulkanResourceStorage::get(const DescriptorPoolReference& reference)
+    native::VulkanDescriptorPool& VulkanResourceStorage::get(const api::DescriptorPoolReference& reference)
     {
         return _vulkan_descriptor_pool_map.get_object(reference);
     }
 
-    const impl::VulkanDescriptorSet& VulkanResourceStorage::get(const DescriptorSetReference& reference) const
+    const native::VulkanDescriptorSet& VulkanResourceStorage::get(const api::DescriptorSetReference& reference) const
     {
         return _vulkan_descriptor_set_map.get_object(reference);
     }
 
-    impl::VulkanDescriptorSet& VulkanResourceStorage::get(const DescriptorSetReference& reference)
+    native::VulkanDescriptorSet& VulkanResourceStorage::get(const api::DescriptorSetReference& reference)
     {
         return _vulkan_descriptor_set_map.get_object(reference);
     }
 
-    const impl::VulkanDescriptorSetLayout& VulkanResourceStorage::get(const DescriptorSetLayoutReference& reference) const
+    const native::VulkanDescriptorSetLayout& VulkanResourceStorage::get(const api::DescriptorSetLayoutReference& reference) const
     {
         return _vulkan_descriptor_layout_map.get_object(reference);
     }
 
-    impl::VulkanDescriptorSetLayout& VulkanResourceStorage::get(const DescriptorSetLayoutReference& reference)
+    native::VulkanDescriptorSetLayout& VulkanResourceStorage::get(const api::DescriptorSetLayoutReference& reference)
     {
         return _vulkan_descriptor_layout_map.get_object(reference);
     }
 
-    const impl::VulkanGraphicsPipeline& VulkanResourceStorage::get(const GraphicsPipelineReference& reference) const
+    const native::VulkanGraphicsPipeline& VulkanResourceStorage::get(const api::GraphicsPipelineReference& reference) const
     {
         return _vulkan_graphics_pipeline_map.get_object(reference);
     }
 
-    impl::VulkanGraphicsPipeline& VulkanResourceStorage::get(const GraphicsPipelineReference& reference)
+    native::VulkanGraphicsPipeline& VulkanResourceStorage::get(const api::GraphicsPipelineReference& reference)
     {
         return _vulkan_graphics_pipeline_map.get_object(reference);
     }
 
-    const impl::VulkanImage& VulkanResourceStorage::get(const ImageReference& reference) const
+    const native::VulkanImage& VulkanResourceStorage::get(const api::ImageReference& reference) const
     {
         return _vulkan_image_map.get_object(reference);
     }
 
-    impl::VulkanImage& VulkanResourceStorage::get(const ImageReference& reference)
+    native::VulkanImage& VulkanResourceStorage::get(const api::ImageReference& reference)
     {
         return _vulkan_image_map.get_object(reference);
     }
 
-    const impl::VulkanImageView& VulkanResourceStorage::get(const ImageViewReference& reference) const
+    const native::VulkanImageView& VulkanResourceStorage::get(const api::ImageViewReference& reference) const
     {
         return _vulkan_image_view_map.get_object(reference);
     }
 
-    impl::VulkanImageView& VulkanResourceStorage::get(const ImageViewReference& reference)
+    native::VulkanImageView& VulkanResourceStorage::get(const api::ImageViewReference& reference)
     {
         return _vulkan_image_view_map.get_object(reference);
     }
 
-    const impl::VulkanQueue& VulkanResourceStorage::get(const QueueReference& reference) const
+    const native::VulkanQueue& VulkanResourceStorage::get(const api::QueueReference& reference) const
     {
         return _vulkan_queue_map.get_object(reference);
     }
 
-    impl::VulkanQueue& VulkanResourceStorage::get(const QueueReference& reference)
+    native::VulkanQueue& VulkanResourceStorage::get(const api::QueueReference& reference)
     {
         return _vulkan_queue_map.get_object(reference);
     }
 
-    const impl::VulkanSampler& VulkanResourceStorage::get(const SamplerReference& reference) const
+    const native::VulkanSampler& VulkanResourceStorage::get(const api::SamplerReference& reference) const
     {
         return _vulkan_sampler_map.get_object(reference);
     }
 
-    impl::VulkanSampler& VulkanResourceStorage::get(const SamplerReference& reference)
+    native::VulkanSampler& VulkanResourceStorage::get(const api::SamplerReference& reference)
     {
         return _vulkan_sampler_map.get_object(reference);
     }
 
-    const impl::VulkanShader& VulkanResourceStorage::get(const ShaderReference& reference) const
+    const native::VulkanShader& VulkanResourceStorage::get(const api::ShaderReference& reference) const
     {
         return _vulkan_shader_map.get_object(reference);
     }
 
-    impl::VulkanShader& VulkanResourceStorage::get(const ShaderReference& reference)
+    native::VulkanShader& VulkanResourceStorage::get(const api::ShaderReference& reference)
     {
         return _vulkan_shader_map.get_object(reference);
     }
 
-    const impl::VulkanSwapChain& VulkanResourceStorage::get(const SwapChainReference& reference) const
+    const native::VulkanSwapChain& VulkanResourceStorage::get(const api::SwapChainReference& reference) const
     {
         return _vulkan_swap_chain_map.get_object(reference);
     }
 
-    impl::VulkanSwapChain& VulkanResourceStorage::get(const SwapChainReference& reference)
+    native::VulkanSwapChain& VulkanResourceStorage::get(const api::SwapChainReference& reference)
     {
         return _vulkan_swap_chain_map.get_object(reference);
     }
 
 
-    BufferReference VulkanResourceStorage::add(impl::VulkanBuffer resource)
+    api::BufferReference VulkanResourceStorage::add(native::VulkanBuffer resource)
     {
         return _vulkan_buffer_map.add(std::move(resource));
     }
 
-    CommandBufferReference VulkanResourceStorage::add(impl::VulkanCommandBuffer resource)
+    api::CommandBufferReference VulkanResourceStorage::add(native::VulkanCommandBuffer resource)
     {
         return _vulkan_command_buffer_map.add(std::move(resource));
     }
 
-    DescriptorPoolReference VulkanResourceStorage::add(impl::VulkanDescriptorPool resource)
+    api::DescriptorPoolReference VulkanResourceStorage::add(native::VulkanDescriptorPool resource)
     {
         return _vulkan_descriptor_pool_map.add(std::move(resource));
     }
 
-    DescriptorSetReference VulkanResourceStorage::add(impl::VulkanDescriptorSet resource)
+    api::DescriptorSetReference VulkanResourceStorage::add(native::VulkanDescriptorSet resource)
     {
         return _vulkan_descriptor_set_map.add(std::move(resource));
     }
 
-    DescriptorSetLayoutReference VulkanResourceStorage::add(impl::VulkanDescriptorSetLayout resource)
+    api::DescriptorSetLayoutReference VulkanResourceStorage::add(native::VulkanDescriptorSetLayout resource)
     {
         return _vulkan_descriptor_layout_map.add(std::move(resource));
     }
 
-    GraphicsPipelineReference VulkanResourceStorage::add(impl::VulkanGraphicsPipeline resource)
+    api::GraphicsPipelineReference VulkanResourceStorage::add(native::VulkanGraphicsPipeline resource)
     {
         return _vulkan_graphics_pipeline_map.add(std::move(resource));
     }
 
-    ImageReference VulkanResourceStorage::add(impl::VulkanImage resource)
+    api::ImageReference VulkanResourceStorage::add(native::VulkanImage resource)
     {
         return _vulkan_image_map.add(std::move(resource));
     }
 
-    ImageViewReference VulkanResourceStorage::add(impl::VulkanImageView resource)
+    api::ImageViewReference VulkanResourceStorage::add(native::VulkanImageView resource)
     {
         return _vulkan_image_view_map.add(std::move(resource));
     }
 
-    QueueReference VulkanResourceStorage::add(impl::VulkanQueue resource)
+    api::QueueReference VulkanResourceStorage::add(native::VulkanQueue resource)
     {
         return _vulkan_queue_map.add(std::move(resource));
     }
 
-    SamplerReference VulkanResourceStorage::add(impl::VulkanSampler resource)
+    api::SamplerReference VulkanResourceStorage::add(native::VulkanSampler resource)
     {
         return _vulkan_sampler_map.add(std::move(resource));
     }
 
-    ShaderReference VulkanResourceStorage::add(impl::VulkanShader resource)
+    api::ShaderReference VulkanResourceStorage::add(native::VulkanShader resource)
     {
         return _vulkan_shader_map.add(std::move(resource));
     }
 
-    SwapChainReference VulkanResourceStorage::add(impl::VulkanSwapChain resource)
+    api::SwapChainReference VulkanResourceStorage::add(native::VulkanSwapChain resource)
     {
         return _vulkan_swap_chain_map.add(std::move(resource));
     }

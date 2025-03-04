@@ -4,10 +4,10 @@
 namespace xar_engine::graphics::vulkan
 {
     VulkanWindowSurface::VulkanWindowSurface(
-        std::shared_ptr<impl::VulkanInstance> vulkan_instance,
+        std::shared_ptr<native::VulkanInstance> vulkan_instance,
         VkSurfaceKHR vk_surface_khr,
         const os::IWindow* os_window)
-        : _vulkan_surface(impl::VulkanSurface::Parameters{
+        : _vulkan_surface(native::VulkanSurface::Parameters{
             std::move(vulkan_instance),
             vk_surface_khr,
         })
@@ -20,7 +20,7 @@ namespace xar_engine::graphics::vulkan
         return _os_window->get_surface_pixel_size();
     }
 
-    const impl::VulkanSurface& VulkanWindowSurface::get_vulkan_surface() const
+    const native::VulkanSurface& VulkanWindowSurface::get_vulkan_surface() const
     {
         return _vulkan_surface;
     }

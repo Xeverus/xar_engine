@@ -4,7 +4,7 @@
 
 #include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
 
-#include <xar_engine/graphics/vulkan/impl/vulkan_instance.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_instance.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
@@ -184,12 +184,12 @@ namespace xar_engine::os
             _native_glfw_window,
             _parameters.title.c_str());
 
-        if (_parameters.graphics_backend_type != graphics::EGraphicsBackendType::VULKAN)
+        if (_parameters.graphics_backend_type != graphics::api::EGraphicsBackendType::VULKAN)
         {
             return;
         }
 
-        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::impl::VulkanInstance>();
+        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::native::VulkanInstance>();
 
         auto vk_surface_khr = VkSurfaceKHR{nullptr};
         const auto result = glfwCreateWindowSurface(

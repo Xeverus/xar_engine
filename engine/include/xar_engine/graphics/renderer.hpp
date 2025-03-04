@@ -2,11 +2,14 @@
 
 #include <memory>
 
+namespace xar_engine::graphics::api
+{
+    class IGraphicsBackend;
+}
 
 namespace xar_engine::graphics
 {
     class IWindowSurface;
-    class IGraphicsBackend;
 
     class IRenderer
     {
@@ -23,7 +26,7 @@ namespace xar_engine::graphics
         virtual ~IRendererFactory();
 
         virtual std::unique_ptr<IRenderer> make(
-            std::shared_ptr<IGraphicsBackend> graphics_backend,
+            std::shared_ptr<api::IGraphicsBackend> graphics_backend,
             std::shared_ptr<IWindowSurface> window_surface) = 0;
     };
 
@@ -32,7 +35,7 @@ namespace xar_engine::graphics
     {
     public:
         std::unique_ptr<IRenderer> make(
-            std::shared_ptr<IGraphicsBackend> graphics_backend,
+            std::shared_ptr<api::IGraphicsBackend> graphics_backend,
             std::shared_ptr<IWindowSurface> window_surface) override;
     };
 }
