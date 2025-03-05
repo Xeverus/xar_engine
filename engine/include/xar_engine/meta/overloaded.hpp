@@ -4,11 +4,11 @@
 namespace xar_engine::meta
 {
     template <typename... T>
-    struct Overloaded : public T...
+    struct TOverloaded : public T...
     {
         using T::operator()...;
     };
 
     template <typename... T>
-    Overloaded(T...) -> Overloaded<T...>;
+    TOverloaded(T...) -> TOverloaded<T...>;
 }

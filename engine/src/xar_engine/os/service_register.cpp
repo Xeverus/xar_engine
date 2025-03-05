@@ -11,7 +11,7 @@ namespace xar_engine::os
 {
     IServiceRegister& IServiceRegister::get_instance()
     {
-        return meta::Singleton::get_instance<ServiceRegisterImpl>();
+        return meta::TSingleton::get_instance<ServiceRegisterImpl>();
     }
 
     IServiceRegister::~IServiceRegister() = default;

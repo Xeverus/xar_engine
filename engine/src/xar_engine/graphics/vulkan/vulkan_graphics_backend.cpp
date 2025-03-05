@@ -17,7 +17,7 @@ namespace xar_engine::graphics::vulkan
 
     VulkanGraphicsBackend::VulkanGraphicsBackend()
     {
-        _vulkan_instance = meta::RefCountedSingleton::get_instance<vulkan::native::VulkanInstance>();
+        _vulkan_instance = meta::RefCountedSingleton::get_instance_t<vulkan::native::VulkanInstance>();
         _vulkan_physical_device_list = _vulkan_instance->get_physical_device_list();
         _vulkan_device = vulkan::native::VulkanDevice{{_vulkan_physical_device_list[0]}};
         _vulkan_graphics_queue = native::VulkanQueue{

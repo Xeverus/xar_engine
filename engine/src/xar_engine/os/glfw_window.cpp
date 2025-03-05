@@ -189,7 +189,7 @@ namespace xar_engine::os
             return;
         }
 
-        auto vulkan_instance = meta::RefCountedSingleton::get_instance<graphics::vulkan::native::VulkanInstance>();
+        auto vulkan_instance = meta::RefCountedSingleton::get_instance_t<graphics::vulkan::native::VulkanInstance>();
 
         auto vk_surface_khr = VkSurfaceKHR{nullptr};
         const auto result = glfwCreateWindowSurface(

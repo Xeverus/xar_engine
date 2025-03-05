@@ -34,7 +34,7 @@ int main()
         [&](const xar_engine::input::KeyboardEvent& event)
         {
             std::visit(
-                xar_engine::meta::Overloaded{
+                xar_engine::meta::TOverloaded{
                     [&](const xar_engine::input::KeyboardKeyEvent& event)
                     {
                         XAR_LOG(
@@ -52,7 +52,7 @@ int main()
         [&](const xar_engine::input::MouseEvent& event)
         {
             std::visit(
-                xar_engine::meta::Overloaded{
+                xar_engine::meta::TOverloaded{
                     [&](const xar_engine::input::MouseButtonEvent& event)
                     {
                         XAR_LOG(

@@ -3,7 +3,7 @@
 
 namespace xar_engine::meta
 {
-    class Singleton
+    class TSingleton
     {
     public:
         template <typename T>
@@ -12,7 +12,7 @@ namespace xar_engine::meta
 
 
     template <typename T>
-    T& Singleton::get_instance()
+    T& TSingleton::get_instance()
     {
         static T instance;
         return instance;

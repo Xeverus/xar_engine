@@ -136,7 +136,7 @@ namespace
             [&](const xar_engine::input::MouseEvent& mouse_event)
             {
                 std::visit(
-                    xar_engine::meta::Overloaded{
+                    xar_engine::meta::TOverloaded{
                         [&](const xar_engine::input::MouseButtonEvent& event)
                         {
                             const auto idx = update_counter - 1;

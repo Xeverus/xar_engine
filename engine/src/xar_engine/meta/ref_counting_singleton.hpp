@@ -10,7 +10,7 @@ namespace xar_engine::meta
     {
     public:
         template <typename T>
-        static std::shared_ptr<T> get_instance();
+        static std::shared_ptr<T> get_instance_t();
 
     private:
         static std::shared_ptr<void*> get_instance(const std::function<std::shared_ptr<void*>()>& maker_function);
@@ -18,7 +18,7 @@ namespace xar_engine::meta
 
 
     template <typename T>
-    std::shared_ptr<T> RefCountedSingleton::get_instance()
+    std::shared_ptr<T> RefCountedSingleton::get_instance_t()
     {
         static const auto maker = []()
         {
