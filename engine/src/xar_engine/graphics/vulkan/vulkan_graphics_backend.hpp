@@ -158,16 +158,20 @@ namespace xar_engine::graphics::vulkan
 
         void wait_idle() override;
 
-        void TMP_FRAME_START(
+        void begin_rendering(
             const api::CommandBufferReference& command_buffer,
             const api::SwapChainReference& swap_chain,
-            const api::GraphicsPipelineReference& graphics_pipeline,
             std::uint32_t image_index,
-            const api::DescriptorSetReference& descriptor_set,
             const api::ImageViewReference& color_image_view,
             const api::ImageViewReference& depth_image_view) override;
 
-        void TMP_FRAME_END(
+        void set_pipeline_state(
+            const api::CommandBufferReference& command_buffer,
+            const api::SwapChainReference& swap_chain,
+            const api::GraphicsPipelineReference& graphics_pipeline,
+            const api::DescriptorSetReference& descriptor_set) override;
+
+        void end_rendering(
             const api::CommandBufferReference& command_buffer,
             const api::SwapChainReference& swap_chain,
             std::uint32_t image_index) override;

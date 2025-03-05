@@ -401,14 +401,18 @@ namespace xar_engine::graphics
         const auto current_image_index = std::get<1>(begin_frame_result);
         const auto frame_index = std::get<2>(begin_frame_result);
 
-        _graphics_backend->command().TMP_FRAME_START(
+        _graphics_backend->command().begin_rendering(
+            _command_buffer_list[frame_index],
+            _swap_chain_ref,
+            current_image_index,
+            _color_image_view_ref,
+            _depth_image_view_ref);
+
+        _graphics_backend->command().set_pipeline_state(
             _command_buffer_list[frame_index],
             _swap_chain_ref,
             _graphics_pipeline_ref,
-            current_image_index,
-            _descriptor_set_list_ref[frame_index],
-            _color_image_view_ref,
-            _depth_image_view_ref);
+            _descriptor_set_list_ref[frame_index]);
 
         static float pcc = 0.0f;
         struct Constants
@@ -442,7 +446,7 @@ namespace xar_engine::graphics
             0,
             0);
 
-        _graphics_backend->command().TMP_FRAME_END(
+        _graphics_backend->command().end_rendering(
             _command_buffer_list[frame_index],
             _swap_chain_ref,
             current_image_index);

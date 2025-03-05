@@ -667,15 +667,16 @@ namespace xar_engine::graphics::vulkan
         _vulkan_device.wait_idle();
     }
 
-    void VulkanGraphicsBackend::TMP_FRAME_START(
+    void VulkanGraphicsBackend::begin_rendering(
         const api::CommandBufferReference& command_buffer,
         const api::SwapChainReference& swap_chain,
-        const api::GraphicsPipelineReference& graphics_pipeline,
         std::uint32_t image_index,
-        const api::DescriptorSetReference& descriptor_set,
         const api::ImageViewReference& color_image_view,
         const api::ImageViewReference& depth_image_view)
     {
+        const auto& vulkan_command_buffer = _vulkan_resource_storage.get(command_buffer);
+        const auto vk_command_buffer = vulkan_command_buffer.get_native();
+
         _vulkan_resource_storage.get(command_buffer).begin(false);
 
         const VkImageMemoryBarrier image_memory_barrier_start{
@@ -694,7 +695,7 @@ namespace xar_engine::graphics::vulkan
         };
 
         vkCmdPipelineBarrier(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
+            vk_command_buffer,
             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  // srcStageMask
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
             0,
@@ -742,39 +743,50 @@ namespace xar_engine::graphics::vulkan
         vk_rendering_info_khr.layerCount = 1;
 
         vkCmdBeginRenderingKHR(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
+            vk_command_buffer,
             &vk_rendering_info_khr);
+    }
+
+    void VulkanGraphicsBackend::set_pipeline_state(
+        const api::CommandBufferReference& command_buffer,
+        const api::SwapChainReference& swap_chain,
+        const api::GraphicsPipelineReference& graphics_pipeline,
+        const api::DescriptorSetReference& descriptor_set)
+    {
+        const auto vk_command_buffer = _vulkan_resource_storage.get(command_buffer).get_native();
 
         vkCmdBindPipeline(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
+            vk_command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline());
+
+        const auto swap_chain_vk_extent =_vulkan_resource_storage.get(swap_chain).get_extent();
 
         auto vk_viewport = VkViewport{};
         vk_viewport.x = 0.0f;
         vk_viewport.y = 0.0f;
-        vk_viewport.width = (float) _vulkan_resource_storage.get(swap_chain).get_extent().width;
-        vk_viewport.height = (float) _vulkan_resource_storage.get(swap_chain).get_extent().height;
+        vk_viewport.width = static_cast<float>(swap_chain_vk_extent.width);
+        vk_viewport.height = static_cast<float>(swap_chain_vk_extent.height);
         vk_viewport.minDepth = 0.0f;
         vk_viewport.maxDepth = 1.0f;
         vkCmdSetViewport(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
+            vk_command_buffer,
             0,
             1,
             &vk_viewport);
 
         auto scissor_vk_rect_2d = VkRect2D{};
         scissor_vk_rect_2d.offset = {0, 0};
-        scissor_vk_rect_2d.extent = _vulkan_resource_storage.get(swap_chain).get_extent();
+        scissor_vk_rect_2d.extent = swap_chain_vk_extent;
         vkCmdSetScissor(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
+            vk_command_buffer,
             0,
             1,
             &scissor_vk_rect_2d);
 
         const auto vk_descriptor_set = _vulkan_resource_storage.get(descriptor_set).get_native();
         vkCmdBindDescriptorSets(
-            _vulkan_resource_storage.get(command_buffer).get_native(),
+            vk_command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             0,
@@ -784,7 +796,7 @@ namespace xar_engine::graphics::vulkan
             nullptr);
     }
 
-    void VulkanGraphicsBackend::TMP_FRAME_END(
+    void VulkanGraphicsBackend::end_rendering(
         const api::CommandBufferReference& command_buffer,
         const api::SwapChainReference& swap_chain,
         const std::uint32_t image_index)

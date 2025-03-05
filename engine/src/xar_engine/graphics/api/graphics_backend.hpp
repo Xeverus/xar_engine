@@ -167,18 +167,22 @@ namespace xar_engine::graphics::api
 
         virtual void wait_idle() = 0;
 
-        virtual void TMP_FRAME_START(
-            const CommandBufferReference& command_buffer,
-            const SwapChainReference& swap_chain,
-            const GraphicsPipelineReference& graphics_pipeline,
+        virtual void begin_rendering(
+            const api::CommandBufferReference& command_buffer,
+            const api::SwapChainReference& swap_chain,
             std::uint32_t image_index,
-            const DescriptorSetReference& descriptor_set,
-            const ImageViewReference& color_image_view,
-            const ImageViewReference& depth_image_view) = 0;
+            const api::ImageViewReference& color_image_view,
+            const api::ImageViewReference& depth_image_view) = 0;
 
-        virtual void TMP_FRAME_END(
-            const CommandBufferReference& command_buffer,
-            const SwapChainReference& swap_chain,
+        virtual void set_pipeline_state(
+            const api::CommandBufferReference& command_buffer,
+            const api::SwapChainReference& swap_chain,
+            const api::GraphicsPipelineReference& graphics_pipeline,
+            const api::DescriptorSetReference& descriptor_set) = 0;
+
+        virtual void end_rendering(
+            const api::CommandBufferReference& command_buffer,
+            const api::SwapChainReference& swap_chain,
             std::uint32_t image_index) = 0;
     };
 
