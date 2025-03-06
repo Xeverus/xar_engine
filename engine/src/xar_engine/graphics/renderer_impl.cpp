@@ -29,6 +29,24 @@ namespace xar_engine::graphics
         constexpr int MAX_FRAMES_IN_FLIGHT = 2;
         constexpr auto tag = "Vulkan Sandbox";
 
+        gpu_asset::GpuModelList allocate_gpu_model_list(
+            api::IGraphicsBackend& graphics_backend,
+            const std::vector<asset::Model>& model_list)
+        {
+            auto gpu_model_list_buffer_structure_local = gpu_asset::make_gpu_model_list_buffer_structure(model_list);
+
+            auto gpu_model_list = gpu_asset::GpuModelList{
+                .position_buffer = graphics_backend.resource().make_vertex_buffer(gpu_model_list_buffer_structure_local.position_list_byte_size),
+                .normal_buffer = graphics_backend.resource().make_vertex_buffer(gpu_model_list_buffer_structure_local.normal_list_byte_size),
+                .texture_coord_buffer = graphics_backend.resource().make_vertex_buffer(gpu_model_list_buffer_structure_local.texture_coord_list_byte_size),
+                .index_buffer = graphics_backend.resource().make_index_buffer(gpu_model_list_buffer_structure_local.index_list_byte_size),
+            };
+
+            gpu_model_list.buffer_structure = std::move(gpu_model_list_buffer_structure_local);
+
+            return gpu_model_list;
+        }
+
         std::vector<api::VertexInputBinding> getBindingDescription()
         {
             return {
@@ -295,18 +313,9 @@ namespace xar_engine::graphics
 
     gpu_asset::GpuModelListReference RendererImpl::make_gpu_model_list(const std::vector<asset::Model>& model_list)
     {
-        auto gpu_model_list_buffer_structure_local = gpu_asset::make_gpu_model_list_buffer_structure(model_list);
+        auto gpu_model_list = allocate_gpu_model_list(*_graphics_backend, model_list);
 
-        const auto position_list_byte_size =
-            gpu_model_list_buffer_structure_local.vertex_counts * sizeof(model_list[0].mesh_list[0].position_list[0]);
-        const auto normal_list_byte_size =
-            gpu_model_list_buffer_structure_local.vertex_counts * sizeof(model_list[0].mesh_list[0].normal_list[0]);
-        const auto texture_coord_list_byte_size = gpu_model_list_buffer_structure_local.vertex_counts *
-                                                  sizeof(model_list[0].mesh_list[0].texture_coord_list[0]);
-        const auto index_list_byte_size =
-            gpu_model_list_buffer_structure_local.index_counts * sizeof(model_list[0].mesh_list[0].index_list[0]);
-
-        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(position_list_byte_size);
+        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.position_list_byte_size);
         {
             auto buffer_update_list = std::vector<api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -334,7 +343,7 @@ namespace xar_engine::graphics
                 buffer_update_list);
         }
 
-        auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(normal_list_byte_size);
+        auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.normal_list_byte_size);
         {
             auto buffer_update_list = std::vector<api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -362,7 +371,7 @@ namespace xar_engine::graphics
                 buffer_update_list);
         }
 
-        auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(texture_coord_list_byte_size);
+        auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.texture_coord_list_byte_size);
         {
             auto buffer_update_list = std::vector<api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -391,8 +400,7 @@ namespace xar_engine::graphics
                 buffer_update_list);
         }
 
-        auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(index_list_byte_size);
-
+        auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.index_list_byte_size);
         {
             auto buffer_update_list = std::vector<api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -425,34 +433,27 @@ namespace xar_engine::graphics
             command_buffer[0],
             api::ECommandBufferType::ONE_TIME);
 
-        gpu_asset::GpuModelList gpu_model;
-        gpu_model.position_buffer = _graphics_backend->resource().make_vertex_buffer(position_list_byte_size);
-        gpu_model.normal_buffer = _graphics_backend->resource().make_vertex_buffer(normal_list_byte_size);
-        gpu_model.texture_coord_buffer = _graphics_backend->resource().make_vertex_buffer(texture_coord_list_byte_size);
-        gpu_model.index_buffer = _graphics_backend->resource().make_index_buffer(index_list_byte_size);
-        gpu_model.buffer_structure = std::move(gpu_model_list_buffer_structure_local);
-
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer,
-            gpu_model.position_buffer);
+            gpu_model_list.position_buffer);
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer_1,
-            gpu_model.normal_buffer);
+            gpu_model_list.normal_buffer);
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer_2,
-            gpu_model.texture_coord_buffer);
+            gpu_model_list.texture_coord_buffer);
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer_3,
-            gpu_model.index_buffer);
+            gpu_model_list.index_buffer);
 
         _graphics_backend->command().end_command_buffer(command_buffer[0]);
         _graphics_backend->command().submit_command_buffer(command_buffer[0]);
 
-        return _gpu_model_map.add(std::move(gpu_model));
+        return _gpu_model_map.add(std::move(gpu_model_list));
     }
 
     void RendererImpl::update()
