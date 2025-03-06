@@ -20,13 +20,19 @@ int main()
         window->get_surface());
 
     xar_engine::graphics::gpu_asset::GpuModelListReference gpu_model;
+    std::vector<xar_engine::graphics::gpu_asset::GpuModelListReference> gpu_model_list;
     window->set_on_run(
         [&]()
         {
-            const auto model_list = std::vector<xar_engine::asset::Model>{
+            gpu_model_list.push_back(renderer->make_gpu_model_list(std::vector<xar_engine::asset::Model>{
                 xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj"),
-            };
-            gpu_model = renderer->make_gpu_model_list(model_list);
+            }));
+            gpu_model_list.push_back(renderer->make_gpu_model_list(std::vector<xar_engine::asset::Model>{
+                xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/house.obj"),
+            }));
+
+            gpu_model = gpu_model_list[0];
+            renderer->add_gpu_model_list_to_render(gpu_model);
         });
 
     window->set_on_update(
@@ -56,14 +62,34 @@ int main()
                             xar_engine::meta::enum_to_string(event.code),
                             xar_engine::meta::enum_to_string(event.state));
 
-                        if (event.code == xar_engine::input::ButtonCode::_1)
+                        if (event.code != xar_engine::input::ButtonCode::_0 &&
+                            event.code != xar_engine::input::ButtonCode::_1 &&
+                            event.code != xar_engine::input::ButtonCode::_2)
                         {
-                            renderer->add_gpu_model_list_to_render(gpu_model);
+                            return;
                         }
-                        else if (event.code == xar_engine::input::ButtonCode::_0)
+
+                        renderer->remove_gpu_model_list_from_render(gpu_model);
+                        gpu_model = {};
+
+                        switch (event.code)
                         {
-                            renderer->remove_gpu_model_list_from_render(gpu_model);
+                            case xar_engine::input::ButtonCode::_0:
+                            {
+                                return;
+                            }
+                            case xar_engine::input::ButtonCode::_1:
+                            {
+                                gpu_model = gpu_model_list[0];
+                                break;
+                            }
+                            case xar_engine::input::ButtonCode::_2:
+                            {
+                                gpu_model = gpu_model_list[1];
+                                break;
+                            }
                         }
+                        renderer->add_gpu_model_list_to_render(gpu_model);
                     }
                 },
                 event);
