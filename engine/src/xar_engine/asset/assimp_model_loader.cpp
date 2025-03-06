@@ -76,47 +76,24 @@ namespace xar_engine::asset
             }
 
             [[nodiscard]]
-            std::vector<TextureCoords> parse_texture_coords() const
+            std::vector<math::Vector2f> parse_texture_coords() const
             {
-                std::uint32_t texture_coords_count = 0;
-                for (; texture_coords_count < AI_MAX_NUMBER_OF_TEXTURECOORDS; ++texture_coords_count)
-                {
-                    if (!_ai_mesh.HasTextureCoords(texture_coords_count))
-                    {
-                        break;
-                    }
-                }
-
-                if (texture_coords_count == 0)
+                if (!_ai_mesh.HasTextureCoords(0) || _ai_mesh.mNumUVComponents[0] != 2)
                 {
                     return {};
                 }
 
-                auto all_texture_coords = std::vector<TextureCoords>(texture_coords_count);
-                for (auto i = 0; i < texture_coords_count; ++i)
+                auto texture_coords = std::vector<math::Vector2f>(_ai_mesh.mNumVertices);
+                for (auto ai_vertex_index = 0; ai_vertex_index < _ai_mesh.mNumVertices; ++ai_vertex_index)
                 {
-                    const auto* const ai_tex_coords_list = _ai_mesh.mTextureCoords[i];
-                    if (ai_tex_coords_list == nullptr)
-                    {
-                        break;
-                    }
+                    auto& tex_coords = texture_coords[ai_vertex_index];
+                    const auto& ai_tex_coords = _ai_mesh.mTextureCoords[0][ai_vertex_index];
 
-                    auto& texture_coords = all_texture_coords.back();
-                    texture_coords.channel_count = _ai_mesh.mNumUVComponents[i];
-                    texture_coords.coords.resize(_ai_mesh.mNumVertices * texture_coords.channel_count);
-
-                    for (auto ai_vertex_index = 0; ai_vertex_index < _ai_mesh.mNumVertices; ++ai_vertex_index)
-                    {
-                        const auto& ai_tex_coords = ai_tex_coords_list[ai_vertex_index];
-                        for (auto c = 0; c < texture_coords.channel_count; ++c)
-                        {
-                            texture_coords.coords[ai_vertex_index * texture_coords.channel_count +
-                                                  c] = ai_tex_coords[c];
-                        }
-                    }
+                    tex_coords.x = ai_tex_coords.x;
+                    tex_coords.y = ai_tex_coords.y;
                 }
 
-                return all_texture_coords;
+                return texture_coords;
             }
 
             [[nodiscard]]

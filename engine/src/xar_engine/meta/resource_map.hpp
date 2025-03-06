@@ -5,10 +5,10 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
-#include <xar_engine/graphics/api/resource_reference.hpp>
+#include <xar_engine/meta/resource_reference.hpp>
 
 
-namespace xar_engine::graphics::api
+namespace xar_engine::meta
 {
     template <typename Tag, typename Type>
     class TResourceMap

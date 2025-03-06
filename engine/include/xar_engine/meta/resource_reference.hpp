@@ -5,7 +5,7 @@
 #include <memory>
 
 
-namespace xar_engine::graphics::api
+namespace xar_engine::meta
 {
     template <typename Tag>
     class TResourceReference

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <xar_engine/graphics/api/resource_reference.hpp>
+#include <xar_engine/meta/resource_reference.hpp>
 
 #include <xar_engine/graphics/api/format.hpp>
 
@@ -8,7 +8,7 @@
 namespace xar_engine::graphics::api
 {
     enum class GrahicsPipelineTag;
-    using GraphicsPipelineReference = TResourceReference<GrahicsPipelineTag>;
+    using GraphicsPipelineReference = meta::TResourceReference<GrahicsPipelineTag>;
 
     enum class VertexInputBindingRate
     {

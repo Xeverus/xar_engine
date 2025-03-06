@@ -1,12 +1,12 @@
 #pragma once
 
-#include <xar_engine/graphics/api/resource_reference.hpp>
+#include <xar_engine/meta/resource_reference.hpp>
 
 
 namespace xar_engine::graphics::api
 {
     enum class ImageTag;
-    using ImageReference = TResourceReference<ImageTag>;
+    using ImageReference = meta::TResourceReference<ImageTag>;
 
 
     enum class EImageType

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <xar_engine/graphics/api/resource_map.hpp>
+#include <xar_engine/meta/resource_map.hpp>
 
 #include <xar_engine/graphics/api/buffer_resource.hpp>
 #include <xar_engine/graphics/api/command_buffer_resource.hpp>
@@ -99,17 +99,17 @@ namespace xar_engine::graphics::vulkan
         api::SwapChainReference add(native::VulkanSwapChain resource);
 
     private:
-        api::TResourceMap<api::BufferTag, native::VulkanBuffer> _vulkan_buffer_map;
-        api::TResourceMap<api::CommandBufferTag, native::VulkanCommandBuffer> _vulkan_command_buffer_map;
-        api::TResourceMap<api::DescriptorPoolTag, native::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
-        api::TResourceMap<api::DescriptorSetTag, native::VulkanDescriptorSet> _vulkan_descriptor_set_map;
-        api::TResourceMap<api::DescriptorSetLayoutTag, native::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
-        api::TResourceMap<api::GrahicsPipelineTag, native::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
-        api::TResourceMap<api::ImageTag, native::VulkanImage> _vulkan_image_map;
-        api::TResourceMap<api::ImageViewTag, native::VulkanImageView> _vulkan_image_view_map;
-        api::TResourceMap<api::QueueTag, native::VulkanQueue> _vulkan_queue_map;
-        api::TResourceMap<api::SamplerTag, native::VulkanSampler> _vulkan_sampler_map;
-        api::TResourceMap<api::ShaderTag, native::VulkanShader> _vulkan_shader_map;
-        api::TResourceMap<api::SwapChainTag, native::VulkanSwapChain> _vulkan_swap_chain_map;
+        meta::TResourceMap<api::BufferTag, native::VulkanBuffer> _vulkan_buffer_map;
+        meta::TResourceMap<api::CommandBufferTag, native::VulkanCommandBuffer> _vulkan_command_buffer_map;
+        meta::TResourceMap<api::DescriptorPoolTag, native::VulkanDescriptorPool> _vulkan_descriptor_pool_map;
+        meta::TResourceMap<api::DescriptorSetTag, native::VulkanDescriptorSet> _vulkan_descriptor_set_map;
+        meta::TResourceMap<api::DescriptorSetLayoutTag, native::VulkanDescriptorSetLayout> _vulkan_descriptor_layout_map;
+        meta::TResourceMap<api::GrahicsPipelineTag, native::VulkanGraphicsPipeline> _vulkan_graphics_pipeline_map;
+        meta::TResourceMap<api::ImageTag, native::VulkanImage> _vulkan_image_map;
+        meta::TResourceMap<api::ImageViewTag, native::VulkanImageView> _vulkan_image_view_map;
+        meta::TResourceMap<api::QueueTag, native::VulkanQueue> _vulkan_queue_map;
+        meta::TResourceMap<api::SamplerTag, native::VulkanSampler> _vulkan_sampler_map;
+        meta::TResourceMap<api::ShaderTag, native::VulkanShader> _vulkan_shader_map;
+        meta::TResourceMap<api::SwapChainTag, native::VulkanSwapChain> _vulkan_swap_chain_map;
     };
 }

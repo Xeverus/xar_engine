@@ -396,16 +396,19 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanGraphicsBackend::update_buffer(
         const api::BufferReference& buffer,
-        void* const data,
-        const std::uint32_t data_byte_size)
+        const std::vector<api::BufferUpdate>& data)
     {
         auto& vulkan_buffer = _vulkan_resource_storage.get(buffer);
 
-        void* const mapped_data = vulkan_buffer.map();
-        memcpy(
-            mapped_data,
-            data,
-            static_cast<std::size_t>(data_byte_size));
+        void* mapped_data = vulkan_buffer.map();
+        for (const auto& buffer_update : data)
+        {
+            mapped_data = reinterpret_cast<char*>(mapped_data) + buffer_update.byte_offset;
+            memcpy(
+                mapped_data,
+                buffer_update.data,
+                static_cast<std::size_t>(buffer_update.byte_size));
+        }
         vulkan_buffer.unmap();
     }
 

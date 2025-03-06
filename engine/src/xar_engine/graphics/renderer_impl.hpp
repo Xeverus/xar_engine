@@ -6,6 +6,8 @@
 
 #include <xar_engine/graphics/renderer.hpp>
 
+#include <xar_engine/graphics/gpu_asset/gpu_model.hpp>
+
 #include <xar_engine/graphics/api/buffer_resource.hpp>
 #include <xar_engine/graphics/api/command_buffer_resource.hpp>
 #include <xar_engine/graphics/api/descriptor_pool_resource.hpp>
@@ -20,6 +22,8 @@
 #include <xar_engine/graphics/api/shader_resource.hpp>
 #include <xar_engine/graphics/api/surface_resource.hpp>
 #include <xar_engine/graphics/api/swap_chain_resource.hpp>
+
+#include <xar_engine/meta/resource_map.hpp>
 
 #include <xar_engine/os/window.hpp>
 
@@ -36,12 +40,12 @@ namespace xar_engine::graphics
 
         ~RendererImpl() override;
 
+
+        gpu_asset::GpuModelListReference make_gpu_model_list(const std::vector<asset::Model>& model_list) override;
+
         void update() override;
 
     private:
-        void init_vertex_data();
-        void init_index_data();
-        void init_model();
         void init_color_msaa();
         void init_depth();
         void init_texture();
@@ -59,8 +63,6 @@ namespace xar_engine::graphics
         api::ShaderReference _vertex_shader_ref;
         api::ShaderReference _fragment_shader_ref;
 
-        api::BufferReference _vertex_buffer_ref;
-        api::BufferReference _index_buffer_ref;
         std::vector<api::BufferReference> _uniform_buffer_ref_list;
 
         api::ImageReference _texture_image_ref;
@@ -80,5 +82,8 @@ namespace xar_engine::graphics
 
         uint32_t mipLevels;
         uint32_t frameCounter;
+
+        meta::TResourceMap<gpu_asset::GpuModelListTag, gpu_asset::GpuModelList> _gpu_model_map;
+        gpu_asset::GpuModelListReference _gpu_model;
     };
 }

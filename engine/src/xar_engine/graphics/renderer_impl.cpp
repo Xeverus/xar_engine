@@ -29,50 +29,48 @@ namespace xar_engine::graphics
         constexpr int MAX_FRAMES_IN_FLIGHT = 2;
         constexpr auto tag = "Vulkan Sandbox";
 
-        struct Vertex
+        std::vector<api::VertexInputBinding> getBindingDescription()
         {
-            glm::vec3 position;
-            glm::vec3 color;
-            glm::vec2 textureCoords;
+            return {
+                api::VertexInputBinding{
+                    .binding_index = 0,
+                    .stride = sizeof(math::Vector3f),
+                    .input_rate = api::VertexInputBindingRate::PER_VERTEX,
+                },
+                api::VertexInputBinding{
+                    .binding_index = 1,
+                    .stride = sizeof(math::Vector3f),
+                    .input_rate = api::VertexInputBindingRate::PER_VERTEX,
+                },
+                api::VertexInputBinding{
+                    .binding_index = 2,
+                    .stride = sizeof(math::Vector2f),
+                    .input_rate = api::VertexInputBindingRate::PER_VERTEX,
+                },
+            };
+        }
 
-            static std::vector<api::VertexInputBinding> getBindingDescription()
-            {
-                api::VertexInputBinding binding{};
-                binding.binding_index = 0;
-                binding.stride = sizeof(Vertex);
-                binding.input_rate = api::VertexInputBindingRate::PER_VERTEX;
+        std::vector<api::VertexInputAttribute> getAttributeDescriptions()
+        {
+            std::vector<api::VertexInputAttribute> attributeDescriptions(3);
 
-                return {binding};
-            }
+            attributeDescriptions[0].binding_index = 0;
+            attributeDescriptions[0].location = 0;
+            attributeDescriptions[0].format = api::EFormat::R32G32B32_SFLOAT;
+            attributeDescriptions[0].offset = 0;
 
-            static std::vector<api::VertexInputAttribute> getAttributeDescriptions()
-            {
-                std::vector<api::VertexInputAttribute> attributeDescriptions(3);
+            attributeDescriptions[1].binding_index = 1;
+            attributeDescriptions[1].location = 1;
+            attributeDescriptions[1].format = api::EFormat::R32G32B32_SFLOAT;
+            attributeDescriptions[1].offset = 0;
 
-                attributeDescriptions[0].binding_index = 0;
-                attributeDescriptions[0].location = 0;
-                attributeDescriptions[0].format = api::EFormat::R32G32B32_SFLOAT;
-                attributeDescriptions[0].offset = offsetof(
-                    Vertex,
-                    position);
+            attributeDescriptions[2].binding_index = 2;
+            attributeDescriptions[2].location = 2;
+            attributeDescriptions[2].format = api::EFormat::R32G32_SFLOAT;
+            attributeDescriptions[2].offset = 0;
 
-                attributeDescriptions[1].binding_index = 0;
-                attributeDescriptions[1].location = 1;
-                attributeDescriptions[1].format = api::EFormat::R32G32B32_SFLOAT;
-                attributeDescriptions[1].offset = offsetof(
-                    Vertex,
-                    color);
-
-                attributeDescriptions[2].binding_index = 0;
-                attributeDescriptions[2].location = 2;
-                attributeDescriptions[2].format = api::EFormat::R32G32_SFLOAT;
-                attributeDescriptions[2].offset = offsetof(
-                    Vertex,
-                    textureCoords);
-
-                return attributeDescriptions;
-            }
-        };
+            return attributeDescriptions;
+        }
 
         struct UniformBufferObject
         {
@@ -80,82 +78,7 @@ namespace xar_engine::graphics
             alignas(16) glm::mat4 view;
             alignas(16) glm::mat4 proj;
         };
-
-        std::vector<Vertex> vertices;
-        std::vector<std::uint32_t> indices;
     }
-
-
-    void RendererImpl::init_vertex_data()
-    {
-        const auto bufferSize = sizeof(vertices[0]) * vertices.size();
-
-        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(bufferSize);
-        _graphics_backend->host().update_buffer(
-            staging_buffer,
-            vertices.data(),
-            bufferSize);
-
-        _vertex_buffer_ref = _graphics_backend->resource().make_vertex_buffer(bufferSize);
-
-        auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
-        _graphics_backend->command().copy_buffer(
-            tmp_command_buffer[0],
-            staging_buffer,
-            _vertex_buffer_ref);
-        _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
-        _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
-    }
-
-
-    void RendererImpl::init_index_data()
-    {
-        const auto bufferSize = sizeof(indices[0]) * indices.size();
-
-        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(bufferSize);
-        _graphics_backend->host().update_buffer(
-            staging_buffer,
-            indices.data(),
-            bufferSize);
-
-        _index_buffer_ref = _graphics_backend->resource().make_index_buffer(bufferSize);
-
-        auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
-        _graphics_backend->command().copy_buffer(
-            tmp_command_buffer[0],
-            staging_buffer,
-            _index_buffer_ref);
-        _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
-        _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
-    }
-
-
-    void RendererImpl::init_model()
-    {
-        const auto model = xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj");
-
-        vertices.resize(model.meshes.back().positions.size());
-        for (auto i = 0; i < model.meshes.back().positions.size(); ++i)
-        {
-            vertices[i].position.x = model.meshes.back().positions[i].x;
-            vertices[i].position.y = model.meshes.back().positions[i].y;
-            vertices[i].position.z = model.meshes.back().positions[i].z;
-
-            const auto channels = model.meshes.back().texture_coords[0].channel_count;
-            vertices[i].textureCoords.x = model.meshes.back().texture_coords[0].coords[i * channels + 0];
-            vertices[i].textureCoords.y = model.meshes.back().texture_coords[0].coords[i * channels + 1];
-        }
-
-
-        indices.resize(model.meshes.back().indices.size());
-        memcpy(
-            indices.data(),
-            model.meshes.back().indices.data(),
-            sizeof(indices[0]) * indices.size());
-    }
-
 
     void RendererImpl::init_color_msaa()
     {
@@ -197,7 +120,9 @@ namespace xar_engine::graphics
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().begin_command_buffer(
+            tmp_command_buffer[0],
+            api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _depth_image_ref,
@@ -221,8 +146,11 @@ namespace xar_engine::graphics
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(imageSize);
         _graphics_backend->host().update_buffer(
             staging_buffer,
-            image.bytes.data(),
-            static_cast<size_t>(imageSize));
+            {{
+                 image.bytes.data(),
+                 0,
+                 static_cast<std::uint32_t>(imageSize),
+             }});
 
         _texture_image_ref = _graphics_backend->resource().make_image(
             api::EImageType::TEXTURE,
@@ -232,7 +160,9 @@ namespace xar_engine::graphics
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
-        _graphics_backend->command().begin_command_buffer(tmp_command_buffer[0], api::ECommandBufferType::ONE_TIME);
+        _graphics_backend->command().begin_command_buffer(
+            tmp_command_buffer[0],
+            api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _texture_image_ref,
@@ -290,8 +220,11 @@ namespace xar_engine::graphics
 
         _graphics_backend->host().update_buffer(
             _uniform_buffer_ref_list[currentImageNr],
-            &ubo,
-            sizeof(ubo));
+            {{
+                 &ubo,
+                 0,
+                 sizeof(ubo),
+             }});
     }
 }
 
@@ -321,8 +254,8 @@ namespace xar_engine::graphics
             _descriptor_set_layout_ref,
             _vertex_shader_ref,
             _fragment_shader_ref,
-            Vertex::getAttributeDescriptions(),
-            Vertex::getBindingDescription(),
+            getAttributeDescriptions(),
+            getBindingDescription(),
             api::EFormat::R8G8B8A8_SRGB,
             _graphics_backend->host().find_depth_format(),
             _graphics_backend->host().get_sample_count());
@@ -338,9 +271,7 @@ namespace xar_engine::graphics
 
         _sampler_ref = _graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
 
-        init_model();
-        init_vertex_data();
-        init_index_data();
+        _gpu_model = make_gpu_model_list({xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj")});
 
         _uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -360,6 +291,168 @@ namespace xar_engine::graphics
     RendererImpl::~RendererImpl()
     {
         _graphics_backend->command().wait_idle();
+    }
+
+    gpu_asset::GpuModelListReference RendererImpl::make_gpu_model_list(const std::vector<asset::Model>& model_list)
+    {
+        auto gpu_model_list_buffer_structure_local = gpu_asset::make_gpu_model_list_buffer_structure(model_list);
+
+        const auto position_list_byte_size =
+            gpu_model_list_buffer_structure_local.vertex_counts * sizeof(model_list[0].mesh_list[0].position_list[0]);
+        const auto normal_list_byte_size =
+            gpu_model_list_buffer_structure_local.vertex_counts * sizeof(model_list[0].mesh_list[0].normal_list[0]);
+        const auto texture_coord_list_byte_size = gpu_model_list_buffer_structure_local.vertex_counts *
+                                                  sizeof(model_list[0].mesh_list[0].texture_coord_list[0]);
+        const auto index_list_byte_size =
+            gpu_model_list_buffer_structure_local.index_counts * sizeof(model_list[0].mesh_list[0].index_list[0]);
+
+        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(position_list_byte_size);
+        {
+            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto byte_size_offset = std::uint32_t{0};
+            for (auto i = 0; i < model_list.size(); ++i)
+            {
+                const auto& model = model_list[i];
+
+                for (auto j = 0; j < model.mesh_list.size(); ++j)
+                {
+                    const auto& mesh = model.mesh_list[j];
+
+                    const auto attribute_byte_size = mesh.position_list.size() * sizeof(mesh.position_list[0]);
+
+                    buffer_update_list.emplace_back(
+                        mesh.position_list.data(),
+                        byte_size_offset,
+                        attribute_byte_size);
+
+                    byte_size_offset += attribute_byte_size;
+                }
+            }
+
+            _graphics_backend->host().update_buffer(
+                staging_buffer,
+                buffer_update_list);
+        }
+
+        auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(normal_list_byte_size);
+        {
+            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto byte_size_offset = std::uint32_t{0};
+            for (auto i = 0; i < model_list.size(); ++i)
+            {
+                const auto& model = model_list[i];
+
+                for (auto j = 0; j < model.mesh_list.size(); ++j)
+                {
+                    const auto& mesh = model.mesh_list[j];
+
+                    const auto attribute_byte_size = mesh.normal_list.size() * sizeof(mesh.normal_list[0]);
+
+                    buffer_update_list.emplace_back(
+                        mesh.normal_list.data(),
+                        byte_size_offset,
+                        attribute_byte_size);
+
+                    byte_size_offset += attribute_byte_size;
+                }
+            }
+
+            _graphics_backend->host().update_buffer(
+                staging_buffer_1,
+                buffer_update_list);
+        }
+
+        auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(texture_coord_list_byte_size);
+        {
+            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto byte_size_offset = std::uint32_t{0};
+            for (auto i = 0; i < model_list.size(); ++i)
+            {
+                const auto& model = model_list[i];
+
+                for (auto j = 0; j < model.mesh_list.size(); ++j)
+                {
+                    const auto& mesh = model.mesh_list[j];
+
+                    const auto attribute_byte_size =
+                        mesh.texture_coord_list.size() * sizeof(mesh.texture_coord_list[0]);
+
+                    buffer_update_list.emplace_back(
+                        mesh.texture_coord_list.data(),
+                        byte_size_offset,
+                        attribute_byte_size);
+
+                    byte_size_offset += attribute_byte_size;
+                }
+            }
+
+            _graphics_backend->host().update_buffer(
+                staging_buffer_2,
+                buffer_update_list);
+        }
+
+        auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(index_list_byte_size);
+
+        {
+            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto byte_size_offset = std::uint32_t{0};
+            for (auto i = 0; i < model_list.size(); ++i)
+            {
+                const auto& model = model_list[i];
+
+                for (auto j = 0; j < model.mesh_list.size(); ++j)
+                {
+                    const auto& mesh = model.mesh_list[j];
+
+                    const auto attribute_byte_size = mesh.index_list.size() * sizeof(mesh.index_list[0]);
+
+                    buffer_update_list.emplace_back(
+                        mesh.index_list.data(),
+                        byte_size_offset,
+                        attribute_byte_size);
+
+                    byte_size_offset += attribute_byte_size;
+                }
+            }
+
+            _graphics_backend->host().update_buffer(
+                staging_buffer_3,
+                buffer_update_list);
+        }
+
+        const auto command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
+        _graphics_backend->command().begin_command_buffer(
+            command_buffer[0],
+            api::ECommandBufferType::ONE_TIME);
+
+        gpu_asset::GpuModelList gpu_model;
+        gpu_model.position_buffer = _graphics_backend->resource().make_vertex_buffer(position_list_byte_size);
+        gpu_model.normal_buffer = _graphics_backend->resource().make_vertex_buffer(normal_list_byte_size);
+        gpu_model.texture_coord_buffer = _graphics_backend->resource().make_vertex_buffer(texture_coord_list_byte_size);
+        gpu_model.index_buffer = _graphics_backend->resource().make_index_buffer(index_list_byte_size);
+        gpu_model.buffer_structure = std::move(gpu_model_list_buffer_structure_local);
+
+        _graphics_backend->command().copy_buffer(
+            command_buffer[0],
+            staging_buffer,
+            gpu_model.position_buffer);
+        _graphics_backend->command().copy_buffer(
+            command_buffer[0],
+            staging_buffer_1,
+            gpu_model.normal_buffer);
+        _graphics_backend->command().copy_buffer(
+            command_buffer[0],
+            staging_buffer_2,
+            gpu_model.texture_coord_buffer);
+        _graphics_backend->command().copy_buffer(
+            command_buffer[0],
+            staging_buffer_3,
+            gpu_model.index_buffer);
+
+        _graphics_backend->command().end_command_buffer(command_buffer[0]);
+        _graphics_backend->command().submit_command_buffer(command_buffer[0]);
+
+        return _gpu_model_map.add(std::move(gpu_model));
     }
 
     void RendererImpl::update()
@@ -428,19 +521,25 @@ namespace xar_engine::graphics
             sizeof(Constants),
             &pc);
 
+        const auto& gpu_model = _gpu_model_map.get_object(_gpu_model);
+
         _graphics_backend->command().set_vertex_buffer_list(
             _command_buffer_list[frame_index],
-            {_vertex_buffer_ref},
-            {0},
+            {
+                gpu_model.position_buffer,
+                gpu_model.normal_buffer,
+                gpu_model.texture_coord_buffer,
+            },
+            {0, 0, 0},
             0);
         _graphics_backend->command().set_index_buffer(
             _command_buffer_list[frame_index],
-            _index_buffer_ref,
+            gpu_model.index_buffer,
             0);
 
         _graphics_backend->command().draw_indexed(
             _command_buffer_list[frame_index],
-            indices.size(),
+            gpu_model.buffer_structure.index_counts,
             1,
             0,
             0,

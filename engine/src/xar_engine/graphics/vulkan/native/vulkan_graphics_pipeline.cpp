@@ -38,7 +38,7 @@ namespace xar_engine::graphics::vulkan::native
 
         auto vk_pipeline_vertex_input_state_create_info = VkPipelineVertexInputStateCreateInfo{};
         vk_pipeline_vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vk_pipeline_vertex_input_state_create_info.vertexBindingDescriptionCount = 1;
+        vk_pipeline_vertex_input_state_create_info.vertexBindingDescriptionCount = static_cast<std::uint32_t>(parameters.vk_vertex_input_binding_descriptor_list.size());
         vk_pipeline_vertex_input_state_create_info.pVertexBindingDescriptions = parameters.vk_vertex_input_binding_descriptor_list.data();
         vk_pipeline_vertex_input_state_create_info.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(parameters.vk_vertex_input_attribute_descriptor_list.size());
         vk_pipeline_vertex_input_state_create_info.pVertexAttributeDescriptions = parameters.vk_vertex_input_attribute_descriptor_list.data();

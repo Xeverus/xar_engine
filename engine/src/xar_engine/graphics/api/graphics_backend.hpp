@@ -81,6 +81,14 @@ namespace xar_engine::graphics::api
     };
 
 
+    struct BufferUpdate
+    {
+        const void* data;
+        std::uint32_t byte_offset;
+        std::uint32_t byte_size;
+    };
+
+
     class IGraphicsBackendHost
     {
     public:
@@ -88,8 +96,7 @@ namespace xar_engine::graphics::api
 
         virtual void update_buffer(
             const BufferReference& buffer,
-            void* data,
-            std::uint32_t data_byte_size) = 0;
+            const std::vector<BufferUpdate>& data) = 0;
 
         virtual std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(
             const SwapChainReference& swap_chain) = 0;

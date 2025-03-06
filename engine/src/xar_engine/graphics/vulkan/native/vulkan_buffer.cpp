@@ -24,7 +24,7 @@ namespace xar_engine::graphics::vulkan::native
         : vulkan_device{parameters.vulkan_device}
         , vk_buffer{nullptr}
         , vk_device_memory{nullptr}
-        , vk_byte_size{0}
+        , vk_byte_size{parameters.vk_byte_size}
     {
         auto vk_buffer_create_info = VkBufferCreateInfo{};
         vk_buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -54,8 +54,6 @@ namespace xar_engine::graphics::vulkan::native
         vk_memory_allocate_info.memoryTypeIndex = parameters.vulkan_device.get_physical_device().find_memory_type(
             vk_memory_requirements.memoryTypeBits,
             parameters.vk_memory_property_flags);
-
-        vk_byte_size = vk_memory_requirements.size;
 
         const auto vk_memory_allocate_result = vkAllocateMemory(
             parameters.vulkan_device.get_native(),

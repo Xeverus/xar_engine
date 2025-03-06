@@ -85,8 +85,7 @@ namespace xar_engine::graphics::vulkan
     public: // IGraphicsBackendHostCommand
         void update_buffer(
             const api::BufferReference& buffer,
-            void* data,
-            std::uint32_t data_byte_size) override;
+            const std::vector<api::BufferUpdate>& data) override;
 
         std::tuple<api::ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(const api::SwapChainReference& swap_chain) override;
 

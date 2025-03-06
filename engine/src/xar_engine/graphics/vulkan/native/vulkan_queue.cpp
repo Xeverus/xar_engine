@@ -75,10 +75,7 @@ namespace xar_engine::graphics::vulkan::native
         vk_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         vk_submit_info.commandBufferCount = 1;
         vk_submit_info.pCommandBuffers = &vk_command_buffer;
-
 #if 0
-        vkQueueWaitIdle(vk_queue);
-#elif 0
         vk_submit_info.waitSemaphoreCount = 1;
         vk_submit_info.pWaitSemaphores = &_state->vk_semaphore;
         vk_submit_info.signalSemaphoreCount = 1;
@@ -90,6 +87,8 @@ namespace xar_engine::graphics::vulkan::native
             1,
             &vk_submit_info,
             VK_NULL_HANDLE);
+
+        vkQueueWaitIdle(_state->vk_queue);
     }
 
     VkQueue VulkanQueue::get_native() const

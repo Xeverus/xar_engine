@@ -17,6 +17,7 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/error/exception.hpp
         include/xar_engine/graphics/api/graphics_backend_factory.hpp
         include/xar_engine/graphics/api/graphics_backend_type.hpp
+        include/xar_engine/graphics/gpu_asset/gpu_model_list_reference.hpp
         include/xar_engine/graphics/renderer.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
@@ -24,6 +25,7 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/math/vector.hpp
         include/xar_engine/meta/enum.hpp
         include/xar_engine/meta/overloaded.hpp
+        include/xar_engine/meta/resource_reference.hpp
         include/xar_engine/logging/console_logger.hpp
         include/xar_engine/logging/default_log_formatter.hpp
         include/xar_engine/logging/file_logger.hpp
@@ -64,12 +66,13 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/api/image_resource.hpp
         src/xar_engine/graphics/api/image_view_resource.hpp
         src/xar_engine/graphics/api/queue_resource.hpp
-        src/xar_engine/graphics/api/resource_map.hpp
-        src/xar_engine/graphics/api/resource_reference.hpp
         src/xar_engine/graphics/api/sampler_resource.hpp
         src/xar_engine/graphics/api/shader_resource.hpp
         src/xar_engine/graphics/api/surface_resource.hpp
         src/xar_engine/graphics/api/swap_chain_resource.hpp
+
+        src/xar_engine/graphics/gpu_asset/gpu_model.cpp
+        src/xar_engine/graphics/gpu_asset/gpu_model.hpp
 
         src/xar_engine/graphics/vulkan/native/vulkan_buffer.cpp
         src/xar_engine/graphics/vulkan/native/vulkan_buffer.hpp
@@ -136,6 +139,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/meta/for_each.hpp
         src/xar_engine/meta/ref_counting_singleton.cpp
         src/xar_engine/meta/ref_counting_singleton.hpp
+        src/xar_engine/meta/resource_map.hpp
         src/xar_engine/meta/singleton.hpp
         src/xar_engine/os/application.cpp
         src/xar_engine/os/glfw_application.cpp

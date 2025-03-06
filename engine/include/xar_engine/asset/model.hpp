@@ -9,19 +9,13 @@
 
 namespace xar_engine::asset
 {
-    struct TextureCoords
-    {
-        std::vector<float> coords;
-        std::uint32_t channel_count;
-    };
-
     struct Mesh
     {
-        std::vector<math::Vector3f> positions;
-        std::vector<math::Vector3f> normals;
-        std::vector<TextureCoords> texture_coords;
+        std::vector<math::Vector3f> position_list;
+        std::vector<math::Vector3f> normal_list;
+        std::vector<math::Vector2f> texture_coord_list;
 
-        std::vector<std::uint32_t> indices;
+        std::vector<std::uint32_t> index_list;
     };
 
     struct ModelMetadata
@@ -32,6 +26,6 @@ namespace xar_engine::asset
     struct Model
     {
         ModelMetadata metadata;
-        std::vector<Mesh> meshes;
+        std::vector<Mesh> mesh_list;
     };
 }
