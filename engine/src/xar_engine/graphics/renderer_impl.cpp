@@ -214,6 +214,8 @@ namespace xar_engine::graphics
                 0.0f,
                 1.0f));
 
+        // ubo.model = glm::scale(ubo.model, glm::vec3{1.0f, 1.0f, 1.0f} / 1000.0f);
+
         ubo.view = glm::lookAt(
             glm::vec3(
                 2.0f,

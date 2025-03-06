@@ -403,9 +403,8 @@ namespace xar_engine::graphics::vulkan
         void* mapped_data = vulkan_buffer.map();
         for (const auto& buffer_update : data)
         {
-            mapped_data = reinterpret_cast<char*>(mapped_data) + buffer_update.byte_offset;
             memcpy(
-                mapped_data,
+                reinterpret_cast<char*>(mapped_data) + buffer_update.byte_offset,
                 buffer_update.data,
                 static_cast<std::size_t>(buffer_update.byte_size));
         }
