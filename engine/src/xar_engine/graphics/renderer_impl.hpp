@@ -8,20 +8,20 @@
 
 #include <xar_engine/graphics/gpu_asset/gpu_model.hpp>
 
-#include <xar_engine/graphics/api/buffer_resource.hpp>
-#include <xar_engine/graphics/api/command_buffer_resource.hpp>
-#include <xar_engine/graphics/api/descriptor_pool_resource.hpp>
-#include <xar_engine/graphics/api/descriptor_set_layout_resource.hpp>
-#include <xar_engine/graphics/api/descriptor_set_resource.hpp>
+#include <xar_engine/graphics/api/buffer_reference.hpp>
+#include <xar_engine/graphics/api/command_buffer_reference.hpp>
+#include <xar_engine/graphics/api/descriptor_pool_reference.hpp>
+#include <xar_engine/graphics/api/descriptor_set_layout_reference.hpp>
+#include <xar_engine/graphics/api/descriptor_set_reference.hpp>
 #include <xar_engine/graphics/api/graphics_backend_type.hpp>
-#include <xar_engine/graphics/api/graphics_pipeline_resource.hpp>
-#include <xar_engine/graphics/api/image_resource.hpp>
-#include <xar_engine/graphics/api/image_view_resource.hpp>
-#include <xar_engine/graphics/api/queue_resource.hpp>
-#include <xar_engine/graphics/api/sampler_resource.hpp>
-#include <xar_engine/graphics/api/shader_resource.hpp>
-#include <xar_engine/graphics/api/surface_resource.hpp>
-#include <xar_engine/graphics/api/swap_chain_resource.hpp>
+#include <xar_engine/graphics/api/graphics_pipeline_reference.hpp>
+#include <xar_engine/graphics/api/image_reference.hpp>
+#include <xar_engine/graphics/api/image_view_reference.hpp>
+#include <xar_engine/graphics/api/queue_reference.hpp>
+#include <xar_engine/graphics/api/sampler_reference.hpp>
+#include <xar_engine/graphics/api/shader_reference.hpp>
+#include <xar_engine/graphics/api/surface_reference.hpp>
+#include <xar_engine/graphics/api/swap_chain_reference.hpp>
 
 #include <xar_engine/meta/resource_map.hpp>
 

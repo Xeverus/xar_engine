@@ -5,10 +5,10 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/api/format.hpp>
-#include <xar_engine/graphics/api/graphics_pipeline_resource.hpp>
-#include <xar_engine/graphics/api/image_resource.hpp>
-#include <xar_engine/graphics/api/shader_resource.hpp>
-#include <xar_engine/graphics/api/swap_chain_resource.hpp>
+#include <xar_engine/graphics/api/graphics_pipeline_reference.hpp>
+#include <xar_engine/graphics/api/image_reference.hpp>
+#include <xar_engine/graphics/api/shader_reference.hpp>
+#include <xar_engine/graphics/api/swap_chain_reference.hpp>
 
 
 namespace xar_engine::graphics::vulkan

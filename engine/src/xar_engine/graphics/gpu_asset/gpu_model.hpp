@@ -2,7 +2,7 @@
 
 #include <xar_engine/asset/model.hpp>
 
-#include <xar_engine/graphics/api/buffer_resource.hpp>
+#include <xar_engine/graphics/api/buffer_reference.hpp>
 
 
 namespace xar_engine::graphics::gpu_asset

@@ -10,20 +10,6 @@ namespace xar_engine::graphics::gpu_asset
         constexpr auto TextureCoordType = sizeof(asset::Mesh{}.texture_coord_list[0]);
         constexpr auto IndexType = sizeof(asset::Mesh{}.index_list[0]);
 
-        void fill_byte_size_values(
-            GpuModelListBufferStructure& gpu_model_list_buffer_structure,
-            const std::vector<asset::Model>& model_list)
-        {
-            gpu_model_list_buffer_structure.position_list_byte_size =
-                gpu_model_list_buffer_structure.vertex_counts * sizeof(PositionType);
-            gpu_model_list_buffer_structure.normal_list_byte_size =
-                gpu_model_list_buffer_structure.vertex_counts * sizeof(NormalType);
-            gpu_model_list_buffer_structure.texture_coord_list_byte_size =
-                gpu_model_list_buffer_structure.vertex_counts * sizeof(TextureCoordType);
-            gpu_model_list_buffer_structure.index_list_byte_size =
-                gpu_model_list_buffer_structure.index_counts * sizeof(IndexType);
-        }
-
         void fill_vertex_and_index_offset_values(
             GpuModelListBufferStructure& gpu_model_list_buffer_structure,
             const std::vector<asset::Model>& model_list)
@@ -64,15 +50,29 @@ namespace xar_engine::graphics::gpu_asset
                 gpu_model_list_buffer_structure.index_counts += gpu_model.index_counts;
             }
         }
+
+        void fill_byte_size_values(
+            GpuModelListBufferStructure& gpu_model_list_buffer_structure,
+            const std::vector<asset::Model>& model_list)
+        {
+            gpu_model_list_buffer_structure.position_list_byte_size =
+                gpu_model_list_buffer_structure.vertex_counts * sizeof(PositionType);
+            gpu_model_list_buffer_structure.normal_list_byte_size =
+                gpu_model_list_buffer_structure.vertex_counts * sizeof(NormalType);
+            gpu_model_list_buffer_structure.texture_coord_list_byte_size =
+                gpu_model_list_buffer_structure.vertex_counts * sizeof(TextureCoordType);
+            gpu_model_list_buffer_structure.index_list_byte_size =
+                gpu_model_list_buffer_structure.index_counts * sizeof(IndexType);
+        }
     }
 
     GpuModelListBufferStructure make_gpu_model_list_buffer_structure(const std::vector<asset::Model>& model_list)
     {
         auto gpu_model_list_buffer_structure = GpuModelListBufferStructure{};
-        fill_byte_size_values(
+        fill_vertex_and_index_offset_values(
             gpu_model_list_buffer_structure,
             model_list);
-        fill_vertex_and_index_offset_values(
+        fill_byte_size_values(
             gpu_model_list_buffer_structure,
             model_list);
 
