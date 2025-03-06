@@ -43,6 +43,9 @@ namespace xar_engine::graphics
 
         gpu_asset::GpuModelListReference make_gpu_model_list(const std::vector<asset::Model>& model_list) override;
 
+        void add_gpu_model_list_to_render(const gpu_asset::GpuModelListReference& gpu_model_list) override;
+        void remove_gpu_model_list_from_render(const gpu_asset::GpuModelListReference& gpu_model_list) override;
+
         void update() override;
 
     private:
@@ -84,6 +87,6 @@ namespace xar_engine::graphics
         uint32_t frameCounter;
 
         meta::TResourceMap<gpu_asset::GpuModelListTag, gpu_asset::GpuModelList> _gpu_model_map;
-        gpu_asset::GpuModelListReference _gpu_model;
+        std::vector<gpu_asset::GpuModelListReference> _gpu_model_list_to_render;
     };
 }

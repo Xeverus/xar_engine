@@ -25,6 +25,9 @@ namespace xar_engine::graphics
 
         virtual gpu_asset::GpuModelListReference make_gpu_model_list(const std::vector<asset::Model>& model_list) = 0;
 
+        virtual void add_gpu_model_list_to_render(const gpu_asset::GpuModelListReference& gpu_model_list) = 0;
+        virtual void remove_gpu_model_list_from_render(const gpu_asset::GpuModelListReference& gpu_model_list) = 0;
+
         virtual void update() = 0;
     };
 

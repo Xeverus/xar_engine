@@ -289,8 +289,6 @@ namespace xar_engine::graphics
 
         _sampler_ref = _graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
 
-        _gpu_model = make_gpu_model_list({xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj")});
-
         _uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
@@ -313,7 +311,9 @@ namespace xar_engine::graphics
 
     gpu_asset::GpuModelListReference RendererImpl::make_gpu_model_list(const std::vector<asset::Model>& model_list)
     {
-        auto gpu_model_list = allocate_gpu_model_list(*_graphics_backend, model_list);
+        auto gpu_model_list = allocate_gpu_model_list(
+            *_graphics_backend,
+            model_list);
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.position_list_byte_size);
         {
@@ -456,6 +456,21 @@ namespace xar_engine::graphics
         return _gpu_model_map.add(std::move(gpu_model_list));
     }
 
+    void RendererImpl::add_gpu_model_list_to_render(const gpu_asset::GpuModelListReference& gpu_model_list)
+    {
+        _gpu_model_list_to_render.push_back(gpu_model_list);
+    }
+
+    void RendererImpl::remove_gpu_model_list_from_render(const gpu_asset::GpuModelListReference& gpu_model_list)
+    {
+        std::erase_if(
+            _gpu_model_list_to_render,
+            [&](const auto& gpu_model_list_ref)
+            {
+                return gpu_model_list.get_id() == gpu_model_list_ref.get_id();
+            });
+    }
+
     void RendererImpl::update()
     {
         const auto begin_frame_result = _graphics_backend->host().begin_frame(_swap_chain_ref);
@@ -522,29 +537,32 @@ namespace xar_engine::graphics
             sizeof(Constants),
             &pc);
 
-        const auto& gpu_model = _gpu_model_map.get_object(_gpu_model);
+        for (const auto& gpu_model_list: _gpu_model_list_to_render)
+        {
+            const auto& gpu_model = _gpu_model_map.get_object(gpu_model_list);
 
-        _graphics_backend->command().set_vertex_buffer_list(
-            _command_buffer_list[frame_index],
-            {
-                gpu_model.position_buffer,
-                gpu_model.normal_buffer,
-                gpu_model.texture_coord_buffer,
-            },
-            {0, 0, 0},
-            0);
-        _graphics_backend->command().set_index_buffer(
-            _command_buffer_list[frame_index],
-            gpu_model.index_buffer,
-            0);
+            _graphics_backend->command().set_vertex_buffer_list(
+                _command_buffer_list[frame_index],
+                {
+                    gpu_model.position_buffer,
+                    gpu_model.normal_buffer,
+                    gpu_model.texture_coord_buffer,
+                },
+                {0, 0, 0},
+                0);
+            _graphics_backend->command().set_index_buffer(
+                _command_buffer_list[frame_index],
+                gpu_model.index_buffer,
+                0);
 
-        _graphics_backend->command().draw_indexed(
-            _command_buffer_list[frame_index],
-            gpu_model.buffer_structure.index_counts,
-            1,
-            0,
-            0,
-            0);
+            _graphics_backend->command().draw_indexed(
+                _command_buffer_list[frame_index],
+                gpu_model.buffer_structure.index_counts,
+                1,
+                0,
+                0,
+                0);
+        }
 
         _graphics_backend->command().end_rendering(
             _command_buffer_list[frame_index],
