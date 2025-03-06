@@ -5,10 +5,10 @@ namespace xar_engine::graphics::gpu_asset
 {
     namespace
     {
-        constexpr auto PositionType = sizeof(asset::Mesh{}.position_list[0]);
-        constexpr auto NormalType = sizeof(asset::Mesh{}.normal_list[0]);
-        constexpr auto TextureCoordType = sizeof(asset::Mesh{}.texture_coord_list[0]);
-        constexpr auto IndexType = sizeof(asset::Mesh{}.index_list[0]);
+        using PositionType = decltype(asset::Mesh{}.position_list[0]);
+        using NormalType = decltype(asset::Mesh{}.normal_list[0]);
+        using TextureCoordType = decltype(asset::Mesh{}.texture_coord_list[0]);
+        using IndexType = decltype(asset::Mesh{}.index_list[0]);
 
         void fill_vertex_and_index_offset_values(
             GpuModelListBufferStructure& gpu_model_list_buffer_structure,
