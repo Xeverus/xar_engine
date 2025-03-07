@@ -5,18 +5,21 @@
 
 #include <xar_engine/asset/model.hpp>
 
-#include <xar_engine/graphics/gpu_asset/gpu_model_list_reference.hpp>
+#include <xar_engine/renderer/gpu_asset/gpu_model_list_reference.hpp>
 
+
+namespace xar_engine::graphics
+{
+    class IWindowSurface;
+}
 
 namespace xar_engine::graphics::api
 {
     class IGraphicsBackend;
 }
 
-namespace xar_engine::graphics
+namespace xar_engine::renderer
 {
-    class IWindowSurface;
-
     class IRenderer
     {
     public:
@@ -38,8 +41,8 @@ namespace xar_engine::graphics
         virtual ~IRendererFactory();
 
         virtual std::unique_ptr<IRenderer> make(
-            std::shared_ptr<api::IGraphicsBackend> graphics_backend,
-            std::shared_ptr<IWindowSurface> window_surface) = 0;
+            std::shared_ptr<graphics::api::IGraphicsBackend> graphics_backend,
+            std::shared_ptr<graphics::IWindowSurface> window_surface) = 0;
     };
 
 
@@ -47,7 +50,7 @@ namespace xar_engine::graphics
     {
     public:
         std::unique_ptr<IRenderer> make(
-            std::shared_ptr<api::IGraphicsBackend> graphics_backend,
-            std::shared_ptr<IWindowSurface> window_surface) override;
+            std::shared_ptr<graphics::api::IGraphicsBackend> graphics_backend,
+            std::shared_ptr<graphics::IWindowSurface> window_surface) override;
     };
 }

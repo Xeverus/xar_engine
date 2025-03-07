@@ -3,7 +3,7 @@
 #include <xar_engine/meta/resource_reference.hpp>
 
 
-namespace xar_engine::graphics::gpu_asset
+namespace xar_engine::renderer::gpu_asset
 {
     enum class GpuModelListTag;
     using GpuModelListReference = meta::TResourceReference<GpuModelListTag>;

@@ -3,11 +3,12 @@
 #include <xar_engine/asset/model_loader.hpp>
 
 #include <xar_engine/graphics/api/graphics_backend_factory.hpp>
-#include <xar_engine/graphics/renderer.hpp>
 
 #include <xar_engine/meta/overloaded.hpp>
 
 #include <xar_engine/os/application.hpp>
+
+#include <xar_engine/renderer/renderer.hpp>
 
 
 int main()
@@ -15,12 +16,12 @@ int main()
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
     auto graphics_backend = xar_engine::graphics::api::GraphicsBackendFactory().make(xar_engine::graphics::api::EGraphicsBackendType::VULKAN);
-    auto renderer = xar_engine::graphics::RendererFactory().make(
+    auto renderer = xar_engine::renderer::RendererFactory().make(
         graphics_backend,
         window->get_surface());
 
-    xar_engine::graphics::gpu_asset::GpuModelListReference gpu_model;
-    std::vector<xar_engine::graphics::gpu_asset::GpuModelListReference> gpu_model_list;
+    xar_engine::renderer::gpu_asset::GpuModelListReference gpu_model;
+    std::vector<xar_engine::renderer::gpu_asset::GpuModelListReference> gpu_model_list;
     window->set_on_run(
         [&]()
         {

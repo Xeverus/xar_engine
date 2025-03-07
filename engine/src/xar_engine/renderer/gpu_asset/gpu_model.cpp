@@ -1,7 +1,7 @@
-#include <xar_engine/graphics/gpu_asset/gpu_model.hpp>
+#include <xar_engine/renderer/gpu_asset/gpu_model.hpp>
 
 
-namespace xar_engine::graphics::gpu_asset
+namespace xar_engine::renderer::gpu_asset
 {
     namespace
     {

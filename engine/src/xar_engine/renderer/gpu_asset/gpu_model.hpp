@@ -5,7 +5,7 @@
 #include <xar_engine/graphics/api/buffer_reference.hpp>
 
 
-namespace xar_engine::graphics::gpu_asset
+namespace xar_engine::renderer::gpu_asset
 {
     struct GpuMeshBufferStructure
     {
@@ -42,11 +42,11 @@ namespace xar_engine::graphics::gpu_asset
 
     struct GpuModelList
     {
-        api::BufferReference position_buffer;
-        api::BufferReference normal_buffer;
-        api::BufferReference texture_coord_buffer;
+        graphics::api::BufferReference position_buffer;
+        graphics::api::BufferReference normal_buffer;
+        graphics::api::BufferReference texture_coord_buffer;
 
-        api::BufferReference index_buffer;
+        graphics::api::BufferReference index_buffer;
 
         GpuModelListBufferStructure buffer_structure;
     };

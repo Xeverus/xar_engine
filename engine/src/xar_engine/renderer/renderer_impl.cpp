@@ -1,14 +1,8 @@
-#include <xar_engine/graphics/renderer_impl.hpp>
+#include <xar_engine/renderer/renderer_impl.hpp>
 
 #include <chrono>
 #include <thread>
 #include <vector>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <xar_engine/asset/image_loader.hpp>
 #include <xar_engine/asset/model_loader.hpp>
@@ -21,8 +15,10 @@
 
 #include <xar_engine/logging/logger.hpp>
 
+#include <xar_engine/math/matrix.hpp>
 
-namespace xar_engine::graphics
+
+namespace xar_engine::renderer
 {
     namespace
     {
@@ -30,7 +26,7 @@ namespace xar_engine::graphics
         constexpr auto tag = "Vulkan Sandbox";
 
         gpu_asset::GpuModelList allocate_gpu_model_list(
-            api::IGraphicsBackend& graphics_backend,
+            graphics::api::IGraphicsBackend& graphics_backend,
             const std::vector<asset::Model>& model_list)
         {
             auto gpu_model_list_buffer_structure_local = gpu_asset::make_gpu_model_list_buffer_structure(model_list);
@@ -47,44 +43,44 @@ namespace xar_engine::graphics
             return gpu_model_list;
         }
 
-        std::vector<api::VertexInputBinding> getBindingDescription()
+        std::vector<graphics::api::VertexInputBinding> getBindingDescription()
         {
             return {
-                api::VertexInputBinding{
+                graphics::api::VertexInputBinding{
                     .binding_index = 0,
                     .stride = sizeof(math::Vector3f),
-                    .input_rate = api::VertexInputBindingRate::PER_VERTEX,
+                    .input_rate = graphics::api::VertexInputBindingRate::PER_VERTEX,
                 },
-                api::VertexInputBinding{
+                graphics::api::VertexInputBinding{
                     .binding_index = 1,
                     .stride = sizeof(math::Vector3f),
-                    .input_rate = api::VertexInputBindingRate::PER_VERTEX,
+                    .input_rate = graphics::api::VertexInputBindingRate::PER_VERTEX,
                 },
-                api::VertexInputBinding{
+                graphics::api::VertexInputBinding{
                     .binding_index = 2,
                     .stride = sizeof(math::Vector2f),
-                    .input_rate = api::VertexInputBindingRate::PER_VERTEX,
+                    .input_rate = graphics::api::VertexInputBindingRate::PER_VERTEX,
                 },
             };
         }
 
-        std::vector<api::VertexInputAttribute> getAttributeDescriptions()
+        std::vector<graphics::api::VertexInputAttribute> getAttributeDescriptions()
         {
-            std::vector<api::VertexInputAttribute> attributeDescriptions(3);
+            std::vector<graphics::api::VertexInputAttribute> attributeDescriptions(3);
 
             attributeDescriptions[0].binding_index = 0;
             attributeDescriptions[0].location = 0;
-            attributeDescriptions[0].format = api::EFormat::R32G32B32_SFLOAT;
+            attributeDescriptions[0].format = graphics::api::EFormat::R32G32B32_SFLOAT;
             attributeDescriptions[0].offset = 0;
 
             attributeDescriptions[1].binding_index = 1;
             attributeDescriptions[1].location = 1;
-            attributeDescriptions[1].format = api::EFormat::R32G32B32_SFLOAT;
+            attributeDescriptions[1].format = graphics::api::EFormat::R32G32B32_SFLOAT;
             attributeDescriptions[1].offset = 0;
 
             attributeDescriptions[2].binding_index = 2;
             attributeDescriptions[2].location = 2;
-            attributeDescriptions[2].format = api::EFormat::R32G32_SFLOAT;
+            attributeDescriptions[2].format = graphics::api::EFormat::R32G32_SFLOAT;
             attributeDescriptions[2].offset = 0;
 
             return attributeDescriptions;
@@ -92,29 +88,31 @@ namespace xar_engine::graphics
 
         struct UniformBufferObject
         {
-            alignas(16) glm::mat4 model;
-            alignas(16) glm::mat4 view;
-            alignas(16) glm::mat4 proj;
+            alignas(16) math::Matrix4x4f model;
+            alignas(16) math::Matrix4x4f view;
+            alignas(16) math::Matrix4x4f proj;
         };
+
+        static_assert(sizeof(UniformBufferObject) == sizeof(math::Matrix4x4f) * 3);
     }
 
     void RendererImpl::init_color_msaa()
     {
         _color_image_ref = _graphics_backend->resource().make_image(
-            api::EImageType::COLOR_ATTACHMENT,
+            graphics::api::EImageType::COLOR_ATTACHMENT,
             {
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().x),
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().y),
                 1
             },
-            api::EFormat::R8G8B8A8_SRGB,
+            graphics::api::EFormat::R8G8B8A8_SRGB,
             1,
             _graphics_backend->host().get_sample_count());
 
 
         _color_image_view_ref = _graphics_backend->resource().make_image_view(
             _color_image_ref,
-            api::EImageAspect::COLOR,
+            graphics::api::EImageAspect::COLOR,
             1);
     }
 
@@ -122,7 +120,7 @@ namespace xar_engine::graphics
     void RendererImpl::init_depth()
     {
         _depth_image_ref = _graphics_backend->resource().make_image(
-            api::EImageType::DEPTH_ATTACHMENT,
+            graphics::api::EImageType::DEPTH_ATTACHMENT,
             {
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().x),
                 static_cast<std::int32_t>(_window_surface->get_pixel_size().y),
@@ -134,17 +132,17 @@ namespace xar_engine::graphics
 
         _depth_image_view_ref = _graphics_backend->resource().make_image_view(
             _depth_image_ref,
-            api::EImageAspect::DEPTH,
+            graphics::api::EImageAspect::DEPTH,
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
         _graphics_backend->command().begin_command_buffer(
             tmp_command_buffer[0],
-            api::ECommandBufferType::ONE_TIME);
+            graphics::api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _depth_image_ref,
-            api::EImageLayout::DEPTH_STENCIL_ATTACHMENT);
+            graphics::api::EImageLayout::DEPTH_STENCIL_ATTACHMENT);
         _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
         _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
     }
@@ -171,20 +169,20 @@ namespace xar_engine::graphics
              }});
 
         _texture_image_ref = _graphics_backend->resource().make_image(
-            api::EImageType::TEXTURE,
+            graphics::api::EImageType::TEXTURE,
             {image.pixel_width, image.pixel_height, 1},
-            api::EFormat::R8G8B8A8_SRGB,
+            graphics::api::EFormat::R8G8B8A8_SRGB,
             mipLevels,
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
         _graphics_backend->command().begin_command_buffer(
             tmp_command_buffer[0],
-            api::ECommandBufferType::ONE_TIME);
+            graphics::api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
             _texture_image_ref,
-            api::EImageLayout::TRANSFER_DESTINATION);
+            graphics::api::EImageLayout::TRANSFER_DESTINATION);
         _graphics_backend->command().copy_buffer_to_image(
             tmp_command_buffer[0],
             staging_buffer,
@@ -206,37 +204,34 @@ namespace xar_engine::graphics
 
         UniformBufferObject ubo{};
 
-        ubo.model = glm::rotate(
-            glm::mat4(1.0f),
-            time * glm::radians(90.0f),
-            glm::vec3(
+        ubo.model = math::rotate_matrix(
+            math::make_identity_matrix(),
+            time * 90.0f,
+            math::Vector3f(
                 0.0f,
                 0.0f,
                 1.0f));
 
-        // ubo.model = glm::scale(ubo.model, glm::vec3{1.0f, 1.0f, 1.0f} / 1000.0f);
-
-        ubo.view = glm::lookAt(
-            glm::vec3(
+        ubo.view = math::make_view_matrix(
+            math::Vector3f(
                 2.0f,
                 2.0f,
                 2.0f),
-            glm::vec3(
+            math::Vector3f(
                 0.0f,
                 0.0f,
                 0.0f),
-            glm::vec3(
+            math::Vector3f(
                 0.0f,
                 0.0f,
                 1.0f));
 
-        ubo.proj = glm::perspective(
-            glm::radians(45.0f),
+        ubo.proj = math::make_projection_matrix(
+            45.0f,
             _window_surface->get_pixel_size().x / (float) _window_surface->get_pixel_size().y,
             0.1f,
             10.0f);
-
-        ubo.proj[1][1] *= -1;
+        ubo.proj.as_column_list[1].y *= -1;
 
         _graphics_backend->host().update_buffer(
             _uniform_buffer_ref_list[currentImageNr],
@@ -249,11 +244,11 @@ namespace xar_engine::graphics
 }
 
 
-namespace xar_engine::graphics
+namespace xar_engine::renderer
 {
     RendererImpl::RendererImpl(
-        std::shared_ptr<api::IGraphicsBackend> graphics_backend,
-        std::shared_ptr<IWindowSurface> window_surface)
+        std::shared_ptr<graphics::api::IGraphicsBackend> graphics_backend,
+        std::shared_ptr<graphics::IWindowSurface> window_surface)
         : _graphics_backend(std::move(graphics_backend))
         , _window_surface(std::move(window_surface))
         , frameCounter(0)
@@ -276,7 +271,7 @@ namespace xar_engine::graphics
             _fragment_shader_ref,
             getAttributeDescriptions(),
             getBindingDescription(),
-            api::EFormat::R8G8B8A8_SRGB,
+            graphics::api::EFormat::R8G8B8A8_SRGB,
             _graphics_backend->host().find_depth_format(),
             _graphics_backend->host().get_sample_count());
 
@@ -286,7 +281,7 @@ namespace xar_engine::graphics
 
         _texture_image_view_ref = _graphics_backend->resource().make_image_view(
             _texture_image_ref,
-            api::EImageAspect::COLOR,
+            graphics::api::EImageAspect::COLOR,
             mipLevels);
 
         _sampler_ref = _graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
@@ -319,7 +314,7 @@ namespace xar_engine::graphics
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.position_list_byte_size);
         {
-            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -347,7 +342,7 @@ namespace xar_engine::graphics
 
         auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.normal_list_byte_size);
         {
-            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -375,7 +370,7 @@ namespace xar_engine::graphics
 
         auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.texture_coord_list_byte_size);
         {
-            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -404,7 +399,7 @@ namespace xar_engine::graphics
 
         auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.index_list_byte_size);
         {
-            auto buffer_update_list = std::vector<api::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -433,7 +428,7 @@ namespace xar_engine::graphics
         const auto command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
         _graphics_backend->command().begin_command_buffer(
             command_buffer[0],
-            api::ECommandBufferType::ONE_TIME);
+            graphics::api::ECommandBufferType::ONE_TIME);
 
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
@@ -477,7 +472,7 @@ namespace xar_engine::graphics
     {
         const auto begin_frame_result = _graphics_backend->host().begin_frame(_swap_chain_ref);
 
-        if (std::get<0>(begin_frame_result) == api::ESwapChainResult::RECREATION_REQUIRED)
+        if (std::get<0>(begin_frame_result) == graphics::api::ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -500,7 +495,7 @@ namespace xar_engine::graphics
                 "Acquire failed because Swapchain is out of date but swapchain was recreated");
             return;
         }
-        else if (std::get<0>(begin_frame_result) != api::ESwapChainResult::OK)
+        else if (std::get<0>(begin_frame_result) != graphics::api::ESwapChainResult::OK)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -534,7 +529,7 @@ namespace xar_engine::graphics
         _graphics_backend->command().push_constants(
             _command_buffer_list[frame_index],
             _graphics_pipeline_ref,
-            api::EShaderType::FRAGMENT,
+            graphics::api::EShaderType::FRAGMENT,
             0,
             sizeof(Constants),
             &pc);
@@ -576,7 +571,7 @@ namespace xar_engine::graphics
         const auto end_result = _graphics_backend->command().end_frame(
             _command_buffer_list[frame_index],
             _swap_chain_ref);
-        if (end_result == api::ESwapChainResult::RECREATION_REQUIRED)
+        if (end_result == graphics::api::ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,
@@ -598,7 +593,7 @@ namespace xar_engine::graphics
                 tag,
                 "Present failed because Swapchain is out of date but swapchain was recreated");
         }
-        else if (end_result != api::ESwapChainResult::OK)
+        else if (end_result != graphics::api::ESwapChainResult::OK)
         {
             XAR_LOG(
                 logging::LogLevel::ERROR,

@@ -17,11 +17,10 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/error/exception.hpp
         include/xar_engine/graphics/api/graphics_backend_factory.hpp
         include/xar_engine/graphics/api/graphics_backend_type.hpp
-        include/xar_engine/graphics/gpu_asset/gpu_model_list_reference.hpp
-        include/xar_engine/graphics/renderer.hpp
         include/xar_engine/input/button.hpp
         include/xar_engine/input/input_event.hpp
         include/xar_engine/math/epsilon.hpp
+        include/xar_engine/math/matrix.hpp
         include/xar_engine/math/vector.hpp
         include/xar_engine/meta/enum.hpp
         include/xar_engine/meta/overloaded.hpp
@@ -37,6 +36,10 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/os/application.hpp
         include/xar_engine/os/service_register.hpp
         include/xar_engine/os/window.hpp
+
+        include/xar_engine/renderer/gpu_asset/gpu_model_list_reference.hpp
+        include/xar_engine/renderer/renderer.hpp
+
         include/xar_engine/version/version.hpp)
 
 set(XAR_ENGINE_PRIVATE_FILES
@@ -70,9 +73,6 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/api/shader_reference.hpp
         src/xar_engine/graphics/api/surface_reference.hpp
         src/xar_engine/graphics/api/swap_chain_reference.hpp
-
-        src/xar_engine/graphics/gpu_asset/gpu_model.cpp
-        src/xar_engine/graphics/gpu_asset/gpu_model.hpp
 
         src/xar_engine/graphics/vulkan/native/vulkan_buffer.cpp
         src/xar_engine/graphics/vulkan/native/vulkan_buffer.hpp
@@ -118,9 +118,6 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/vulkan_window_surface.cpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
 
-        src/xar_engine/graphics/renderer.cpp
-        src/xar_engine/graphics/renderer_impl.cpp
-        src/xar_engine/graphics/renderer_impl.hpp
         src/xar_engine/graphics/window_surface.cpp
         src/xar_engine/graphics/window_surface.hpp
 
@@ -135,6 +132,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/logging/logger_chain.cpp
         src/xar_engine/logging/stream_logger.cpp
         src/xar_engine/math/epsilon.cpp
+        src/xar_engine/math/matrix.cpp
         src/xar_engine/meta/enum_impl.hpp
         src/xar_engine/meta/for_each.hpp
         src/xar_engine/meta/ref_counting_singleton.cpp
@@ -150,6 +148,13 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/os/service_register_impl.cpp
         src/xar_engine/os/service_register_impl.hpp
         src/xar_engine/os/window.cpp
+
+        src/xar_engine/renderer/gpu_asset/gpu_model.cpp
+        src/xar_engine/renderer/gpu_asset/gpu_model.hpp
+        src/xar_engine/renderer/renderer.cpp
+        src/xar_engine/renderer/renderer_impl.cpp
+        src/xar_engine/renderer/renderer_impl.hpp
+
         src/xar_engine/time/time.cpp
         src/xar_engine/time/time.hpp
         src/xar_engine/version/version.cpp)

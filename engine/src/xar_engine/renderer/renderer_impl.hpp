@@ -4,9 +4,9 @@
 #include <memory>
 #include <vector>
 
-#include <xar_engine/graphics/renderer.hpp>
+#include <xar_engine/renderer/renderer.hpp>
 
-#include <xar_engine/graphics/gpu_asset/gpu_model.hpp>
+#include <xar_engine/renderer/gpu_asset/gpu_model.hpp>
 
 #include <xar_engine/graphics/api/buffer_reference.hpp>
 #include <xar_engine/graphics/api/command_buffer_reference.hpp>
@@ -28,15 +28,15 @@
 #include <xar_engine/os/window.hpp>
 
 
-namespace xar_engine::graphics
+namespace xar_engine::renderer
 {
     class RendererImpl
         : public IRenderer
     {
     public:
         RendererImpl(
-            std::shared_ptr<api::IGraphicsBackend> graphics_backend,
-            std::shared_ptr<IWindowSurface> window_surface);
+            std::shared_ptr<graphics::api::IGraphicsBackend> graphics_backend,
+            std::shared_ptr<graphics::IWindowSurface> window_surface);
 
         ~RendererImpl() override;
 
@@ -57,31 +57,31 @@ namespace xar_engine::graphics
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
-        std::shared_ptr<IWindowSurface> _window_surface;
-        std::shared_ptr<api::IGraphicsBackend> _graphics_backend;
+        std::shared_ptr<graphics::IWindowSurface> _window_surface;
+        std::shared_ptr<graphics::api::IGraphicsBackend> _graphics_backend;
 
-        std::vector<api::CommandBufferReference> _command_buffer_list;
+        std::vector<graphics::api::CommandBufferReference> _command_buffer_list;
 
-        api::SwapChainReference _swap_chain_ref;
-        api::ShaderReference _vertex_shader_ref;
-        api::ShaderReference _fragment_shader_ref;
+        graphics::api::SwapChainReference _swap_chain_ref;
+        graphics::api::ShaderReference _vertex_shader_ref;
+        graphics::api::ShaderReference _fragment_shader_ref;
 
-        std::vector<api::BufferReference> _uniform_buffer_ref_list;
+        std::vector<graphics::api::BufferReference> _uniform_buffer_ref_list;
 
-        api::ImageReference _texture_image_ref;
-        api::ImageViewReference _texture_image_view_ref;
-        api::SamplerReference _sampler_ref;
+        graphics::api::ImageReference _texture_image_ref;
+        graphics::api::ImageViewReference _texture_image_view_ref;
+        graphics::api::SamplerReference _sampler_ref;
 
-        api::DescriptorPoolReference _descriptor_pool_ref;
-        api::DescriptorSetLayoutReference _descriptor_set_layout_ref;
-        std::vector<api::DescriptorSetReference> _descriptor_set_list_ref;
+        graphics::api::DescriptorPoolReference _descriptor_pool_ref;
+        graphics::api::DescriptorSetLayoutReference _descriptor_set_layout_ref;
+        std::vector<graphics::api::DescriptorSetReference> _descriptor_set_list_ref;
 
-        api::ImageReference _color_image_ref;
-        api::ImageViewReference _color_image_view_ref;
-        api::ImageReference _depth_image_ref;
-        api::ImageViewReference _depth_image_view_ref;
+        graphics::api::ImageReference _color_image_ref;
+        graphics::api::ImageViewReference _color_image_view_ref;
+        graphics::api::ImageReference _depth_image_ref;
+        graphics::api::ImageViewReference _depth_image_view_ref;
 
-        api::GraphicsPipelineReference _graphics_pipeline_ref;
+        graphics::api::GraphicsPipelineReference _graphics_pipeline_ref;
 
         uint32_t mipLevels;
         uint32_t frameCounter;

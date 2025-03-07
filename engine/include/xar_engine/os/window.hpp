@@ -4,11 +4,13 @@
 #include <memory>
 
 #include <xar_engine/graphics/api/graphics_backend_type.hpp>
-#include <xar_engine/graphics/renderer.hpp>
 
 #include <xar_engine/input/input_event.hpp>
 
 #include <xar_engine/math/vector.hpp>
+
+#include <xar_engine/renderer/renderer.hpp>
+
 
 namespace xar_engine::graphics
 {
