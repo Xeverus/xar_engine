@@ -6,7 +6,8 @@
 
 #include <xar_engine/renderer/renderer.hpp>
 
-#include <xar_engine/renderer/gpu_asset/gpu_model.hpp>
+#include <xar_engine/renderer/gpu_asset/gpu_model_data.hpp>
+#include <xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp>
 
 #include <xar_engine/graphics/api/buffer_reference.hpp>
 #include <xar_engine/graphics/api/command_buffer_reference.hpp>
@@ -41,10 +42,9 @@ namespace xar_engine::renderer
         ~RendererImpl() override;
 
 
-        gpu_asset::GpuModelListReference make_gpu_model_list(const std::vector<asset::Model>& model_list) override;
+        std::vector<gpu_asset::GpuModel> make_gpu_model(const std::vector<asset::Model>& model_list) override;
 
-        void add_gpu_model_list_to_render(const gpu_asset::GpuModelListReference& gpu_model_list) override;
-        void remove_gpu_model_list_from_render(const gpu_asset::GpuModelListReference& gpu_model_list) override;
+        void add_gpu_mesh_instance_to_render(const gpu_asset::GpuMeshInstance& gpu_mesh_instance) override;
 
         void update() override;
 
@@ -86,7 +86,10 @@ namespace xar_engine::renderer
         uint32_t mipLevels;
         uint32_t frameCounter;
 
-        meta::TResourceMap<gpu_asset::GpuModelListTag, gpu_asset::GpuModelList> _gpu_model_map;
-        std::vector<gpu_asset::GpuModelListReference> _gpu_model_list_to_render;
+        meta::TResourceMap<gpu_asset::GpuModelDataBufferTag, gpu_asset::GpuModelDataBuffer> _gpu_model_data_buffer_map;
+        meta::TResourceMap<gpu_asset::GpuModelTag, gpu_asset::GpuModelData> _gpu_model_data_map;
+        meta::TResourceMap<gpu_asset::GpuMeshTag, gpu_asset::GpuMeshData> _gpu_mesh_data_map;
+
+        std::vector<gpu_asset::GpuMeshInstance> _gpu_mesh_instance_to_redner_list;
     };
 }

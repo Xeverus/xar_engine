@@ -85,4 +85,21 @@ namespace xar_engine::math
                 glm::radians(angle),
                 to_glm_vector(axis)));
     }
+
+    Matrix4x4f scale_matrix(
+        const Matrix4x4f& matrix,
+        const math::Vector3f& scale)
+    {
+        return to_engine_matrix(
+            glm::scale(
+                to_glm_matrix(matrix),
+                to_glm_vector(scale)));
+    }
+
+    Matrix4x4f operator*(
+        const Matrix4x4f& left,
+        const Matrix4x4f& right)
+    {
+        return to_engine_matrix(to_glm_matrix(left) * to_glm_matrix(right));
+    }
 }

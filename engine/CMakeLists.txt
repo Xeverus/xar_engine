@@ -37,7 +37,8 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/os/service_register.hpp
         include/xar_engine/os/window.hpp
 
-        include/xar_engine/renderer/gpu_asset/gpu_model_list_reference.hpp
+        include/xar_engine/renderer/gpu_asset/gpu_mesh_instance.hpp
+        include/xar_engine/renderer/gpu_asset/gpu_model.hpp
         include/xar_engine/renderer/renderer.hpp
 
         include/xar_engine/version/version.hpp)
@@ -149,8 +150,10 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/os/service_register_impl.hpp
         src/xar_engine/os/window.cpp
 
-        src/xar_engine/renderer/gpu_asset/gpu_model.cpp
-        src/xar_engine/renderer/gpu_asset/gpu_model.hpp
+        src/xar_engine/renderer/gpu_asset/gpu_model_data.cpp
+        src/xar_engine/renderer/gpu_asset/gpu_model_data.hpp
+        src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.cpp
+        src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp
         src/xar_engine/renderer/renderer.cpp
         src/xar_engine/renderer/renderer_impl.cpp
         src/xar_engine/renderer/renderer_impl.hpp

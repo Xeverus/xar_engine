@@ -1,4 +1,4 @@
-#include <xar_engine/renderer/gpu_asset/gpu_model.hpp>
+#include <xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp>
 
 
 namespace xar_engine::renderer::gpu_asset
@@ -11,7 +11,7 @@ namespace xar_engine::renderer::gpu_asset
         using IndexType = decltype(asset::Mesh{}.index_list[0]);
 
         void fill_vertex_and_index_offset_values(
-            GpuModelListBufferStructure& gpu_model_list_buffer_structure,
+            GpuModelDataListBufferStructure& gpu_model_list_buffer_structure,
             const std::vector<asset::Model>& model_list)
         {
             auto vertex_offset = std::size_t{0};
@@ -52,7 +52,7 @@ namespace xar_engine::renderer::gpu_asset
         }
 
         void fill_byte_size_values(
-            GpuModelListBufferStructure& gpu_model_list_buffer_structure,
+            GpuModelDataListBufferStructure& gpu_model_list_buffer_structure,
             const std::vector<asset::Model>& model_list)
         {
             gpu_model_list_buffer_structure.position_list_byte_size =
@@ -66,9 +66,9 @@ namespace xar_engine::renderer::gpu_asset
         }
     }
 
-    GpuModelListBufferStructure make_gpu_model_list_buffer_structure(const std::vector<asset::Model>& model_list)
+    GpuModelDataListBufferStructure make_gpu_model_data_list_buffer_structure(const std::vector<asset::Model>& model_list)
     {
-        auto gpu_model_list_buffer_structure = GpuModelListBufferStructure{};
+        auto gpu_model_list_buffer_structure = GpuModelDataListBufferStructure{};
         fill_vertex_and_index_offset_values(
             gpu_model_list_buffer_structure,
             model_list);

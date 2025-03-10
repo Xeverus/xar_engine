@@ -20,20 +20,47 @@ int main()
         graphics_backend,
         window->get_surface());
 
-    xar_engine::renderer::gpu_asset::GpuModelListReference gpu_model;
-    std::vector<xar_engine::renderer::gpu_asset::GpuModelListReference> gpu_model_list;
+    std::vector<xar_engine::renderer::gpu_asset::GpuModel> gpu_model_list;
     window->set_on_run(
         [&]()
         {
-            gpu_model_list.push_back(renderer->make_gpu_model_list(std::vector<xar_engine::asset::Model>{
-                xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj"),
-            }));
-            gpu_model_list.push_back(renderer->make_gpu_model_list(std::vector<xar_engine::asset::Model>{
-                xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/house.obj"),
-            }));
+            gpu_model_list = renderer->make_gpu_model(
+                std::vector<xar_engine::asset::Model>{
+                    xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj"),
+                    xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/house.obj"),
+                });
 
-            gpu_model = gpu_model_list[0];
-            renderer->add_gpu_model_list_to_render(gpu_model);
+#if 0
+            renderer->add_gpu_mesh_instance_to_render(
+                {
+                    gpu_model_list[0].gpu_mesh[0],
+                    xar_engine::math::make_identity_matrix(),
+                });
+#else
+            for (auto i = 0; i < 7; ++i)
+            {
+                auto model_matrix = xar_engine::math::make_identity_matrix();
+
+                model_matrix = xar_engine::math::scale_matrix(
+                    model_matrix,
+                    {0.0015f, 0.0015f, 0.0015f});
+
+                model_matrix = xar_engine::math::rotate_matrix(
+                    model_matrix,
+                    90.0f,
+                    {1.0f, 0.0f, 0.0f});
+                model_matrix = xar_engine::math::rotate_matrix(
+                    model_matrix,
+                    45.0f,
+                    {0.0f, 0.0f, 0.0f});
+
+                renderer->add_gpu_mesh_instance_to_render(
+                    {
+                        gpu_model_list[1].gpu_mesh[i],
+                        model_matrix,
+                    });
+            }
+#endif
         });
 
     window->set_on_update(
@@ -69,28 +96,6 @@ int main()
                         {
                             return;
                         }
-
-                        renderer->remove_gpu_model_list_from_render(gpu_model);
-                        gpu_model = {};
-
-                        switch (event.code)
-                        {
-                            case xar_engine::input::ButtonCode::_0:
-                            {
-                                return;
-                            }
-                            case xar_engine::input::ButtonCode::_1:
-                            {
-                                gpu_model = gpu_model_list[0];
-                                break;
-                            }
-                            case xar_engine::input::ButtonCode::_2:
-                            {
-                                gpu_model = gpu_model_list[1];
-                                break;
-                            }
-                        }
-                        renderer->add_gpu_model_list_to_render(gpu_model);
                     }
                 },
                 event);

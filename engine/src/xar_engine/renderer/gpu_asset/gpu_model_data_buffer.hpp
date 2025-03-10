@@ -7,7 +7,7 @@
 
 namespace xar_engine::renderer::gpu_asset
 {
-    struct GpuMeshBufferStructure
+    struct GpuMeshDataBufferStructure
     {
         std::uint32_t first_vertex;
         std::uint32_t first_index;
@@ -16,7 +16,7 @@ namespace xar_engine::renderer::gpu_asset
         std::uint32_t index_counts;
     };
 
-    struct GpuModelBufferStructure
+    struct GpuModelDataBufferStructure
     {
         std::uint32_t first_vertex;
         std::uint32_t first_index;
@@ -24,10 +24,10 @@ namespace xar_engine::renderer::gpu_asset
         std::uint32_t vertex_counts;
         std::uint32_t index_counts;
 
-        std::vector<GpuMeshBufferStructure> gpu_mesh_buffer_structure_list;
+        std::vector<GpuMeshDataBufferStructure> gpu_mesh_buffer_structure_list;
     };
 
-    struct GpuModelListBufferStructure
+    struct GpuModelDataListBufferStructure
     {
         std::uint32_t vertex_counts;
         std::uint32_t index_counts;
@@ -37,19 +37,22 @@ namespace xar_engine::renderer::gpu_asset
         std::uint32_t texture_coord_list_byte_size;
         std::uint32_t index_list_byte_size;
 
-        std::vector<GpuModelBufferStructure> gpu_model_buffer_structure_list;
+        std::vector<GpuModelDataBufferStructure> gpu_model_buffer_structure_list;
     };
 
-    struct GpuModelList
+    GpuModelDataListBufferStructure make_gpu_model_data_list_buffer_structure(const std::vector<asset::Model>& model_list);
+
+
+    struct GpuModelDataBuffer
     {
         graphics::api::BufferReference position_buffer;
         graphics::api::BufferReference normal_buffer;
         graphics::api::BufferReference texture_coord_buffer;
-
         graphics::api::BufferReference index_buffer;
 
-        GpuModelListBufferStructure buffer_structure;
+        GpuModelDataListBufferStructure structure;
     };
 
-    GpuModelListBufferStructure make_gpu_model_list_buffer_structure(const std::vector<asset::Model>& model_list);
+    enum class GpuModelDataBufferTag;
+    using GpuModelDataBufferReference = meta::TResourceReference<GpuModelDataBufferTag>;
 }

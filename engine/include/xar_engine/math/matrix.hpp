@@ -42,4 +42,12 @@ namespace xar_engine::math
         const Matrix4x4f& matrix,
         float angle,
         const math::Vector3f& axis);
+
+    Matrix4x4f scale_matrix(
+        const Matrix4x4f& matrix,
+        const math::Vector3f& scale);
+
+    Matrix4x4f operator*(
+        const Matrix4x4f& left,
+        const Matrix4x4f& right);
 }

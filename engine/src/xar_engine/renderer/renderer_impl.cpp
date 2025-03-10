@@ -25,24 +25,6 @@ namespace xar_engine::renderer
         constexpr int MAX_FRAMES_IN_FLIGHT = 2;
         constexpr auto tag = "Vulkan Sandbox";
 
-        gpu_asset::GpuModelList allocate_gpu_model_list(
-            graphics::api::IGraphicsBackend& graphics_backend,
-            const std::vector<asset::Model>& model_list)
-        {
-            auto gpu_model_list_buffer_structure_local = gpu_asset::make_gpu_model_list_buffer_structure(model_list);
-
-            auto gpu_model_list = gpu_asset::GpuModelList{
-                .position_buffer = graphics_backend.resource().make_vertex_buffer(gpu_model_list_buffer_structure_local.position_list_byte_size),
-                .normal_buffer = graphics_backend.resource().make_vertex_buffer(gpu_model_list_buffer_structure_local.normal_list_byte_size),
-                .texture_coord_buffer = graphics_backend.resource().make_vertex_buffer(gpu_model_list_buffer_structure_local.texture_coord_list_byte_size),
-                .index_buffer = graphics_backend.resource().make_index_buffer(gpu_model_list_buffer_structure_local.index_list_byte_size),
-            };
-
-            gpu_model_list.buffer_structure = std::move(gpu_model_list_buffer_structure_local);
-
-            return gpu_model_list;
-        }
-
         std::vector<graphics::api::VertexInputBinding> getBindingDescription()
         {
             return {
@@ -204,13 +186,17 @@ namespace xar_engine::renderer
 
         UniformBufferObject ubo{};
 
+        ubo.model = math::make_identity_matrix();
+
         ubo.model = math::rotate_matrix(
-            math::make_identity_matrix(),
+            ubo.model,
             time * 90.0f,
             math::Vector3f(
                 0.0f,
                 0.0f,
                 1.0f));
+
+        ubo.model = ubo.model * _gpu_mesh_instance_to_redner_list[0].model_matrix;
 
         ubo.view = math::make_view_matrix(
             math::Vector3f(
@@ -306,13 +292,60 @@ namespace xar_engine::renderer
         _graphics_backend->command().wait_idle();
     }
 
-    gpu_asset::GpuModelListReference RendererImpl::make_gpu_model_list(const std::vector<asset::Model>& model_list)
+    std::vector<gpu_asset::GpuModel> RendererImpl::make_gpu_model(const std::vector<asset::Model>& model_list)
     {
-        auto gpu_model_list = allocate_gpu_model_list(
-            *_graphics_backend,
-            model_list);
+        auto gpu_model_data_list_buffer_structure = gpu_asset::make_gpu_model_data_list_buffer_structure(model_list);
 
-        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.position_list_byte_size);
+        {
+            for (auto j = 0; j < model_list.size(); ++j)
+            {
+                const auto& model = model_list[j];
+
+                for (auto i = 0; i < model.mesh_list.size(); ++i)
+                {
+                    const auto& mesh = model.mesh_list[i];
+
+                    XAR_LOG(
+                        logging::LogLevel::DEBUG,
+                        tag,
+                        "model {}, mesh {} = position: {}, normal: {}, texcoords: {}, indices: {}",
+                        reinterpret_cast<std::uint64_t>(&model),
+                        reinterpret_cast<std::uint64_t>(&mesh),
+                        mesh.position_list.size(),
+                        mesh.normal_list.size(),
+                        mesh.texture_coord_list.size(),
+                        mesh.index_list.size());
+                }
+            }
+
+            for (auto j = 0; j < model_list.size(); ++j)
+            {
+                const auto& model = model_list[j];
+
+                for (auto i = 0; i < model.mesh_list.size(); ++i)
+                {
+                    const auto& mesh = model.mesh_list[i];
+
+                    XAR_LOG(
+                        logging::LogLevel::DEBUG,
+                        tag,
+                        "first idx: {}, index count: {}, first vertex: {}, vertex count: {}",
+                        gpu_model_data_list_buffer_structure.gpu_model_buffer_structure_list[j].gpu_mesh_buffer_structure_list[i].first_index,
+                        gpu_model_data_list_buffer_structure.gpu_model_buffer_structure_list[j].gpu_mesh_buffer_structure_list[i].index_counts,
+                        gpu_model_data_list_buffer_structure.gpu_model_buffer_structure_list[j].gpu_mesh_buffer_structure_list[i].first_vertex,
+                        gpu_model_data_list_buffer_structure.gpu_model_buffer_structure_list[j].gpu_mesh_buffer_structure_list[i].vertex_counts);
+                }
+            }
+        }
+
+        auto gpu_model_data_buffer = gpu_asset::GpuModelDataBuffer{};
+        gpu_model_data_buffer.position_buffer = _graphics_backend->resource().make_vertex_buffer(gpu_model_data_list_buffer_structure.position_list_byte_size);
+        gpu_model_data_buffer.normal_buffer = _graphics_backend->resource().make_vertex_buffer(gpu_model_data_list_buffer_structure.normal_list_byte_size);
+        gpu_model_data_buffer.texture_coord_buffer = _graphics_backend->resource().make_vertex_buffer(gpu_model_data_list_buffer_structure.texture_coord_list_byte_size);
+        gpu_model_data_buffer.index_buffer = _graphics_backend->resource().make_index_buffer(gpu_model_data_list_buffer_structure.index_list_byte_size);
+        gpu_model_data_buffer.structure = std::move(gpu_model_data_list_buffer_structure);
+
+        auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.position_list_byte_size);
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -340,7 +373,7 @@ namespace xar_engine::renderer
                 buffer_update_list);
         }
 
-        auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.normal_list_byte_size);
+        auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.normal_list_byte_size);
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -368,7 +401,7 @@ namespace xar_engine::renderer
                 buffer_update_list);
         }
 
-        auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.texture_coord_list_byte_size);
+        auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.texture_coord_list_byte_size);
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -397,7 +430,7 @@ namespace xar_engine::renderer
                 buffer_update_list);
         }
 
-        auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(gpu_model_list.buffer_structure.index_list_byte_size);
+        auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.index_list_byte_size);
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
@@ -433,39 +466,56 @@ namespace xar_engine::renderer
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer,
-            gpu_model_list.position_buffer);
+            gpu_model_data_buffer.position_buffer);
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer_1,
-            gpu_model_list.normal_buffer);
+            gpu_model_data_buffer.normal_buffer);
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer_2,
-            gpu_model_list.texture_coord_buffer);
+            gpu_model_data_buffer.texture_coord_buffer);
         _graphics_backend->command().copy_buffer(
             command_buffer[0],
             staging_buffer_3,
-            gpu_model_list.index_buffer);
+            gpu_model_data_buffer.index_buffer);
 
         _graphics_backend->command().end_command_buffer(command_buffer[0]);
         _graphics_backend->command().submit_command_buffer(command_buffer[0]);
 
-        return _gpu_model_map.add(std::move(gpu_model_list));
-    }
+        auto gpu_model_data_buffer_reference = _gpu_model_data_buffer_map.add(std::move(gpu_model_data_buffer));
 
-    void RendererImpl::add_gpu_model_list_to_render(const gpu_asset::GpuModelListReference& gpu_model_list)
-    {
-        _gpu_model_list_to_render.push_back(gpu_model_list);
-    }
-
-    void RendererImpl::remove_gpu_model_list_from_render(const gpu_asset::GpuModelListReference& gpu_model_list)
-    {
-        std::erase_if(
-            _gpu_model_list_to_render,
-            [&](const auto& gpu_model_list_ref)
+        auto gpu_model_data_list = std::vector<gpu_asset::GpuModel>{};
+        {
+            for (auto model_index = std::uint32_t{0}; model_index < model_list.size(); ++model_index)
             {
-                return gpu_model_list.get_id() == gpu_model_list_ref.get_id();
-            });
+                const auto& model = model_list[model_index];
+
+                auto& gpu_model_data = gpu_model_data_list.emplace_back(
+                    _gpu_model_data_map.add(
+                        {
+                            model_index,
+                            gpu_model_data_buffer_reference
+                        }));
+
+                for (auto mesh_index = std::uint32_t{0}; mesh_index < model.mesh_list.size(); ++mesh_index)
+                {
+                    gpu_model_data.gpu_mesh.push_back(
+                        _gpu_mesh_data_map.add(
+                            {
+                                mesh_index,
+                                gpu_model_data.gpu_model,
+                            }));
+                }
+            }
+        }
+
+        return gpu_model_data_list;
+    }
+
+    void RendererImpl::add_gpu_mesh_instance_to_render(const gpu_asset::GpuMeshInstance& gpu_mesh_instance)
+    {
+        _gpu_mesh_instance_to_redner_list.push_back(gpu_mesh_instance);
     }
 
     void RendererImpl::update()
@@ -534,30 +584,37 @@ namespace xar_engine::renderer
             sizeof(Constants),
             &pc);
 
-        for (const auto& gpu_model_list: _gpu_model_list_to_render)
+        for (const auto& gpu_mesh_instance: _gpu_mesh_instance_to_redner_list)
         {
-            const auto& gpu_model = _gpu_model_map.get_object(gpu_model_list);
+            const auto& gpu_mesh_data = _gpu_mesh_data_map.get_object(gpu_mesh_instance.gpu_mesh);
+            const auto& gpu_model_data = _gpu_model_data_map.get_object(gpu_mesh_data.gpu_model);
+            const auto& gpu_buffer_data = _gpu_model_data_buffer_map.get_object(gpu_model_data.gpu_model_data_buffer);
 
             _graphics_backend->command().set_vertex_buffer_list(
                 _command_buffer_list[frame_index],
                 {
-                    gpu_model.position_buffer,
-                    gpu_model.normal_buffer,
-                    gpu_model.texture_coord_buffer,
+                    gpu_buffer_data.position_buffer,
+                    gpu_buffer_data.normal_buffer,
+                    gpu_buffer_data.texture_coord_buffer,
                 },
                 {0, 0, 0},
                 0);
             _graphics_backend->command().set_index_buffer(
                 _command_buffer_list[frame_index],
-                gpu_model.index_buffer,
+                gpu_buffer_data.index_buffer,
                 0);
+
+            const auto gpu_mesh_buffer_structure = gpu_buffer_data
+                .structure
+                .gpu_model_buffer_structure_list[gpu_model_data.model_index]
+                .gpu_mesh_buffer_structure_list[gpu_mesh_data.mesh_index];
 
             _graphics_backend->command().draw_indexed(
                 _command_buffer_list[frame_index],
-                gpu_model.buffer_structure.index_counts,
+                gpu_mesh_buffer_structure.index_counts,
                 1,
-                0,
-                0,
+                gpu_mesh_buffer_structure.first_index,
+                gpu_mesh_buffer_structure.first_vertex,
                 0);
         }
 
