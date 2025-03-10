@@ -30,6 +30,7 @@ namespace xar_engine::renderer
         virtual std::vector<gpu_asset::GpuModel> make_gpu_model(const std::vector<asset::Model>& model_list) = 0;
 
         virtual void add_gpu_mesh_instance_to_render(const gpu_asset::GpuMeshInstance& gpu_mesh_instance) = 0;
+        virtual void clear_gpu_mesh_instance_to_render() = 0;
 
         virtual void update() = 0;
     };

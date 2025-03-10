@@ -518,6 +518,11 @@ namespace xar_engine::renderer
         _gpu_mesh_instance_to_redner_list.push_back(gpu_mesh_instance);
     }
 
+    void RendererImpl::clear_gpu_mesh_instance_to_render()
+    {
+        _gpu_mesh_instance_to_redner_list.clear();
+    }
+
     void RendererImpl::update()
     {
         const auto begin_frame_result = _graphics_backend->host().begin_frame(_swap_chain_ref);
@@ -623,7 +628,10 @@ namespace xar_engine::renderer
             _swap_chain_ref,
             current_image_index);
 
-        updateUniformBuffer(frame_index);
+        if (!_gpu_mesh_instance_to_redner_list.empty())
+        {
+            updateUniformBuffer(frame_index);
+        }
 
         const auto end_result = _graphics_backend->command().end_frame(
             _command_buffer_list[frame_index],
