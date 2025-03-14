@@ -46,8 +46,9 @@ namespace xar_engine::graphics::vulkan
             const api::DescriptorPoolReference& descriptor_pool,
             const api::DescriptorSetLayoutReference& descriptor_set_layout,
             const std::vector<api::BufferReference>& uniform_buffer_list,
-            const api::ImageViewReference& texture_image_view,
-            const api::SamplerReference& sampler) override;
+            const std::vector<api::ImageViewReference>& texture_image_view_list,
+            const std::vector<api::SamplerReference>& sampler_list,
+            std::uint32_t descriptor_counts) override;
 
         api::DescriptorSetLayoutReference make_descriptor_set_layout() override;
 

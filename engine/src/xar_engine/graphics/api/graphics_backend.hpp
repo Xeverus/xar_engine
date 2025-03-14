@@ -44,8 +44,9 @@ namespace xar_engine::graphics::api
             const DescriptorPoolReference& descriptor_pool,
             const DescriptorSetLayoutReference& descriptor_set_layout,
             const std::vector<BufferReference>& uniform_buffer_list,
-            const ImageViewReference& texture_image_view,
-            const SamplerReference& sampler) = 0;
+            const std::vector<ImageViewReference>& texture_image_view_list,
+            const std::vector<SamplerReference>& sampler_list,
+            std::uint32_t descriptor_counts) = 0;
 
         virtual DescriptorSetLayoutReference make_descriptor_set_layout() = 0;
 

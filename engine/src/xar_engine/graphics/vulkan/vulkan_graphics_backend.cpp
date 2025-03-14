@@ -9,12 +9,6 @@
 
 namespace xar_engine::graphics::vulkan
 {
-    namespace
-    {
-        const std::uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-    }
-
-
     VulkanGraphicsBackend::VulkanGraphicsBackend()
     {
         _vulkan_instance = meta::RefCountedSingleton::get_instance_t<vulkan::native::VulkanInstance>();
@@ -116,11 +110,10 @@ namespace xar_engine::graphics::vulkan
 
     std::vector<api::CommandBufferReference> VulkanGraphicsBackend::make_command_buffer_list(const std::uint32_t buffer_counts)
     {
-        auto vk_command_buffer_list = _vulkan_command_buffer_pool.make_buffer_list(MAX_FRAMES_IN_FLIGHT);
+        auto vk_command_buffer_list = _vulkan_command_buffer_pool.make_buffer_list(buffer_counts);
 
         auto _vulkan_command_buffer_list = std::vector<api::CommandBufferReference>{};
         _vulkan_command_buffer_list.reserve(buffer_counts);
-
         for (auto& vk_command_buffer: vk_command_buffer_list)
         {
             _vulkan_command_buffer_list.push_back(_vulkan_resource_storage.add(vk_command_buffer));
@@ -131,13 +124,17 @@ namespace xar_engine::graphics::vulkan
 
     api::DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool()
     {
+        const auto uniform_buffer_count = std::int32_t{2};
+        const auto combined_image_sampler_count = std::int32_t{2};
+        const auto max_descriptor_set_count = std::int32_t{2};
+
         return _vulkan_resource_storage.add(
             native::VulkanDescriptorPool{
                 {
                     _vulkan_device,
-                    MAX_FRAMES_IN_FLIGHT,
-                    MAX_FRAMES_IN_FLIGHT,
-                    MAX_FRAMES_IN_FLIGHT,
+                    uniform_buffer_count,
+                    combined_image_sampler_count,
+                    max_descriptor_set_count,
                 }});
     }
 
@@ -145,11 +142,19 @@ namespace xar_engine::graphics::vulkan
         const api::DescriptorPoolReference& descriptor_pool,
         const api::DescriptorSetLayoutReference& descriptor_set_layout,
         const std::vector<api::BufferReference>& uniform_buffer_list,
-        const api::ImageViewReference& texture_image_view,
-        const api::SamplerReference& sampler)
+        const std::vector<api::ImageViewReference>& texture_image_view_list,
+        const std::vector<api::SamplerReference>& sampler_list,
+        const std::uint32_t descriptor_counts)
     {
+        XAR_THROW_IF(
+            texture_image_view_list.size() != sampler_list.size(),
+            error::XarException,
+            "Texture counts {} differs from sampler counts {}",
+            texture_image_view_list.size(),
+            sampler_list.size());
+
         auto layouts = std::vector<VkDescriptorSetLayout>(
-            MAX_FRAMES_IN_FLIGHT,
+            descriptor_counts,
             _vulkan_resource_storage.get(descriptor_set_layout).get_native());
 
         auto vulkan_descriptor_set_ref_list = std::vector<api::DescriptorSetReference>();
@@ -159,7 +164,7 @@ namespace xar_engine::graphics::vulkan
             vulkan_descriptor_set_ref_list.push_back(_vulkan_resource_storage.add(vulkan_descriptor_set));
         }
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        for (size_t i = 0; i < descriptor_counts; i++)
         {
             const auto& vulkan_uniform_buffer = _vulkan_resource_storage.get(uniform_buffer_list[i]);
 
@@ -168,10 +173,14 @@ namespace xar_engine::graphics::vulkan
             bufferInfo.offset = 0;
             bufferInfo.range = vulkan_uniform_buffer.get_buffer_byte_size();
 
-            VkDescriptorImageInfo imageInfo{};
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = _vulkan_resource_storage.get(texture_image_view).get_native();
-            imageInfo.sampler = _vulkan_resource_storage.get(sampler).get_native();
+            auto imageInfoList = std::vector<VkDescriptorImageInfo>{};
+            for (auto texture_index = 0; texture_index < texture_image_view_list.size(); ++texture_index)
+            {
+                VkDescriptorImageInfo imageInfo{};
+                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageInfo.imageView = _vulkan_resource_storage.get(texture_image_view_list[texture_index]).get_native();
+                imageInfo.sampler = _vulkan_resource_storage.get(sampler_list[texture_index]).get_native();
+            }
 
             std::vector<VkWriteDescriptorSet> descriptorWrites(2);
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -189,9 +198,9 @@ namespace xar_engine::graphics::vulkan
             descriptorWrites[1].dstBinding = 1;
             descriptorWrites[1].dstArrayElement = 0;
             descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].descriptorCount = imageInfoList.size();
             descriptorWrites[1].pBufferInfo = nullptr;
-            descriptorWrites[1].pImageInfo = &imageInfo; // Optional
+            descriptorWrites[1].pImageInfo = imageInfoList.data();
             descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
             vulkan_descriptor_set_list[i].write(descriptorWrites);
@@ -386,10 +395,7 @@ namespace xar_engine::graphics::vulkan
                     vulkan_window_surface,
                     vk_present_mode_to_use,
                     vk_format_to_use,
-                    std::max(
-                        static_cast<std::int32_t>(buffering_level),
-                        static_cast<std::int32_t>(MAX_FRAMES_IN_FLIGHT)
-                    ),
+                    static_cast<std::int32_t>(buffering_level)
                 }});
     }
 

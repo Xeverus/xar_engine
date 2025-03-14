@@ -283,8 +283,9 @@ namespace xar_engine::renderer
             _descriptor_pool_ref,
             _descriptor_set_layout_ref,
             _uniform_buffer_ref_list,
-            _texture_image_view_ref,
-            _sampler_ref);
+            {_texture_image_view_ref},
+            {_sampler_ref},
+            MAX_FRAMES_IN_FLIGHT);
     }
 
     RendererImpl::~RendererImpl()

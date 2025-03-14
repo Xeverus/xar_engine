@@ -24,7 +24,7 @@ namespace xar_engine::graphics::vulkan::native
         ~VulkanCommandBufferPool();
 
 
-        std::vector<VulkanCommandBuffer> make_buffer_list(std::int32_t count);
+        std::vector<VulkanCommandBuffer> make_buffer_list(std::uint32_t count);
 
         [[nodiscard]]
         const VulkanDevice& get_device() const;

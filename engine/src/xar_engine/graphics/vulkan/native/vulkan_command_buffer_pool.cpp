@@ -61,7 +61,7 @@ namespace xar_engine::graphics::vulkan::native
 
     VulkanCommandBufferPool::~VulkanCommandBufferPool() = default;
 
-    std::vector<VulkanCommandBuffer> VulkanCommandBufferPool::make_buffer_list(const std::int32_t count)
+    std::vector<VulkanCommandBuffer> VulkanCommandBufferPool::make_buffer_list(const std::uint32_t count)
     {
         auto vk_command_buffer_allocate_info = VkCommandBufferAllocateInfo{};
         vk_command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
