@@ -9,7 +9,6 @@
 #include <xar_engine/graphics/api/descriptor_pool_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_set_layout_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_set_reference.hpp>
-#include <xar_engine/graphics/api/graphics_backend_type.hpp>
 #include <xar_engine/graphics/api/graphics_pipeline_reference.hpp>
 #include <xar_engine/graphics/api/image_reference.hpp>
 #include <xar_engine/graphics/api/image_view_reference.hpp>
@@ -19,12 +18,13 @@
 #include <xar_engine/graphics/api/surface_reference.hpp>
 #include <xar_engine/graphics/api/swap_chain_reference.hpp>
 
+#include <xar_engine/graphics/graphics_backend_type.hpp>
 #include <xar_engine/graphics/window_surface.hpp>
 
 #include <xar_engine/math/vector.hpp>
 
 
-namespace xar_engine::graphics::api
+namespace xar_engine::graphics
 {
     class IGraphicsBackendResource
     {
@@ -32,57 +32,57 @@ namespace xar_engine::graphics::api
         virtual ~IGraphicsBackendResource();
 
 
-        virtual BufferReference make_staging_buffer(std::uint32_t byte_size) = 0;
-        virtual BufferReference make_vertex_buffer(std::uint32_t byte_size) = 0;
-        virtual BufferReference make_index_buffer(std::uint32_t byte_size) = 0;
-        virtual BufferReference make_uniform_buffer(std::uint32_t byte_size) = 0;
+        virtual api::BufferReference make_staging_buffer(std::uint32_t byte_size) = 0;
+        virtual api::BufferReference make_vertex_buffer(std::uint32_t byte_size) = 0;
+        virtual api::BufferReference make_index_buffer(std::uint32_t byte_size) = 0;
+        virtual api::BufferReference make_uniform_buffer(std::uint32_t byte_size) = 0;
 
-        virtual std::vector<CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) = 0;
+        virtual std::vector<api::CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) = 0;
 
-        virtual DescriptorPoolReference make_descriptor_pool(const std::set<EDescriptorPoolType>& descriptor_pool_type_list) = 0;
+        virtual api::DescriptorPoolReference make_descriptor_pool(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) = 0;
 
-        virtual DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<EDescriptorPoolType>& descriptor_pool_type_list) = 0;
+        virtual api::DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) = 0;
 
-        virtual std::vector<DescriptorSetReference> make_descriptor_set_list(
-            const DescriptorPoolReference& descriptor_pool,
-            const DescriptorSetLayoutReference& descriptor_set_layout,
+        virtual std::vector<api::DescriptorSetReference> make_descriptor_set_list(
+            const api::DescriptorPoolReference& descriptor_pool,
+            const api::DescriptorSetLayoutReference& descriptor_set_layout,
             std::uint32_t descriptor_counts) = 0;
 
         virtual void write_descriptor_set(
-            const DescriptorSetReference& descriptor_set,
+            const api::DescriptorSetReference& descriptor_set,
             std::uint32_t uniform_buffer_first_index,
-            const std::vector<BufferReference>& uniform_buffer_list,
+            const std::vector<api::BufferReference>& uniform_buffer_list,
             std::uint32_t texture_image_first_index,
-            const std::vector<ImageViewReference>& texture_image_view_list,
-            const std::vector<SamplerReference>& sampler_list) = 0;
+            const std::vector<api::ImageViewReference>& texture_image_view_list,
+            const std::vector<api::SamplerReference>& sampler_list) = 0;
 
-        virtual GraphicsPipelineReference make_graphics_pipeline(
+        virtual api::GraphicsPipelineReference make_graphics_pipeline(
             const std::vector<api::DescriptorSetLayoutReference>& descriptor_set_layout_list,
-            const ShaderReference& vertex_shader,
-            const ShaderReference& fragment_shader,
-            const std::vector<VertexInputAttribute>& vertex_input_attribute_list,
-            const std::vector<VertexInputBinding>& vertex_input_binding_list,
-            EFormat color_format,
-            EFormat depth_format,
+            const api::ShaderReference& vertex_shader,
+            const api::ShaderReference& fragment_shader,
+            const std::vector<api::VertexInputAttribute>& vertex_input_attribute_list,
+            const std::vector<api::VertexInputBinding>& vertex_input_binding_list,
+            api::EFormat color_format,
+            api::EFormat depth_format,
             std::uint32_t sample_counts) = 0;
 
-        virtual ImageReference make_image(
-            EImageType image_type,
+        virtual api::ImageReference make_image(
+            api::EImageType image_type,
             math::Vector3i32 dimension,
-            EFormat image_format,
+            api::EFormat image_format,
             std::uint32_t mip_levels,
             std::uint32_t sample_count) = 0;
 
-        virtual ImageViewReference make_image_view(
-            const ImageReference& image,
-            EImageAspect image_aspect,
+        virtual api::ImageViewReference make_image_view(
+            const api::ImageReference& image,
+            api::EImageAspect image_aspect,
             std::uint32_t mip_levels) = 0;
 
-        virtual SamplerReference make_sampler(float mip_levels) = 0;
+        virtual api::SamplerReference make_sampler(float mip_levels) = 0;
 
-        virtual ShaderReference make_shader(const std::vector<char>& shader_byte_code) = 0;
+        virtual api::ShaderReference make_shader(const std::vector<char>& shader_byte_code) = 0;
 
-        virtual SwapChainReference make_swap_chain(
+        virtual api::SwapChainReference make_swap_chain(
             std::shared_ptr<IWindowSurface> window_surface,
             std::uint32_t buffering_level) = 0;
     };
@@ -102,17 +102,17 @@ namespace xar_engine::graphics::api
         virtual ~IGraphicsBackendHost();
 
         virtual void update_buffer(
-            const BufferReference& buffer,
+            const api::BufferReference& buffer,
             const std::vector<BufferUpdate>& data) = 0;
 
-        virtual std::tuple<ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(
-            const SwapChainReference& swap_chain) = 0;
+        virtual std::tuple<api::ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(
+            const api::SwapChainReference& swap_chain) = 0;
 
         [[nodiscard]]
         virtual std::uint32_t get_sample_count() const = 0;
 
         [[nodiscard]]
-        virtual EFormat find_depth_format() const = 0;
+        virtual api::EFormat find_depth_format() const = 0;
     };
 
 
@@ -122,52 +122,52 @@ namespace xar_engine::graphics::api
         virtual ~IGraphicsBackendCommand();
 
         virtual void copy_buffer(
-            const CommandBufferReference& command_buffer,
-            const BufferReference& source_buffer,
-            const BufferReference& destination_buffer) = 0;
+            const api::CommandBufferReference& command_buffer,
+            const api::BufferReference& source_buffer,
+            const api::BufferReference& destination_buffer) = 0;
 
         virtual void copy_buffer_to_image(
-            const CommandBufferReference& command_buffer,
-            const BufferReference& source_buffer,
-            const ImageReference& target_image) = 0;
+            const api::CommandBufferReference& command_buffer,
+            const api::BufferReference& source_buffer,
+            const api::ImageReference& target_image) = 0;
 
-        virtual ESwapChainResult end_frame(
-            const CommandBufferReference& command_buffer,
-            const SwapChainReference& swap_chain) = 0;
+        virtual api::ESwapChainResult end_frame(
+            const api::CommandBufferReference& command_buffer,
+            const api::SwapChainReference& swap_chain) = 0;
 
         virtual void generate_image_mip_maps(
-            const CommandBufferReference& command_buffer,
-            const ImageReference& image) = 0;
+            const api::CommandBufferReference& command_buffer,
+            const api::ImageReference& image) = 0;
 
         virtual void begin_command_buffer(
-            const CommandBufferReference& command_buffer,
-            ECommandBufferType command_buffer_type) = 0;
+            const api::CommandBufferReference& command_buffer,
+            api::ECommandBufferType command_buffer_type) = 0;
 
-        virtual void end_command_buffer(const CommandBufferReference& command_buffer) = 0;
+        virtual void end_command_buffer(const api::CommandBufferReference& command_buffer) = 0;
 
-        virtual void submit_command_buffer(const CommandBufferReference& command_buffer) = 0;
+        virtual void submit_command_buffer(const api::CommandBufferReference& command_buffer) = 0;
 
         virtual void set_vertex_buffer_list(
-            const CommandBufferReference& command_buffer,
-            const std::vector<BufferReference>& vertex_buffer_list,
+            const api::CommandBufferReference& command_buffer,
+            const std::vector<api::BufferReference>& vertex_buffer_list,
             const std::vector<std::uint32_t>& vertex_buffer_offset_list,
             std::uint32_t first_slot) = 0;
 
         virtual void set_index_buffer(
-            const CommandBufferReference& command_buffer,
-            const BufferReference& index_buffer,
+            const api::CommandBufferReference& command_buffer,
+            const api::BufferReference& index_buffer,
             std::uint32_t first_index) = 0;
 
         virtual void push_constants(
-            const CommandBufferReference& command_buffer,
-            const GraphicsPipelineReference& graphics_pipeline,
-            EShaderType shader_type,
+            const api::CommandBufferReference& command_buffer,
+            const api::GraphicsPipelineReference& graphics_pipeline,
+            api::EShaderType shader_type,
             std::uint32_t offset,
             std::uint32_t byte_size,
             void* data_byte) = 0;
 
         virtual void draw_indexed(
-            const CommandBufferReference& command_buffer,
+            const api::CommandBufferReference& command_buffer,
             std::uint32_t index_counts,
             std::uint32_t instance_counts,
             std::uint32_t first_index,
@@ -175,9 +175,9 @@ namespace xar_engine::graphics::api
             std::uint32_t first_instance) = 0;
 
         virtual void transit_image_layout(
-            const CommandBufferReference& command_buffer,
-            const ImageReference& image,
-            EImageLayout new_image_layout) = 0;
+            const api::CommandBufferReference& command_buffer,
+            const api::ImageReference& image,
+            api::EImageLayout new_image_layout) = 0;
 
         virtual void wait_idle() = 0;
 

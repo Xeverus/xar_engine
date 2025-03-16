@@ -184,7 +184,7 @@ namespace xar_engine::os
             _native_glfw_window,
             _parameters.title.c_str());
 
-        if (_parameters.graphics_backend_type != graphics::api::EGraphicsBackendType::VULKAN)
+        if (_parameters.graphics_backend_type != graphics::EGraphicsBackendType::VULKAN)
         {
             return;
         }

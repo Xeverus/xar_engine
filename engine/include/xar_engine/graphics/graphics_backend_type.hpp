@@ -3,7 +3,7 @@
 #include <xar_engine/meta/enum.hpp>
 
 
-namespace xar_engine::graphics::api
+namespace xar_engine::graphics
 {
     enum class EGraphicsBackendType
     {
@@ -11,4 +11,4 @@ namespace xar_engine::graphics::api
     };
 }
 
-ENUM_TO_STRING(xar_engine::graphics::api::EGraphicsBackendType);
+ENUM_TO_STRING(xar_engine::graphics::EGraphicsBackendType);

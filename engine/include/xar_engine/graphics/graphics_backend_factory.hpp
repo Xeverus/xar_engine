@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include <xar_engine/graphics/api/graphics_backend_type.hpp>
+#include <xar_engine/graphics/graphics_backend_type.hpp>
 
 
-namespace xar_engine::graphics::api
+namespace xar_engine::graphics
 {
     class IGraphicsBackend;
 

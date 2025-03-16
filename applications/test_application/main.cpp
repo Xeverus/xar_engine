@@ -2,7 +2,7 @@
 
 #include <xar_engine/asset/model_loader.hpp>
 
-#include <xar_engine/graphics/api/graphics_backend_factory.hpp>
+#include <xar_engine/graphics/graphics_backend_factory.hpp>
 
 #include <xar_engine/meta/overloaded.hpp>
 
@@ -15,7 +15,7 @@ int main()
 {
     const auto application = xar_engine::os::ApplicationFactory().make({"Test Application"});
     auto window = application->make_window({"Test Application"});
-    auto graphics_backend = xar_engine::graphics::api::GraphicsBackendFactory().make(xar_engine::graphics::api::EGraphicsBackendType::VULKAN);
+    auto graphics_backend = xar_engine::graphics::GraphicsBackendFactory().make(xar_engine::graphics::EGraphicsBackendType::VULKAN);
     auto renderer = xar_engine::renderer::RendererFactory().make(
         graphics_backend,
         window->get_surface());

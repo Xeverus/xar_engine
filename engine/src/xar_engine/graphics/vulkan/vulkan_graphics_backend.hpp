@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include <xar_engine/graphics/api/graphics_backend.hpp>
+#include <xar_engine/graphics/graphics_backend.hpp>
 
 #include <xar_engine/graphics/vulkan/vulkan_resource_storage.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
@@ -12,10 +12,10 @@
 namespace xar_engine::graphics::vulkan
 {
     class VulkanGraphicsBackend
-        : public api::IGraphicsBackend
-          , public api::IGraphicsBackendResource
-          , public api::IGraphicsBackendHost
-          , public api::IGraphicsBackendCommand
+        : public IGraphicsBackend
+          , public IGraphicsBackendResource
+          , public IGraphicsBackendHost
+          , public IGraphicsBackendCommand
     {
     public:
         VulkanGraphicsBackend();
@@ -91,7 +91,7 @@ namespace xar_engine::graphics::vulkan
     public: // IGraphicsBackendHostCommand
         void update_buffer(
             const api::BufferReference& buffer,
-            const std::vector<api::BufferUpdate>& data) override;
+            const std::vector<BufferUpdate>& data) override;
 
         std::tuple<api::ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(const api::SwapChainReference& swap_chain) override;
 

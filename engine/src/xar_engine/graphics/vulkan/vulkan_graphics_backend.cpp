@@ -45,32 +45,32 @@ namespace xar_engine::graphics::vulkan
     }
 
 
-    const api::IGraphicsBackendResource& VulkanGraphicsBackend::resource() const
+    const IGraphicsBackendResource& VulkanGraphicsBackend::resource() const
     {
         return *this;
     }
 
-    api::IGraphicsBackendResource& VulkanGraphicsBackend::resource()
+    IGraphicsBackendResource& VulkanGraphicsBackend::resource()
     {
         return *this;
     }
 
-    const api::IGraphicsBackendHost& VulkanGraphicsBackend::host() const
+    const IGraphicsBackendHost& VulkanGraphicsBackend::host() const
     {
         return *this;
     }
 
-    api::IGraphicsBackendHost& VulkanGraphicsBackend::host()
+    IGraphicsBackendHost& VulkanGraphicsBackend::host()
     {
         return *this;
     }
 
-    const api::IGraphicsBackendCommand& VulkanGraphicsBackend::command() const
+    const IGraphicsBackendCommand& VulkanGraphicsBackend::command() const
     {
         return *this;
     }
 
-    api::IGraphicsBackendCommand& VulkanGraphicsBackend::command()
+    IGraphicsBackendCommand& VulkanGraphicsBackend::command()
     {
         return *this;
     }
@@ -478,7 +478,7 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanGraphicsBackend::update_buffer(
         const api::BufferReference& buffer,
-        const std::vector<api::BufferUpdate>& data)
+        const std::vector<BufferUpdate>& data)
     {
         auto& vulkan_buffer = _vulkan_resource_storage.get(buffer);
 
