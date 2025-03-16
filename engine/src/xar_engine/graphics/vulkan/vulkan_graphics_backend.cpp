@@ -9,6 +9,23 @@
 
 namespace xar_engine::graphics::vulkan
 {
+    namespace
+    {
+        std::uint32_t get_uniform_buffer_count(const native::VulkanDevice& vulkan_device)
+        {
+            return std::min(
+                std::uint32_t{32},
+                vulkan_device.get_physical_device().get_vk_device_properties().limits.maxDescriptorSetUniformBuffers);
+        }
+
+        std::uint32_t get_combined_image_sampler_count(const native::VulkanDevice& vulkan_device)
+        {
+            return std::min(
+                std::uint32_t{1024},
+                vulkan_device.get_physical_device().get_vk_device_properties().limits.maxDescriptorSetSampledImages);
+        }
+    }
+
     VulkanGraphicsBackend::VulkanGraphicsBackend()
     {
         _vulkan_instance = meta::RefCountedSingleton::get_instance_t<vulkan::native::VulkanInstance>();
@@ -122,11 +139,17 @@ namespace xar_engine::graphics::vulkan
         return _vulkan_command_buffer_list;
     }
 
-    api::DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool()
+    api::DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list)
     {
-        const auto uniform_buffer_count = std::int32_t{2};
-        const auto combined_image_sampler_count = std::int32_t{2};
-        const auto max_descriptor_set_count = std::int32_t{2};
+        const auto uniform_buffer_count =
+            descriptor_pool_type_list.count(api::EDescriptorPoolType::UNIFORM_BUFFER) == 0 ?
+            0 : get_uniform_buffer_count(_vulkan_device);
+
+        const auto combined_image_sampler_count =
+            descriptor_pool_type_list.count(api::EDescriptorPoolType::SAMPLED_IMAGE) == 0 ?
+            0 : get_combined_image_sampler_count(_vulkan_device);
+
+        const auto max_descriptor_set_count = std::uint32_t{16};
 
         return _vulkan_resource_storage.add(
             native::VulkanDescriptorPool{
@@ -138,21 +161,46 @@ namespace xar_engine::graphics::vulkan
                 }});
     }
 
+    api::DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list)
+    {
+        std::vector<VkDescriptorSetLayoutBinding> vk_descriptor_set_layout_binding_list;
+        if (descriptor_pool_type_list.count(api::EDescriptorPoolType::UNIFORM_BUFFER) != 0)
+        {
+            VkDescriptorSetLayoutBinding uboLayoutBinding{};
+            uboLayoutBinding.binding = 0;
+            uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uboLayoutBinding.descriptorCount = get_uniform_buffer_count(_vulkan_device);
+            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+            uboLayoutBinding.pImmutableSamplers = nullptr;
+
+            vk_descriptor_set_layout_binding_list.push_back(uboLayoutBinding);
+        }
+
+        if (descriptor_pool_type_list.count(api::EDescriptorPoolType::SAMPLED_IMAGE) != 0)
+        {
+            VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+            samplerLayoutBinding.binding = 1;
+            samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerLayoutBinding.descriptorCount = get_combined_image_sampler_count(_vulkan_device);
+            samplerLayoutBinding.pImmutableSamplers = nullptr;
+            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+            vk_descriptor_set_layout_binding_list.push_back(samplerLayoutBinding);
+        }
+
+        return _vulkan_resource_storage.add(
+            native::VulkanDescriptorSetLayout{
+                {
+                    _vulkan_device,
+                    vk_descriptor_set_layout_binding_list,
+                }});
+    }
+
     std::vector<api::DescriptorSetReference> VulkanGraphicsBackend::make_descriptor_set_list(
         const api::DescriptorPoolReference& descriptor_pool,
         const api::DescriptorSetLayoutReference& descriptor_set_layout,
-        const std::vector<api::BufferReference>& uniform_buffer_list,
-        const std::vector<api::ImageViewReference>& texture_image_view_list,
-        const std::vector<api::SamplerReference>& sampler_list,
         const std::uint32_t descriptor_counts)
     {
-        XAR_THROW_IF(
-            texture_image_view_list.size() != sampler_list.size(),
-            error::XarException,
-            "Texture counts {} differs from sampler counts {}",
-            texture_image_view_list.size(),
-            sampler_list.size());
-
         auto layouts = std::vector<VkDescriptorSetLayout>(
             descriptor_counts,
             _vulkan_resource_storage.get(descriptor_set_layout).get_native());
@@ -164,77 +212,90 @@ namespace xar_engine::graphics::vulkan
             vulkan_descriptor_set_ref_list.push_back(_vulkan_resource_storage.add(vulkan_descriptor_set));
         }
 
-        for (size_t i = 0; i < descriptor_counts; i++)
-        {
-            const auto& vulkan_uniform_buffer = _vulkan_resource_storage.get(uniform_buffer_list[i]);
-
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = vulkan_uniform_buffer.get_native();
-            bufferInfo.offset = 0;
-            bufferInfo.range = vulkan_uniform_buffer.get_buffer_byte_size();
-
-            auto imageInfoList = std::vector<VkDescriptorImageInfo>{};
-            for (auto texture_index = 0; texture_index < texture_image_view_list.size(); ++texture_index)
-            {
-                VkDescriptorImageInfo imageInfo{};
-                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                imageInfo.imageView = _vulkan_resource_storage.get(texture_image_view_list[texture_index]).get_native();
-                imageInfo.sampler = _vulkan_resource_storage.get(sampler_list[texture_index]).get_native();
-            }
-
-            std::vector<VkWriteDescriptorSet> descriptorWrites(2);
-            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = vulkan_descriptor_set_list[i].get_native();
-            descriptorWrites[0].dstBinding = 0;
-            descriptorWrites[0].dstArrayElement = 0;
-            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].pBufferInfo = &bufferInfo;
-            descriptorWrites[0].pImageInfo = nullptr; // Optional
-            descriptorWrites[0].pTexelBufferView = nullptr; // Optional
-
-            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = vulkan_descriptor_set_list[i].get_native();
-            descriptorWrites[1].dstBinding = 1;
-            descriptorWrites[1].dstArrayElement = 0;
-            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[1].descriptorCount = imageInfoList.size();
-            descriptorWrites[1].pBufferInfo = nullptr;
-            descriptorWrites[1].pImageInfo = imageInfoList.data();
-            descriptorWrites[1].pTexelBufferView = nullptr; // Optional
-
-            vulkan_descriptor_set_list[i].write(descriptorWrites);
-        }
-
         return vulkan_descriptor_set_ref_list;
     }
 
-    api::DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout()
+    void VulkanGraphicsBackend::write_descriptor_set(
+        const api::DescriptorSetReference& descriptor_set,
+        const std::vector<api::BufferReference>& uniform_buffer_list,
+        const std::vector<api::ImageViewReference>& texture_image_view_list,
+        const std::vector<api::SamplerReference>& sampler_list)
     {
-        VkDescriptorSetLayoutBinding uboLayoutBinding{};
-        uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        uboLayoutBinding.pImmutableSamplers = nullptr;
+        XAR_THROW_IF(
+            texture_image_view_list.size() != sampler_list.size(),
+            error::XarException,
+            "Texture counts {} differs from sampler counts {}",
+            texture_image_view_list.size(),
+            sampler_list.size());
 
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        std::vector<VkWriteDescriptorSet> descriptorWrites{};
 
-        return _vulkan_resource_storage.add(
-            native::VulkanDescriptorSetLayout{
-                {
-                    _vulkan_device,
-                    {uboLayoutBinding, samplerLayoutBinding},
-                }});
+        std::vector<VkDescriptorBufferInfo> vk_descriptor_buffer_info_list{};
+        if (!uniform_buffer_list.empty())
+        {
+            const auto uniform_buffer_counts = get_uniform_buffer_count(_vulkan_device);
+            for (auto i = 0; i < uniform_buffer_counts; ++i)
+            {
+                const auto object_index = i < uniform_buffer_list.size() ? i : 0;
+                const auto& vulkan_uniform_buffer = _vulkan_resource_storage.get(uniform_buffer_list[object_index]);
+
+                VkDescriptorBufferInfo bufferInfo{};
+                bufferInfo.buffer = vulkan_uniform_buffer.get_native();
+                bufferInfo.offset = 0;
+                bufferInfo.range = vulkan_uniform_buffer.get_buffer_byte_size();
+
+                vk_descriptor_buffer_info_list.push_back(bufferInfo);
+            }
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = _vulkan_resource_storage.get(descriptor_set).get_native();
+            descriptorWrite.dstBinding = 0;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = vk_descriptor_buffer_info_list.size();
+            descriptorWrite.pBufferInfo = vk_descriptor_buffer_info_list.data();
+            descriptorWrite.pImageInfo = nullptr; // Optional
+            descriptorWrite.pTexelBufferView = nullptr; // Optional
+
+            descriptorWrites.push_back(descriptorWrite);
+        }
+
+        auto imageInfoList = std::vector<VkDescriptorImageInfo>{};
+        if (!texture_image_view_list.empty())
+        {
+            const auto combined_image_sampler_count = get_combined_image_sampler_count(_vulkan_device);
+            for (auto texture_index = 0; texture_index < combined_image_sampler_count; ++texture_index)
+            {
+                const auto object_index = texture_index < texture_image_view_list.size() ? texture_index : 0;
+
+                VkDescriptorImageInfo imageInfo{};
+                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                imageInfo.imageView = _vulkan_resource_storage.get(texture_image_view_list[object_index]).get_native();
+                imageInfo.sampler = _vulkan_resource_storage.get(sampler_list[object_index]).get_native();
+
+                imageInfoList.push_back(imageInfo);
+            }
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = _vulkan_resource_storage.get(descriptor_set).get_native();
+            descriptorWrite.dstBinding = 1;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrite.descriptorCount = imageInfoList.size();
+            descriptorWrite.pBufferInfo = nullptr;
+            descriptorWrite.pImageInfo = imageInfoList.data();
+            descriptorWrite.pTexelBufferView = nullptr; // Optional
+
+            descriptorWrites.push_back(descriptorWrite);
+        }
+
+        _vulkan_resource_storage.get(descriptor_set).write(descriptorWrites);
     }
 
     api::GraphicsPipelineReference VulkanGraphicsBackend::make_graphics_pipeline(
-        const api::DescriptorSetLayoutReference& descriptor_set_layout,
+        const std::vector<api::DescriptorSetLayoutReference>& descriptor_set_layout_list,
         const api::ShaderReference& vertex_shader,
         const api::ShaderReference& fragment_shader,
         const std::vector<api::VertexInputAttribute>& vertex_input_attribute_list,
@@ -247,6 +308,13 @@ namespace xar_engine::graphics::vulkan
         pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(float);
+
+        std::vector<VkDescriptorSetLayout> vk_descriptor_set_layout{};
+        for (const auto& descriptor_set_layout: descriptor_set_layout_list)
+        {
+            vk_descriptor_set_layout.push_back(_vulkan_resource_storage.get(descriptor_set_layout).get_native());
+        }
+
 
         return _vulkan_resource_storage.add(
             native::VulkanGraphicsPipeline{
@@ -264,7 +332,7 @@ namespace xar_engine::graphics::vulkan
                             "main"
                         }
                     },
-                    _vulkan_resource_storage.get(descriptor_set_layout).get_native(),
+                    std::move(vk_descriptor_set_layout),
                     to_vk_vertex_input_binding_description(vertex_input_binding_list),
                     to_vk_vertex_input_attribute_description(vertex_input_attribute_list),
                     {pushConstantRange},
@@ -407,7 +475,7 @@ namespace xar_engine::graphics::vulkan
         auto& vulkan_buffer = _vulkan_resource_storage.get(buffer);
 
         void* mapped_data = vulkan_buffer.map();
-        for (const auto& buffer_update : data)
+        for (const auto& buffer_update: data)
         {
             memcpy(
                 reinterpret_cast<char*>(mapped_data) + buffer_update.byte_offset,
@@ -759,7 +827,7 @@ namespace xar_engine::graphics::vulkan
         const api::CommandBufferReference& command_buffer,
         const api::SwapChainReference& swap_chain,
         const api::GraphicsPipelineReference& graphics_pipeline,
-        const api::DescriptorSetReference& descriptor_set)
+        const std::vector<api::DescriptorSetReference>& descriptor_set_list)
     {
         const auto vk_command_buffer = _vulkan_resource_storage.get(command_buffer).get_native();
 
@@ -768,7 +836,7 @@ namespace xar_engine::graphics::vulkan
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline());
 
-        const auto swap_chain_vk_extent =_vulkan_resource_storage.get(swap_chain).get_extent();
+        const auto swap_chain_vk_extent = _vulkan_resource_storage.get(swap_chain).get_extent();
 
         auto vk_viewport = VkViewport{};
         vk_viewport.x = 0.0f;
@@ -792,14 +860,19 @@ namespace xar_engine::graphics::vulkan
             1,
             &scissor_vk_rect_2d);
 
-        const auto vk_descriptor_set = _vulkan_resource_storage.get(descriptor_set).get_native();
+        std::vector<VkDescriptorSet> vk_descriptor_set_list{};
+        for (const auto& descriptor_set: descriptor_set_list)
+        {
+            vk_descriptor_set_list.push_back(_vulkan_resource_storage.get(descriptor_set).get_native());
+        }
+
         vkCmdBindDescriptorSets(
             vk_command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline_layout(),
             0,
-            1,
-            &vk_descriptor_set,
+            vk_descriptor_set_list.size(),
+            vk_descriptor_set_list.data(),
             0,
             nullptr);
     }

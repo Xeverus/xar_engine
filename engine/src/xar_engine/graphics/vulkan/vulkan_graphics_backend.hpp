@@ -40,20 +40,23 @@ namespace xar_engine::graphics::vulkan
 
         std::vector<api::CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) override;
 
-        api::DescriptorPoolReference make_descriptor_pool() override;
+        api::DescriptorPoolReference make_descriptor_pool(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) override;
+
+        api::DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) override;
 
         std::vector<api::DescriptorSetReference> make_descriptor_set_list(
             const api::DescriptorPoolReference& descriptor_pool,
             const api::DescriptorSetLayoutReference& descriptor_set_layout,
-            const std::vector<api::BufferReference>& uniform_buffer_list,
-            const std::vector<api::ImageViewReference>& texture_image_view_list,
-            const std::vector<api::SamplerReference>& sampler_list,
             std::uint32_t descriptor_counts) override;
 
-        api::DescriptorSetLayoutReference make_descriptor_set_layout() override;
+        void write_descriptor_set(
+            const api::DescriptorSetReference& descriptor_set,
+            const std::vector<api::BufferReference>& uniform_buffer_list,
+            const std::vector<api::ImageViewReference>& texture_image_view_list,
+            const std::vector<api::SamplerReference>& sampler_list) override;
 
         api::GraphicsPipelineReference make_graphics_pipeline(
-            const api::DescriptorSetLayoutReference& descriptor_set_layout,
+            const std::vector<api::DescriptorSetLayoutReference>& descriptor_set_layout_list,
             const api::ShaderReference& vertex_shader,
             const api::ShaderReference& fragment_shader,
             const std::vector<api::VertexInputAttribute>& vertex_input_attribute_list,
@@ -169,7 +172,7 @@ namespace xar_engine::graphics::vulkan
             const api::CommandBufferReference& command_buffer,
             const api::SwapChainReference& swap_chain,
             const api::GraphicsPipelineReference& graphics_pipeline,
-            const api::DescriptorSetReference& descriptor_set) override;
+            const std::vector<api::DescriptorSetReference>& descriptor_set_list) override;
 
         void end_rendering(
             const api::CommandBufferReference& command_buffer,

@@ -249,10 +249,11 @@ namespace xar_engine::renderer
         _vertex_shader_ref = _graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.vert.spv"));
         _fragment_shader_ref = _graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.frag.spv"));
 
-        _descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout();
+        _ubo_descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout({graphics::api::EDescriptorPoolType::UNIFORM_BUFFER});
+        _image_descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout({graphics::api::EDescriptorPoolType::SAMPLED_IMAGE});
 
         _graphics_pipeline_ref = _graphics_backend->resource().make_graphics_pipeline(
-            _descriptor_set_layout_ref,
+            {_ubo_descriptor_set_layout_ref, _image_descriptor_set_layout_ref},
             _vertex_shader_ref,
             _fragment_shader_ref,
             getAttributeDescriptions(),
@@ -278,14 +279,21 @@ namespace xar_engine::renderer
             _uniform_buffer_ref_list.push_back(_graphics_backend->resource().make_uniform_buffer(sizeof(UniformBufferObject)));
         }
 
-        _descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool();
-        _descriptor_set_list_ref = _graphics_backend->resource().make_descriptor_set_list(
-            _descriptor_pool_ref,
-            _descriptor_set_layout_ref,
-            _uniform_buffer_ref_list,
-            {_texture_image_view_ref},
-            {_sampler_ref},
+        _ubo_descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool({graphics::api::EDescriptorPoolType::UNIFORM_BUFFER});
+        _image_descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool({graphics::api::EDescriptorPoolType::SAMPLED_IMAGE});
+
+        _ubo_descriptor_set_list_ref = _graphics_backend->resource().make_descriptor_set_list(
+            _ubo_descriptor_pool_ref,
+            _ubo_descriptor_set_layout_ref,
             MAX_FRAMES_IN_FLIGHT);
+        _graphics_backend->resource().write_descriptor_set(_ubo_descriptor_set_list_ref[0], {_uniform_buffer_ref_list[0]}, {}, {});
+        _graphics_backend->resource().write_descriptor_set(_ubo_descriptor_set_list_ref[1], {_uniform_buffer_ref_list[1]}, {}, {});
+
+        _image_descriptor_set_ref = _graphics_backend->resource().make_descriptor_set_list(
+            _image_descriptor_pool_ref,
+            _image_descriptor_set_layout_ref,
+            1)[0];
+        _graphics_backend->resource().write_descriptor_set(_image_descriptor_set_ref, {}, {_texture_image_view_ref}, {_sampler_ref});
     }
 
     RendererImpl::~RendererImpl()
@@ -574,7 +582,7 @@ namespace xar_engine::renderer
             _command_buffer_list[frame_index],
             _swap_chain_ref,
             _graphics_pipeline_ref,
-            _descriptor_set_list_ref[frame_index]);
+            {_ubo_descriptor_set_list_ref[frame_index], _image_descriptor_set_ref});
 
         static float pcc = 0.0f;
         struct Constants

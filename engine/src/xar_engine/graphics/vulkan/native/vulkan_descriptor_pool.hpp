@@ -47,8 +47,8 @@ namespace xar_engine::graphics::vulkan::native
     {
         VulkanDevice vulkan_device;
 
-        std::int32_t uniform_buffer_count;
-        std::int32_t combined_image_sampler_count;
-        std::int32_t max_descriptor_set_count;
+        std::uint32_t uniform_buffer_count;
+        std::uint32_t combined_image_sampler_count;
+        std::uint32_t max_descriptor_set_count;
     };
 }

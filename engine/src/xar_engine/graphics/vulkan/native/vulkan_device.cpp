@@ -48,6 +48,7 @@ namespace xar_engine::graphics::vulkan::native
         const auto physical_device_extension_names = std::vector<const char*>{
             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+            VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
         };
 
         auto vk_physical_device_dynamic_rendering_features_khr = VkPhysicalDeviceDynamicRenderingFeaturesKHR{};

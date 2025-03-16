@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <set>
 #include <vector>
 
 #include <xar_engine/graphics/api/buffer_reference.hpp>
@@ -38,20 +39,23 @@ namespace xar_engine::graphics::api
 
         virtual std::vector<CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) = 0;
 
-        virtual DescriptorPoolReference make_descriptor_pool() = 0;
+        virtual DescriptorPoolReference make_descriptor_pool(const std::set<EDescriptorPoolType>& descriptor_pool_type_list) = 0;
+
+        virtual DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<EDescriptorPoolType>& descriptor_pool_type_list) = 0;
 
         virtual std::vector<DescriptorSetReference> make_descriptor_set_list(
             const DescriptorPoolReference& descriptor_pool,
             const DescriptorSetLayoutReference& descriptor_set_layout,
-            const std::vector<BufferReference>& uniform_buffer_list,
-            const std::vector<ImageViewReference>& texture_image_view_list,
-            const std::vector<SamplerReference>& sampler_list,
             std::uint32_t descriptor_counts) = 0;
 
-        virtual DescriptorSetLayoutReference make_descriptor_set_layout() = 0;
+        virtual void write_descriptor_set(
+            const DescriptorSetReference& descriptor_set,
+            const std::vector<BufferReference>& uniform_buffer_list,
+            const std::vector<ImageViewReference>& texture_image_view_list,
+            const std::vector<SamplerReference>& sampler_list) = 0;
 
         virtual GraphicsPipelineReference make_graphics_pipeline(
-            const DescriptorSetLayoutReference& descriptor_set_layout,
+            const std::vector<api::DescriptorSetLayoutReference>& descriptor_set_layout_list,
             const ShaderReference& vertex_shader,
             const ShaderReference& fragment_shader,
             const std::vector<VertexInputAttribute>& vertex_input_attribute_list,
@@ -186,7 +190,7 @@ namespace xar_engine::graphics::api
             const api::CommandBufferReference& command_buffer,
             const api::SwapChainReference& swap_chain,
             const api::GraphicsPipelineReference& graphics_pipeline,
-            const api::DescriptorSetReference& descriptor_set) = 0;
+            const std::vector<api::DescriptorSetReference>& descriptor_set_list) = 0;
 
         virtual void end_rendering(
             const api::CommandBufferReference& command_buffer,

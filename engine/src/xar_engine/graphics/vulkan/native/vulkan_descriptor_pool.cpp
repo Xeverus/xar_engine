@@ -26,17 +26,26 @@ namespace xar_engine::graphics::vulkan::native
         : vulkan_device(parameters.vulkan_device)
         , vk_descriptor_pool(nullptr)
     {
-        auto vk_descriptor_pool_size_list = std::vector<VkDescriptorPoolSize>(2);
-        vk_descriptor_pool_size_list[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        vk_descriptor_pool_size_list[0].descriptorCount = static_cast<uint32_t>(parameters.uniform_buffer_count);
-        vk_descriptor_pool_size_list[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        vk_descriptor_pool_size_list[1].descriptorCount = static_cast<uint32_t>(parameters.combined_image_sampler_count);
+        auto vk_descriptor_pool_size_list = std::vector<VkDescriptorPoolSize>{};
+        if (parameters.uniform_buffer_count > 0)
+        {
+            vk_descriptor_pool_size_list.emplace_back(
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                parameters.uniform_buffer_count);
+        }
+        if (parameters.combined_image_sampler_count > 0)
+        {
+            vk_descriptor_pool_size_list.emplace_back(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                parameters.combined_image_sampler_count);
+        }
 
         auto vk_descriptor_pool_create_info = VkDescriptorPoolCreateInfo{};
         vk_descriptor_pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         vk_descriptor_pool_create_info.poolSizeCount = static_cast<std::int32_t>(vk_descriptor_pool_size_list.size());
         vk_descriptor_pool_create_info.pPoolSizes = vk_descriptor_pool_size_list.data();
         vk_descriptor_pool_create_info.maxSets = static_cast<uint32_t>(parameters.max_descriptor_set_count);
+        vk_descriptor_pool_create_info.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
 
         const auto vk_create_descriptor_pool_result = vkCreateDescriptorPool(
             vulkan_device.get_native(),

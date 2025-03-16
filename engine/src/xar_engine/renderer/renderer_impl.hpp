@@ -73,9 +73,13 @@ namespace xar_engine::renderer
         graphics::api::ImageViewReference _texture_image_view_ref;
         graphics::api::SamplerReference _sampler_ref;
 
-        graphics::api::DescriptorPoolReference _descriptor_pool_ref;
-        graphics::api::DescriptorSetLayoutReference _descriptor_set_layout_ref;
-        std::vector<graphics::api::DescriptorSetReference> _descriptor_set_list_ref;
+        graphics::api::DescriptorPoolReference _ubo_descriptor_pool_ref;
+        graphics::api::DescriptorSetLayoutReference _ubo_descriptor_set_layout_ref;
+        std::vector<graphics::api::DescriptorSetReference> _ubo_descriptor_set_list_ref;
+
+        graphics::api::DescriptorPoolReference _image_descriptor_pool_ref;
+        graphics::api::DescriptorSetLayoutReference _image_descriptor_set_layout_ref;
+        graphics::api::DescriptorSetReference _image_descriptor_set_ref;
 
         graphics::api::ImageReference _color_image_ref;
         graphics::api::ImageViewReference _color_image_view_ref;

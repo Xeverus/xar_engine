@@ -49,7 +49,7 @@ namespace xar_engine::graphics::vulkan::native
         VulkanDevice vulkan_device;
 
         std::vector<ShaderParameters> vk_shader_module_list;
-        VkDescriptorSetLayout vk_descriptor_set_layout;
+        std::vector<VkDescriptorSetLayout> vk_descriptor_set_layout;
         std::vector<VkVertexInputBindingDescription> vk_vertex_input_binding_descriptor_list;
         std::vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_descriptor_list;
         std::vector<VkPushConstantRange> vk_push_constant_range_list;

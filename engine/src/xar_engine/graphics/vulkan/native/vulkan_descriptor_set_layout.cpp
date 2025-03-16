@@ -26,6 +26,7 @@ namespace xar_engine::graphics::vulkan::native
         vk_descriptor_set_layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         vk_descriptor_set_layout_create_info.bindingCount = static_cast<std::uint32_t>(parameters.vk_descriptor_set_layout_binding_list.size());
         vk_descriptor_set_layout_create_info.pBindings = parameters.vk_descriptor_set_layout_binding_list.data();
+        vk_descriptor_set_layout_create_info.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
 
         const auto vk_create_descriptor_set_layout_result = vkCreateDescriptorSetLayout(
             vulkan_device.get_native(),

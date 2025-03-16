@@ -111,8 +111,8 @@ namespace xar_engine::graphics::vulkan::native
 
         auto vk_pipeline_layout_create_info = VkPipelineLayoutCreateInfo{};
         vk_pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        vk_pipeline_layout_create_info.setLayoutCount = 1;
-        vk_pipeline_layout_create_info.pSetLayouts = &parameters.vk_descriptor_set_layout;
+        vk_pipeline_layout_create_info.setLayoutCount = parameters.vk_descriptor_set_layout.size();
+        vk_pipeline_layout_create_info.pSetLayouts = parameters.vk_descriptor_set_layout.data();
         vk_pipeline_layout_create_info.pushConstantRangeCount = static_cast<std::uint32_t>(parameters.vk_push_constant_range_list.size()); // Optional
         vk_pipeline_layout_create_info.pPushConstantRanges = parameters.vk_push_constant_range_list.data(); // Optional
         const auto vk_create_pipeline_layout_result = vkCreatePipelineLayout(
