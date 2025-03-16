@@ -3,8 +3,10 @@
 #include <memory>
 #include <vector>
 
+#include <xar_engine/asset/material.hpp>
 #include <xar_engine/asset/model.hpp>
 
+#include <xar_engine/renderer/gpu_asset/gpu_material.hpp>
 #include <xar_engine/renderer/gpu_asset/gpu_mesh_instance.hpp>
 #include <xar_engine/renderer/gpu_asset/gpu_model.hpp>
 
@@ -29,7 +31,11 @@ namespace xar_engine::renderer
 
         virtual std::vector<gpu_asset::GpuModel> make_gpu_model(const std::vector<asset::Model>& model_list) = 0;
 
-        virtual void add_gpu_mesh_instance_to_render(const gpu_asset::GpuMeshInstance& gpu_mesh_instance) = 0;
+        virtual gpu_asset::GpuMaterialReference make_gpu_material(const asset::Material& material) = 0;
+
+        virtual void add_gpu_mesh_instance_to_render(
+            const gpu_asset::GpuMeshInstance& gpu_mesh_instance,
+            const gpu_asset::GpuMaterialReference& gpu_material) = 0;
         virtual void clear_gpu_mesh_instance_to_render() = 0;
 
         virtual void update() = 0;

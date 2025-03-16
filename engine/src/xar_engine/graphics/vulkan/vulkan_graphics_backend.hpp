@@ -51,7 +51,9 @@ namespace xar_engine::graphics::vulkan
 
         void write_descriptor_set(
             const api::DescriptorSetReference& descriptor_set,
+            std::uint32_t uniform_buffer_first_index,
             const std::vector<api::BufferReference>& uniform_buffer_list,
+            std::uint32_t texture_image_first_index,
             const std::vector<api::ImageViewReference>& texture_image_view_list,
             const std::vector<api::SamplerReference>& sampler_list) override;
 

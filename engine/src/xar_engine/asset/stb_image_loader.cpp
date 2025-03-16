@@ -38,6 +38,12 @@ namespace xar_engine::asset
             bytes,
             image.bytes.size());
 
+        image.mip_level_count = static_cast<int32_t>(std::floor(
+            std::log2(
+                std::max(
+                    image.pixel_width,
+                    image.pixel_height)))) + 1;
+
         stbi_image_free(bytes);
 
         return image;

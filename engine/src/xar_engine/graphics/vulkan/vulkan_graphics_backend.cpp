@@ -217,7 +217,9 @@ namespace xar_engine::graphics::vulkan
 
     void VulkanGraphicsBackend::write_descriptor_set(
         const api::DescriptorSetReference& descriptor_set,
+        std::uint32_t uniform_buffer_first_index,
         const std::vector<api::BufferReference>& uniform_buffer_list,
+        std::uint32_t texture_image_first_index,
         const std::vector<api::ImageViewReference>& texture_image_view_list,
         const std::vector<api::SamplerReference>& sampler_list)
     {
@@ -233,7 +235,7 @@ namespace xar_engine::graphics::vulkan
         std::vector<VkDescriptorBufferInfo> vk_descriptor_buffer_info_list{};
         if (!uniform_buffer_list.empty())
         {
-            const auto uniform_buffer_counts = get_uniform_buffer_count(_vulkan_device);
+            const auto uniform_buffer_counts = get_uniform_buffer_count(_vulkan_device) - uniform_buffer_first_index;
             for (auto i = 0; i < uniform_buffer_counts; ++i)
             {
                 const auto object_index = i < uniform_buffer_list.size() ? i : 0;
@@ -251,7 +253,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrite.dstSet = _vulkan_resource_storage.get(descriptor_set).get_native();
             descriptorWrite.dstBinding = 0;
-            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.dstArrayElement = uniform_buffer_first_index;
             descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrite.descriptorCount = vk_descriptor_buffer_info_list.size();
             descriptorWrite.pBufferInfo = vk_descriptor_buffer_info_list.data();
@@ -264,7 +266,7 @@ namespace xar_engine::graphics::vulkan
         auto imageInfoList = std::vector<VkDescriptorImageInfo>{};
         if (!texture_image_view_list.empty())
         {
-            const auto combined_image_sampler_count = get_combined_image_sampler_count(_vulkan_device);
+            const auto combined_image_sampler_count = get_combined_image_sampler_count(_vulkan_device) - texture_image_first_index;
             for (auto texture_index = 0; texture_index < combined_image_sampler_count; ++texture_index)
             {
                 const auto object_index = texture_index < texture_image_view_list.size() ? texture_index : 0;
@@ -281,7 +283,7 @@ namespace xar_engine::graphics::vulkan
             descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrite.dstSet = _vulkan_resource_storage.get(descriptor_set).get_native();
             descriptorWrite.dstBinding = 1;
-            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.dstArrayElement = texture_image_first_index;
             descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             descriptorWrite.descriptorCount = imageInfoList.size();
             descriptorWrite.pBufferInfo = nullptr;
@@ -304,10 +306,16 @@ namespace xar_engine::graphics::vulkan
         const api::EFormat depth_format,
         std::uint32_t sample_counts)
     {
+        struct Constants
+        {
+            float time;
+            std::int32_t material_index;
+        } pc;
+
         VkPushConstantRange pushConstantRange{};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(float);
+        pushConstantRange.size = sizeof(Constants); // TODO()
 
         std::vector<VkDescriptorSetLayout> vk_descriptor_set_layout{};
         for (const auto& descriptor_set_layout: descriptor_set_layout_list)

@@ -51,9 +51,15 @@ namespace xar_engine::graphics::vulkan::native
             VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
         };
 
+        VkPhysicalDeviceVulkan12Features features12{};
+        features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        features12.runtimeDescriptorArray = VK_TRUE;
+        features12.descriptorIndexing = VK_TRUE;
+
         auto vk_physical_device_dynamic_rendering_features_khr = VkPhysicalDeviceDynamicRenderingFeaturesKHR{};
         vk_physical_device_dynamic_rendering_features_khr.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
         vk_physical_device_dynamic_rendering_features_khr.dynamicRendering = VK_TRUE;
+        vk_physical_device_dynamic_rendering_features_khr.pNext = &features12;
 
         auto vk_device_create_info = VkDeviceCreateInfo{};
         vk_device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

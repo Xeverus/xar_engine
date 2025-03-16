@@ -12,6 +12,7 @@ namespace xar_engine::asset
         std::int32_t channel_count;
         std::int32_t pixel_width;
         std::int32_t pixel_height;
+        std::int32_t mip_level_count;
     };
 }
 

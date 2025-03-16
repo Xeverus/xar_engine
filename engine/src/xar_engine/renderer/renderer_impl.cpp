@@ -130,15 +130,8 @@ namespace xar_engine::renderer
     }
 
 
-    void RendererImpl::init_texture()
+    graphics::api::ImageReference RendererImpl::init_texture(const asset::Image& image)
     {
-        auto image = asset::ImageLoaderFactory().make()->load_image_from_file("assets/viking_room.png");
-        mipLevels = static_cast<uint32_t>(std::floor(
-            std::log2(
-                std::max(
-                    image.pixel_width,
-                    image.pixel_height)))) + 1;
-
         const auto imageSize = asset::image::get_byte_size(image);
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(imageSize);
@@ -150,11 +143,11 @@ namespace xar_engine::renderer
                  static_cast<std::uint32_t>(imageSize),
              }});
 
-        _texture_image_ref = _graphics_backend->resource().make_image(
+        auto texture_image_ref = _graphics_backend->resource().make_image(
             graphics::api::EImageType::TEXTURE,
             {image.pixel_width, image.pixel_height, 1},
             graphics::api::EFormat::R8G8B8A8_SRGB,
-            mipLevels,
+            image.mip_level_count,
             1);
 
         auto tmp_command_buffer = _graphics_backend->resource().make_command_buffer_list(1);
@@ -163,17 +156,19 @@ namespace xar_engine::renderer
             graphics::api::ECommandBufferType::ONE_TIME);
         _graphics_backend->command().transit_image_layout(
             tmp_command_buffer[0],
-            _texture_image_ref,
+            texture_image_ref,
             graphics::api::EImageLayout::TRANSFER_DESTINATION);
         _graphics_backend->command().copy_buffer_to_image(
             tmp_command_buffer[0],
             staging_buffer,
-            _texture_image_ref);
+            texture_image_ref);
         _graphics_backend->command().generate_image_mip_maps(
             tmp_command_buffer[0],
-            _texture_image_ref);
+            texture_image_ref);
         _graphics_backend->command().end_command_buffer(tmp_command_buffer[0]);
         _graphics_backend->command().submit_command_buffer(tmp_command_buffer[0]);
+
+        return texture_image_ref;
     }
 
 
@@ -196,7 +191,7 @@ namespace xar_engine::renderer
                 0.0f,
                 1.0f));
 
-        ubo.model = ubo.model * _gpu_mesh_instance_to_redner_list[0].model_matrix;
+        ubo.model = ubo.model * _redner_item_list[0].gpu_mesh_instance.model_matrix;
 
         ubo.view = math::make_view_matrix(
             math::Vector3f(
@@ -238,7 +233,6 @@ namespace xar_engine::renderer
         : _graphics_backend(std::move(graphics_backend))
         , _window_surface(std::move(window_surface))
         , frameCounter(0)
-        , mipLevels(0)
     {
         _command_buffer_list = _graphics_backend->resource().make_command_buffer_list(MAX_FRAMES_IN_FLIGHT);
 
@@ -264,14 +258,6 @@ namespace xar_engine::renderer
 
         init_color_msaa();
         init_depth();
-        init_texture();
-
-        _texture_image_view_ref = _graphics_backend->resource().make_image_view(
-            _texture_image_ref,
-            graphics::api::EImageAspect::COLOR,
-            mipLevels);
-
-        _sampler_ref = _graphics_backend->resource().make_sampler(static_cast<float>(mipLevels));
 
         _uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -286,14 +272,25 @@ namespace xar_engine::renderer
             _ubo_descriptor_pool_ref,
             _ubo_descriptor_set_layout_ref,
             MAX_FRAMES_IN_FLIGHT);
-        _graphics_backend->resource().write_descriptor_set(_ubo_descriptor_set_list_ref[0], {_uniform_buffer_ref_list[0]}, {}, {});
-        _graphics_backend->resource().write_descriptor_set(_ubo_descriptor_set_list_ref[1], {_uniform_buffer_ref_list[1]}, {}, {});
+        _graphics_backend->resource().write_descriptor_set(
+            _ubo_descriptor_set_list_ref[0],
+            0,
+            {_uniform_buffer_ref_list[0]},
+            0,
+            {},
+            {});
+        _graphics_backend->resource().write_descriptor_set(
+            _ubo_descriptor_set_list_ref[1],
+            0,
+            {_uniform_buffer_ref_list[1]},
+            0,
+            {},
+            {});
 
         _image_descriptor_set_ref = _graphics_backend->resource().make_descriptor_set_list(
             _image_descriptor_pool_ref,
             _image_descriptor_set_layout_ref,
             1)[0];
-        _graphics_backend->resource().write_descriptor_set(_image_descriptor_set_ref, {}, {_texture_image_view_ref}, {_sampler_ref});
     }
 
     RendererImpl::~RendererImpl()
@@ -522,14 +519,45 @@ namespace xar_engine::renderer
         return gpu_model_data_list;
     }
 
-    void RendererImpl::add_gpu_mesh_instance_to_render(const gpu_asset::GpuMeshInstance& gpu_mesh_instance)
+    gpu_asset::GpuMaterialReference RendererImpl::make_gpu_material(const asset::Material& material)
     {
-        _gpu_mesh_instance_to_redner_list.push_back(gpu_mesh_instance);
+        const auto material_index = _gpu_material_data_map.size();
+
+        auto image = asset::ImageLoaderFactory().make()->load_image_from_file(*material.color_base_texture);
+        auto texture_image_ref = init_texture(image);
+        auto texture_image_view_ref = _graphics_backend->resource().make_image_view(
+            texture_image_ref,
+            graphics::api::EImageAspect::COLOR,
+            image.mip_level_count);
+        auto sampler_ref = _graphics_backend->resource().make_sampler(static_cast<float>(image.mip_level_count));
+
+        _graphics_backend->resource().write_descriptor_set(
+            _image_descriptor_set_ref,
+            0,
+            {},
+            material_index,
+            {texture_image_view_ref},
+            {sampler_ref});
+
+        return _gpu_material_data_map.add(
+            {
+                texture_image_ref,
+                texture_image_view_ref,
+                sampler_ref,
+                static_cast<std::uint32_t>(material_index),
+            });
+    }
+
+    void RendererImpl::add_gpu_mesh_instance_to_render(
+        const gpu_asset::GpuMeshInstance& gpu_mesh_instance,
+        const gpu_asset::GpuMaterialReference& gpu_material)
+    {
+        _redner_item_list.push_back({gpu_mesh_instance, gpu_material});
     }
 
     void RendererImpl::clear_gpu_mesh_instance_to_render()
     {
-        _gpu_mesh_instance_to_redner_list.clear();
+        _redner_item_list.clear();
     }
 
     void RendererImpl::update()
@@ -588,21 +616,25 @@ namespace xar_engine::renderer
         struct Constants
         {
             float time = pcc++;
+            std::int32_t material_index;
         } pc;
 
-        _graphics_backend->command().push_constants(
-            _command_buffer_list[frame_index],
-            _graphics_pipeline_ref,
-            graphics::api::EShaderType::FRAGMENT,
-            0,
-            sizeof(Constants),
-            &pc);
-
-        for (const auto& gpu_mesh_instance: _gpu_mesh_instance_to_redner_list)
+        for (const auto& render_item: _redner_item_list)
         {
-            const auto& gpu_mesh_data = _gpu_mesh_data_map.get_object(gpu_mesh_instance.gpu_mesh);
+            const auto& gpu_mesh_data = _gpu_mesh_data_map.get_object(render_item.gpu_mesh_instance.gpu_mesh);
             const auto& gpu_model_data = _gpu_model_data_map.get_object(gpu_mesh_data.gpu_model);
             const auto& gpu_buffer_data = _gpu_model_data_buffer_map.get_object(gpu_model_data.gpu_model_data_buffer);
+
+            const auto& gpu_material_data = _gpu_material_data_map.get_object(render_item.gpu_material);
+
+            pc.material_index = gpu_material_data.index;
+            _graphics_backend->command().push_constants(
+                _command_buffer_list[frame_index],
+                _graphics_pipeline_ref,
+                graphics::api::EShaderType::FRAGMENT,
+                0,
+                sizeof(Constants),
+                &pc);
 
             _graphics_backend->command().set_vertex_buffer_list(
                 _command_buffer_list[frame_index],
@@ -637,7 +669,7 @@ namespace xar_engine::renderer
             _swap_chain_ref,
             current_image_index);
 
-        if (!_gpu_mesh_instance_to_redner_list.empty())
+        if (!_redner_item_list.empty())
         {
             updateUniformBuffer(frame_index);
         }

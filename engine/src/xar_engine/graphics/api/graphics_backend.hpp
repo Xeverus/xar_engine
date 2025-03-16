@@ -50,7 +50,9 @@ namespace xar_engine::graphics::api
 
         virtual void write_descriptor_set(
             const DescriptorSetReference& descriptor_set,
+            std::uint32_t uniform_buffer_first_index,
             const std::vector<BufferReference>& uniform_buffer_list,
+            std::uint32_t texture_image_first_index,
             const std::vector<ImageViewReference>& texture_image_view_list,
             const std::vector<SamplerReference>& sampler_list) = 0;
 

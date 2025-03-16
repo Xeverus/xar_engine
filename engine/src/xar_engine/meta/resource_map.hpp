@@ -10,7 +10,8 @@
 
 namespace xar_engine::meta
 {
-    template <typename Tag, typename Type>
+    template <typename Tag,
+              typename Type>
     class TResourceMap
     {
     public:
@@ -25,31 +26,40 @@ namespace xar_engine::meta
         const Type& get_object(const Resource& resource) const;
         Type& get_object(const Resource& resource);
 
+        std::size_t size() const;
+
     private:
         std::unordered_map<ResourceId, Type> _resource_map;
         ResourceId _next_id;
     };
 
 
-    template <typename Tag, typename Type>
+    template <typename Tag,
+              typename Type>
     TResourceMap<Tag, Type>::TResourceMap()
         : _resource_map{}
         , _next_id(0)
     {
     }
 
-    template <typename Tag, typename Type>
+    template <typename Tag,
+              typename Type>
     TResourceMap<Tag, Type>::Resource TResourceMap<Tag, Type>::add(Type&& object)
     {
         const auto resource_id = _next_id++;
-        _resource_map.emplace(resource_id, std::forward<Type>(object));
+        _resource_map.emplace(
+            resource_id,
+            std::forward<Type>(object));
 
-        return Resource{resource_id, [this, resource_id](){
-            _resource_map.erase(resource_id);
-        }};
+        return Resource{
+            resource_id, [this, resource_id]()
+            {
+                _resource_map.erase(resource_id);
+            }};
     }
 
-    template <typename Tag, typename Type>
+    template <typename Tag,
+              typename Type>
     const Type& TResourceMap<Tag, Type>::get_object(const Resource& resource) const
     {
         const auto iter = _resource_map.find(resource.get_id());
@@ -63,7 +73,8 @@ namespace xar_engine::meta
         return iter->second;
     }
 
-    template <typename Tag, typename Type>
+    template <typename Tag,
+              typename Type>
     Type& TResourceMap<Tag, Type>::get_object(const Resource& resource)
     {
         const auto iter = _resource_map.find(resource.get_id());
@@ -75,5 +86,12 @@ namespace xar_engine::meta
             resource.get_id());
 
         return iter->second;
+    }
+
+    template <typename Tag,
+              typename Type>
+    std::size_t TResourceMap<Tag, Type>::size() const
+    {
+        return _resource_map.size();
     }
 }

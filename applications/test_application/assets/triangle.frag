@@ -10,6 +10,7 @@ layout(set = 1, binding = 1) uniform sampler2D textures[];
 
 layout (push_constant) uniform Constants {
     float frame;
+    int material_index;
 } constants;
 
 void main() {
@@ -18,5 +19,5 @@ void main() {
     outColor = vec4(vec3(pow(gl_FragCoord.z, 128)), 1);
     outColor.r *= multiplier;
 
-    outColor = texture(textures[0], textureCoords);
+    outColor = texture(textures[constants.material_index], textureCoords);
 }

@@ -4,8 +4,11 @@
 #include <memory>
 #include <vector>
 
+#include <xar_engine/asset/image.hpp>
+
 #include <xar_engine/renderer/renderer.hpp>
 
+#include <xar_engine/renderer/gpu_asset/gpu_material_data.hpp>
 #include <xar_engine/renderer/gpu_asset/gpu_model_data.hpp>
 #include <xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp>
 
@@ -44,7 +47,11 @@ namespace xar_engine::renderer
 
         std::vector<gpu_asset::GpuModel> make_gpu_model(const std::vector<asset::Model>& model_list) override;
 
-        void add_gpu_mesh_instance_to_render(const gpu_asset::GpuMeshInstance& gpu_mesh_instance) override;
+        gpu_asset::GpuMaterialReference make_gpu_material(const asset::Material& material) override;
+
+        void add_gpu_mesh_instance_to_render(
+            const gpu_asset::GpuMeshInstance& gpu_mesh_instance,
+            const gpu_asset::GpuMaterialReference& gpu_material) override;
         void clear_gpu_mesh_instance_to_render() override;
 
         void update() override;
@@ -52,7 +59,8 @@ namespace xar_engine::renderer
     private:
         void init_color_msaa();
         void init_depth();
-        void init_texture();
+
+        graphics::api::ImageReference init_texture(const asset::Image& image);
 
     private:
         void updateUniformBuffer(uint32_t currentImage);
@@ -69,10 +77,6 @@ namespace xar_engine::renderer
 
         std::vector<graphics::api::BufferReference> _uniform_buffer_ref_list;
 
-        graphics::api::ImageReference _texture_image_ref;
-        graphics::api::ImageViewReference _texture_image_view_ref;
-        graphics::api::SamplerReference _sampler_ref;
-
         graphics::api::DescriptorPoolReference _ubo_descriptor_pool_ref;
         graphics::api::DescriptorSetLayoutReference _ubo_descriptor_set_layout_ref;
         std::vector<graphics::api::DescriptorSetReference> _ubo_descriptor_set_list_ref;
@@ -88,13 +92,19 @@ namespace xar_engine::renderer
 
         graphics::api::GraphicsPipelineReference _graphics_pipeline_ref;
 
-        uint32_t mipLevels;
         uint32_t frameCounter;
 
         meta::TResourceMap<gpu_asset::GpuModelDataBufferTag, gpu_asset::GpuModelDataBuffer> _gpu_model_data_buffer_map;
         meta::TResourceMap<gpu_asset::GpuModelTag, gpu_asset::GpuModelData> _gpu_model_data_map;
         meta::TResourceMap<gpu_asset::GpuMeshTag, gpu_asset::GpuMeshData> _gpu_mesh_data_map;
+        meta::TResourceMap<gpu_asset::GpuMaterialTag, gpu_asset::GpuMaterialData> _gpu_material_data_map;
 
-        std::vector<gpu_asset::GpuMeshInstance> _gpu_mesh_instance_to_redner_list;
+        struct RenderItem
+        {
+            gpu_asset::GpuMeshInstance gpu_mesh_instance;
+            gpu_asset::GpuMaterialReference gpu_material;
+        };
+
+        std::vector<RenderItem> _redner_item_list;
     };
 }

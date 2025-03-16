@@ -20,6 +20,7 @@ int main()
         graphics_backend,
         window->get_surface());
 
+    std::vector<xar_engine::renderer::gpu_asset::GpuMaterialReference> gpu_material_list;
     std::vector<xar_engine::renderer::gpu_asset::GpuModel> gpu_model_list;
     window->set_on_run(
         [&]()
@@ -29,6 +30,8 @@ int main()
                     xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj"),
                     xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/house.obj"),
                 });
+            gpu_material_list.push_back(renderer->make_gpu_material({"assets/viking_room.png"}));
+            gpu_material_list.push_back(renderer->make_gpu_material({"assets/house.png"}));
         });
 
     window->set_on_update(
@@ -79,7 +82,8 @@ int main()
                                     {
                                         gpu_model_list[0].gpu_mesh[0],
                                         xar_engine::math::make_identity_matrix(),
-                                    });
+                                    },
+                                    gpu_material_list[0]);
                                 break;
                             }
                             case xar_engine::input::ButtonCode::_2:
@@ -105,7 +109,8 @@ int main()
                                         {
                                             gpu_model_list[1].gpu_mesh[i],
                                             model_matrix,
-                                        });
+                                        },
+                                        gpu_material_list[1]);
                                 }
                                 break;
                             }
