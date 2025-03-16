@@ -4,6 +4,7 @@
 
 #include <volk.h>
 
+#include <xar_engine/graphics/vulkan/native/vulkan_descriptor_set_layout.hpp>
 #include <xar_engine/graphics/vulkan/native/vulkan_device.hpp>
 
 
@@ -23,8 +24,7 @@ namespace xar_engine::graphics::vulkan::native
         ~VulkanDescriptorPool();
 
 
-        std::vector<VulkanDescriptorSet> make_descriptor_set_list(
-            const std::vector<VkDescriptorSetLayout>& vk_descriptor_set_layout_list);
+        std::vector<VulkanDescriptorSet> make_descriptor_set_list(const std::vector<VulkanDescriptorSetLayout>& vulkan_descriptor_set_layout_list);
 
 
         [[nodiscard]]

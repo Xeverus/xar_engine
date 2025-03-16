@@ -201,9 +201,9 @@ namespace xar_engine::graphics::vulkan
         const api::DescriptorSetLayoutReference& descriptor_set_layout,
         const std::uint32_t descriptor_counts)
     {
-        auto layouts = std::vector<VkDescriptorSetLayout>(
+        auto layouts = std::vector<native::VulkanDescriptorSetLayout>(
             descriptor_counts,
-            _vulkan_resource_storage.get(descriptor_set_layout).get_native());
+            _vulkan_resource_storage.get(descriptor_set_layout));
 
         auto vulkan_descriptor_set_ref_list = std::vector<api::DescriptorSetReference>();
         auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_pool).make_descriptor_set_list(layouts);

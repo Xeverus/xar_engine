@@ -16,11 +16,13 @@ namespace xar_engine::graphics::vulkan::native
 
     public:
         VulkanDescriptorPool vulkan_descriptor_pool;
+        VulkanDescriptorSetLayout vulkan_descriptor_layout_set;
         VkDescriptorSet vk_descriptor_set;
     };
 
     VulkanDescriptorSet::State::State(const VulkanDescriptorSet::Parameters& parameters)
         : vulkan_descriptor_pool{parameters.vulkan_descriptor_pool}
+        , vulkan_descriptor_layout_set{parameters.vulkan_descriptor_layout_set}
         , vk_descriptor_set{parameters.vk_descriptor_set}
     {
     }

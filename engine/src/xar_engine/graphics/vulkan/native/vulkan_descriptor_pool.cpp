@@ -81,8 +81,14 @@ namespace xar_engine::graphics::vulkan::native
     VulkanDescriptorPool::~VulkanDescriptorPool() = default;
 
     std::vector<VulkanDescriptorSet> VulkanDescriptorPool::make_descriptor_set_list(
-        const std::vector<VkDescriptorSetLayout>& vk_descriptor_set_layout_list)
+        const std::vector<VulkanDescriptorSetLayout>& vulkan_descriptor_set_layout_list)
     {
+        auto vk_descriptor_set_layout_list = std::vector<VkDescriptorSetLayout>{};
+        for (const auto& vulkan_descriptor_set_layout : vulkan_descriptor_set_layout_list)
+        {
+            vk_descriptor_set_layout_list.push_back(vulkan_descriptor_set_layout.get_native());
+        }
+
         auto vk_descriptor_set_allocate_info = VkDescriptorSetAllocateInfo{};
         vk_descriptor_set_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         vk_descriptor_set_allocate_info.descriptorPool = _state->vk_descriptor_pool;
@@ -101,12 +107,13 @@ namespace xar_engine::graphics::vulkan::native
 
         auto vulkan_descriptor_set = std::vector<VulkanDescriptorSet>{};
         vulkan_descriptor_set.reserve(vk_descriptor_set_layout_list.size());
-        for (auto vk_descriptor_set: vk_descriptor_set_list)
+        for (auto i = 0; i < vk_descriptor_set_list.size(); ++i)
         {
             vulkan_descriptor_set.emplace_back(
                 VulkanDescriptorSet::Parameters{
                     *this,
-                    vk_descriptor_set,
+                    vulkan_descriptor_set_layout_list[i],
+                    vk_descriptor_set_list[i],
                 });
         }
 

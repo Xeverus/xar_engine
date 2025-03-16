@@ -6,6 +6,7 @@
 #include <volk.h>
 
 #include <xar_engine/graphics/vulkan/native/vulkan_descriptor_pool.hpp>
+#include <xar_engine/graphics/vulkan/native/vulkan_descriptor_set_layout.hpp>
 #include <xar_engine/graphics/vulkan/native/vulkan_device.hpp>
 
 
@@ -37,6 +38,7 @@ namespace xar_engine::graphics::vulkan::native
     struct VulkanDescriptorSet::Parameters
     {
         VulkanDescriptorPool vulkan_descriptor_pool;
+        VulkanDescriptorSetLayout vulkan_descriptor_layout_set;
         VkDescriptorSet vk_descriptor_set;
     };
 }
