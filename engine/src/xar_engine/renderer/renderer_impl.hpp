@@ -8,13 +8,12 @@
 
 #include <xar_engine/asset/image.hpp>
 
-#include <xar_engine/graphics/graphics_backend_type.hpp>
-
 #include <xar_engine/graphics/api/buffer_reference.hpp>
 #include <xar_engine/graphics/api/command_buffer_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_pool_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_set_layout_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_set_reference.hpp>
+#include <xar_engine/graphics/api/graphics_backend_type.hpp>
 #include <xar_engine/graphics/api/graphics_pipeline_reference.hpp>
 #include <xar_engine/graphics/api/image_reference.hpp>
 #include <xar_engine/graphics/api/image_view_reference.hpp>
@@ -40,7 +39,7 @@ namespace xar_engine::renderer
     {
     public:
         RendererImpl(
-            std::shared_ptr<graphics::IGraphicsBackend> graphics_backend,
+            std::shared_ptr<graphics::backend::IGraphicsBackend> graphics_backend,
             std::shared_ptr<graphics::IWindowSurface> window_surface);
 
         ~RendererImpl() override;
@@ -68,7 +67,7 @@ namespace xar_engine::renderer
 
     private:
         std::shared_ptr<graphics::IWindowSurface> _window_surface;
-        std::shared_ptr<graphics::IGraphicsBackend> _graphics_backend;
+        std::shared_ptr<graphics::backend::IGraphicsBackend> _graphics_backend;
 
         std::vector<graphics::api::CommandBufferReference> _command_buffer_list;
 

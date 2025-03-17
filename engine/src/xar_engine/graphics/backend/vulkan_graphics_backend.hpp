@@ -3,13 +3,13 @@
 #include <memory>
 #include <vector>
 
-#include <xar_engine/graphics/graphics_backend.hpp>
+#include <xar_engine/graphics/backend/graphics_backend.hpp>
+#include <xar_engine/graphics/backend/vulkan_resource_storage.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_resource_storage.hpp>
 #include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
 
 
-namespace xar_engine::graphics::vulkan
+namespace xar_engine::graphics::backend
 {
     class VulkanGraphicsBackend
         : public IGraphicsBackend
@@ -182,11 +182,11 @@ namespace xar_engine::graphics::vulkan
             std::uint32_t image_index) override;
 
     private:
-        std::shared_ptr<native::VulkanInstance> _vulkan_instance;
-        std::vector<native::VulkanPhysicalDevice> _vulkan_physical_device_list;
-        native::VulkanDevice _vulkan_device;
-        native::VulkanQueue _vulkan_graphics_queue;
-        native::VulkanCommandBufferPool _vulkan_command_buffer_pool;
+        std::shared_ptr<vulkan::native::VulkanInstance> _vulkan_instance;
+        std::vector<vulkan::native::VulkanPhysicalDevice> _vulkan_physical_device_list;
+        vulkan::native::VulkanDevice _vulkan_device;
+        vulkan::native::VulkanQueue _vulkan_graphics_queue;
+        vulkan::native::VulkanCommandBufferPool _vulkan_command_buffer_pool;
         VulkanResourceStorage _vulkan_resource_storage;
     };
 }

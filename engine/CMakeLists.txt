@@ -19,9 +19,9 @@ set(XAR_ENGINE_PUBLIC_FILES
         # error
         include/xar_engine/error/exception.hpp
 
-        # graphics
-        include/xar_engine/graphics/graphics_backend_factory.hpp
-        include/xar_engine/graphics/graphics_backend_type.hpp
+        # graphics api
+        include/xar_engine/graphics/api/graphics_backend_factory.hpp
+        include/xar_engine/graphics/api/graphics_backend_type.hpp
 
         # input
         include/xar_engine/input/button.hpp
@@ -86,6 +86,8 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/api/descriptor_set_reference.hpp
         src/xar_engine/graphics/api/descriptor_set_layout_reference.hpp
         src/xar_engine/graphics/api/format.hpp
+        src/xar_engine/graphics/api/graphics_backend_factory.cpp
+        src/xar_engine/graphics/api/graphics_backend_type.cpp
         src/xar_engine/graphics/api/graphics_pipeline_reference.hpp
         src/xar_engine/graphics/api/image_reference.hpp
         src/xar_engine/graphics/api/image_view_reference.hpp
@@ -94,6 +96,16 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/api/shader_reference.hpp
         src/xar_engine/graphics/api/surface_reference.hpp
         src/xar_engine/graphics/api/swap_chain_reference.hpp
+
+        # graphics backend
+        src/xar_engine/graphics/backend/graphics_backend.cpp
+        src/xar_engine/graphics/backend/graphics_backend.hpp
+        src/xar_engine/graphics/backend/vulkan_graphics_backend.cpp
+        src/xar_engine/graphics/backend/vulkan_graphics_backend.hpp
+        src/xar_engine/graphics/backend/vulkan_resource_storage.cpp
+        src/xar_engine/graphics/backend/vulkan_resource_storage.hpp
+        src/xar_engine/graphics/backend/vulkan_type_converters.cpp
+        src/xar_engine/graphics/backend/vulkan_type_converters.hpp
 
         # graphics vulkan native
         src/xar_engine/graphics/vulkan/native/vulkan_buffer.cpp
@@ -132,20 +144,10 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/vulkan/native/vulkan_swap_chain.hpp
 
         # graphics vulkan
-        src/xar_engine/graphics/vulkan/vulkan_graphics_backend.cpp
-        src/xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp
-        src/xar_engine/graphics/vulkan/vulkan_resource_storage.cpp
-        src/xar_engine/graphics/vulkan/vulkan_resource_storage.hpp
-        src/xar_engine/graphics/vulkan/vulkan_type_converters.cpp
-        src/xar_engine/graphics/vulkan/vulkan_type_converters.hpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.cpp
         src/xar_engine/graphics/vulkan/vulkan_window_surface.hpp
 
         # graphics
-        src/xar_engine/graphics/graphics_backend.cpp
-        src/xar_engine/graphics/graphics_backend.hpp
-        src/xar_engine/graphics/graphics_backend_factory.cpp
-        src/xar_engine/graphics/graphics_backend_type.cpp
         src/xar_engine/graphics/window_surface.cpp
         src/xar_engine/graphics/window_surface.hpp
 

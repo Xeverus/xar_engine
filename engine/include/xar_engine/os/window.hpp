@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include <xar_engine/graphics/graphics_backend_type.hpp>
+#include <xar_engine/graphics/api/graphics_backend_type.hpp>
 
 #include <xar_engine/input/input_event.hpp>
 
@@ -63,6 +63,6 @@ namespace xar_engine::os
     struct IWindow::Parameters
     {
         std::string title;
-        graphics::EGraphicsBackendType graphics_backend_type;
+        graphics::api::EGraphicsBackendType graphics_backend_type;
     };
 }

@@ -1,24 +1,24 @@
-#include <xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp>
+#include <xar_engine/graphics/backend/vulkan_graphics_backend.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_type_converters.hpp>
+#include <xar_engine/graphics/backend/vulkan_type_converters.hpp>
 
 #include <xar_engine/graphics/vulkan/native/vulkan_queue.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
 
-namespace xar_engine::graphics::vulkan
+namespace xar_engine::graphics::backend
 {
     namespace
     {
-        std::uint32_t get_uniform_buffer_count(const native::VulkanDevice& vulkan_device)
+        std::uint32_t get_uniform_buffer_count(const vulkan::native::VulkanDevice& vulkan_device)
         {
             return std::min(
                 std::uint32_t{32},
                 vulkan_device.get_physical_device().get_vk_device_properties().limits.maxDescriptorSetUniformBuffers);
         }
 
-        std::uint32_t get_combined_image_sampler_count(const native::VulkanDevice& vulkan_device)
+        std::uint32_t get_combined_image_sampler_count(const vulkan::native::VulkanDevice& vulkan_device)
         {
             return std::min(
                 std::uint32_t{1024},
@@ -31,14 +31,14 @@ namespace xar_engine::graphics::vulkan
         _vulkan_instance = meta::RefCountedSingleton::get_instance_t<vulkan::native::VulkanInstance>();
         _vulkan_physical_device_list = _vulkan_instance->get_physical_device_list();
         _vulkan_device = vulkan::native::VulkanDevice{{_vulkan_physical_device_list[0]}};
-        _vulkan_graphics_queue = native::VulkanQueue{
+        _vulkan_graphics_queue = vulkan::native::VulkanQueue{
             {
                 _vulkan_device,
                 _vulkan_device.get_graphics_family_index(),
             }
         };
 
-        _vulkan_command_buffer_pool = native::VulkanCommandBufferPool{
+        _vulkan_command_buffer_pool = vulkan::native::VulkanCommandBufferPool{
             {
                 _vulkan_device,
             }};
@@ -79,7 +79,7 @@ namespace xar_engine::graphics::vulkan
     api::BufferReference VulkanGraphicsBackend::make_staging_buffer(const std::uint32_t buffer_byte_size)
     {
         return _vulkan_resource_storage.add(
-            native::VulkanBuffer{
+            vulkan::native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{buffer_byte_size},
@@ -92,7 +92,7 @@ namespace xar_engine::graphics::vulkan
     api::BufferReference VulkanGraphicsBackend::make_vertex_buffer(const std::uint32_t buffer_byte_size)
     {
         return _vulkan_resource_storage.add(
-            native::VulkanBuffer{
+            vulkan::native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{buffer_byte_size},
@@ -104,7 +104,7 @@ namespace xar_engine::graphics::vulkan
     api::BufferReference VulkanGraphicsBackend::make_index_buffer(const std::uint32_t buffer_byte_size)
     {
         return _vulkan_resource_storage.add(
-            native::VulkanBuffer{
+            vulkan::native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{buffer_byte_size},
@@ -116,7 +116,7 @@ namespace xar_engine::graphics::vulkan
     api::BufferReference VulkanGraphicsBackend::make_uniform_buffer(const std::uint32_t byte_size)
     {
         return _vulkan_resource_storage.add(
-            native::VulkanBuffer{
+            vulkan::native::VulkanBuffer{
                 {
                     _vulkan_device,
                     VkDeviceSize{byte_size},
@@ -152,7 +152,7 @@ namespace xar_engine::graphics::vulkan
         const auto max_descriptor_set_count = std::uint32_t{16};
 
         return _vulkan_resource_storage.add(
-            native::VulkanDescriptorPool{
+            vulkan::native::VulkanDescriptorPool{
                 {
                     _vulkan_device,
                     uniform_buffer_count,
@@ -189,7 +189,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         return _vulkan_resource_storage.add(
-            native::VulkanDescriptorSetLayout{
+            vulkan::native::VulkanDescriptorSetLayout{
                 {
                     _vulkan_device,
                     vk_descriptor_set_layout_binding_list,
@@ -201,7 +201,7 @@ namespace xar_engine::graphics::vulkan
         const api::DescriptorSetLayoutReference& descriptor_set_layout,
         const std::uint32_t descriptor_counts)
     {
-        auto layouts = std::vector<native::VulkanDescriptorSetLayout>(
+        auto layouts = std::vector<vulkan::native::VulkanDescriptorSetLayout>(
             descriptor_counts,
             _vulkan_resource_storage.get(descriptor_set_layout));
 
@@ -325,7 +325,7 @@ namespace xar_engine::graphics::vulkan
 
 
         return _vulkan_resource_storage.add(
-            native::VulkanGraphicsPipeline{
+            vulkan::native::VulkanGraphicsPipeline{
                 {
                     _vulkan_device,
                     {
@@ -381,7 +381,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         return _vulkan_resource_storage.add(
-            native::VulkanImage{
+            vulkan::native::VulkanImage{
                 {
                     _vulkan_device,
                     dimension,
@@ -402,7 +402,7 @@ namespace xar_engine::graphics::vulkan
         const auto& vulkan_image = _vulkan_resource_storage.get(image);
 
         return _vulkan_resource_storage.add(
-            native::VulkanImageView{
+            vulkan::native::VulkanImageView{
                 {
                     _vulkan_device,
                     vulkan_image.get_native(),
@@ -415,7 +415,7 @@ namespace xar_engine::graphics::vulkan
     api::SamplerReference VulkanGraphicsBackend::make_sampler(const float mip_levels)
     {
         return _vulkan_resource_storage.add(
-            native::VulkanSampler{
+            vulkan::native::VulkanSampler{
                 {
                     _vulkan_device,
                     _vulkan_device.get_physical_device().get_vk_device_properties().limits.maxSamplerAnisotropy,
@@ -427,7 +427,7 @@ namespace xar_engine::graphics::vulkan
     api::ShaderReference VulkanGraphicsBackend::make_shader(const std::vector<char>& shader_byte_code)
     {
         return _vulkan_resource_storage.add(
-            native::VulkanShader{
+            vulkan::native::VulkanShader{
                 {
                     _vulkan_device,
                     shader_byte_code,
@@ -438,7 +438,7 @@ namespace xar_engine::graphics::vulkan
         std::shared_ptr<IWindowSurface> window_surface,
         const std::uint32_t buffering_level)
     {
-        auto vulkan_window_surface = std::dynamic_pointer_cast<VulkanWindowSurface>(window_surface);
+        auto vulkan_window_surface = std::dynamic_pointer_cast<vulkan::VulkanWindowSurface>(window_surface);
 
         auto vk_format_to_use = VkSurfaceFormatKHR{};
         const auto vk_format_list = _vulkan_device.get_physical_device().get_vk_surface_format_khr_list(vulkan_window_surface->get_vulkan_surface().get_native());
@@ -464,7 +464,7 @@ namespace xar_engine::graphics::vulkan
         }
 
         return _vulkan_resource_storage.add(
-            native::VulkanSwapChain{
+            vulkan::native::VulkanSwapChain{
                 {
                     _vulkan_device,
                     _vulkan_graphics_queue,

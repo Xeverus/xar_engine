@@ -4,11 +4,15 @@
 #include <set>
 #include <vector>
 
+#include <xar_engine/graphics/window_surface.hpp>
+
 #include <xar_engine/graphics/api/buffer_reference.hpp>
 #include <xar_engine/graphics/api/command_buffer_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_pool_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_set_layout_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_set_reference.hpp>
+#include <xar_engine/graphics/api/format.hpp>
+#include <xar_engine/graphics/api/graphics_backend_type.hpp>
 #include <xar_engine/graphics/api/graphics_pipeline_reference.hpp>
 #include <xar_engine/graphics/api/image_reference.hpp>
 #include <xar_engine/graphics/api/image_view_reference.hpp>
@@ -18,13 +22,10 @@
 #include <xar_engine/graphics/api/surface_reference.hpp>
 #include <xar_engine/graphics/api/swap_chain_reference.hpp>
 
-#include <xar_engine/graphics/graphics_backend_type.hpp>
-#include <xar_engine/graphics/window_surface.hpp>
-
 #include <xar_engine/math/vector.hpp>
 
 
-namespace xar_engine::graphics
+namespace xar_engine::graphics::backend
 {
     class IGraphicsBackendResource
     {

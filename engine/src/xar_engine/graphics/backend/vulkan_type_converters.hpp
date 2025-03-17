@@ -11,7 +11,7 @@
 #include <xar_engine/graphics/api/swap_chain_reference.hpp>
 
 
-namespace xar_engine::graphics::vulkan
+namespace xar_engine::graphics::backend
 {
     VkFormat to_vk_format(api::EFormat image_format);
 

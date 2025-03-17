@@ -1,19 +1,19 @@
-#include <xar_engine/graphics/graphics_backend_factory.hpp>
+#include <xar_engine/graphics/api/graphics_backend_factory.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_graphics_backend.hpp>
+#include <xar_engine/graphics/backend/vulkan_graphics_backend.hpp>
 
 
-namespace xar_engine::graphics
+namespace xar_engine::graphics::api
 {
     IGraphicsBackendFactory::~IGraphicsBackendFactory() = default;
 
-    std::shared_ptr<IGraphicsBackend> GraphicsBackendFactory::make(EGraphicsBackendType graphics_backend_type) const
+    std::shared_ptr<backend::IGraphicsBackend> GraphicsBackendFactory::make(EGraphicsBackendType graphics_backend_type) const
     {
         switch (graphics_backend_type)
         {
             case EGraphicsBackendType::VULKAN:
             {
-                return std::make_unique<vulkan::VulkanGraphicsBackend>();
+                return std::make_unique<backend::VulkanGraphicsBackend>();
             }
         }
 

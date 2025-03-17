@@ -11,7 +11,7 @@
 
 #include <xar_engine/file/file.hpp>
 
-#include <xar_engine/graphics/graphics_backend.hpp>
+#include <xar_engine/graphics/backend/graphics_backend.hpp>
 
 #include <xar_engine/logging/logger.hpp>
 
@@ -228,7 +228,7 @@ namespace xar_engine::renderer
 namespace xar_engine::renderer
 {
     RendererImpl::RendererImpl(
-        std::shared_ptr<graphics::IGraphicsBackend> graphics_backend,
+        std::shared_ptr<graphics::backend::IGraphicsBackend> graphics_backend,
         std::shared_ptr<graphics::IWindowSurface> window_surface)
         : _graphics_backend(std::move(graphics_backend))
         , _window_surface(std::move(window_surface))
@@ -353,7 +353,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.position_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -381,7 +381,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.normal_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -409,7 +409,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.texture_coord_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -438,7 +438,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.index_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {

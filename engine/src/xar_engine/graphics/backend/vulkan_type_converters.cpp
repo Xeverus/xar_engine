@@ -1,9 +1,9 @@
-#include <xar_engine/graphics/vulkan/vulkan_type_converters.hpp>
+#include <xar_engine/graphics/backend/vulkan_type_converters.hpp>
 
 #include <xar_engine/error/exception_utils.hpp>
 
 
-namespace xar_engine::graphics::vulkan
+namespace xar_engine::graphics::backend
 {
     VkFormat to_vk_format(const api::EFormat image_format)
     {
@@ -49,7 +49,7 @@ namespace xar_engine::graphics::vulkan
 
         XAR_THROW(
             error::XarException,
-            "api::EImageAspect value {} is not supported",
+            "EImageAspect value {} is not supported",
             static_cast<std::uint32_t>(image_aspect));
     }
 
@@ -98,7 +98,7 @@ namespace xar_engine::graphics::vulkan
 
         XAR_THROW(
             error::XarException,
-            "api::EShaderType value {} is not supported",
+            "EShaderType value {} is not supported",
             static_cast<std::uint32_t>(shader_type));
     }
 
