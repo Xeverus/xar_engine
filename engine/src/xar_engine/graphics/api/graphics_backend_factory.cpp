@@ -1,6 +1,6 @@
 #include <xar_engine/graphics/api/graphics_backend_factory.hpp>
 
-#include <xar_engine/graphics/backend/vulkan_graphics_backend.hpp>
+#include <xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.hpp>
 
 
 namespace xar_engine::graphics::api
@@ -13,7 +13,7 @@ namespace xar_engine::graphics::api
         {
             case EGraphicsBackendType::VULKAN:
             {
-                return std::make_unique<backend::VulkanGraphicsBackend>();
+                return std::make_unique<backend::vulkan::VulkanGraphicsBackend>();
             }
         }
 

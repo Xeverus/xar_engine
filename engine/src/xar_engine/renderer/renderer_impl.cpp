@@ -229,7 +229,7 @@ namespace xar_engine::renderer
 {
     RendererImpl::RendererImpl(
         std::shared_ptr<graphics::backend::IGraphicsBackend> graphics_backend,
-        std::shared_ptr<graphics::IWindowSurface> window_surface)
+        std::shared_ptr<graphics::context::IWindowSurface> window_surface)
         : _graphics_backend(std::move(graphics_backend))
         , _window_surface(std::move(window_surface))
         , frameCounter(0)

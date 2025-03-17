@@ -13,7 +13,7 @@ namespace xar_engine::renderer
 
     std::unique_ptr<IRenderer> RendererFactory::make(
         std::shared_ptr<graphics::backend::IGraphicsBackend> graphics_backend,
-        std::shared_ptr<graphics::IWindowSurface> window_surface)
+        std::shared_ptr<graphics::context::IWindowSurface> window_surface)
     {
         return std::make_unique<RendererImpl>(
             std::move(graphics_backend),

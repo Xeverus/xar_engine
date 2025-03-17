@@ -2,9 +2,9 @@
 
 #include <xar_engine/error/exception_utils.hpp>
 
-#include <xar_engine/graphics/vulkan/vulkan_window_surface.hpp>
+#include <xar_engine/graphics/context/vulkan/vulkan_window_surface.hpp>
 
-#include <xar_engine/graphics/vulkan/native/vulkan_instance.hpp>
+#include <xar_engine/graphics/native/vulkan/vulkan_instance.hpp>
 
 #include <xar_engine/meta/ref_counting_singleton.hpp>
 
@@ -189,7 +189,7 @@ namespace xar_engine::os
             return;
         }
 
-        auto vulkan_instance = meta::RefCountedSingleton::get_instance_t<graphics::vulkan::native::VulkanInstance>();
+        auto vulkan_instance = meta::RefCountedSingleton::get_instance_t<graphics::native::vulkan::VulkanInstance>();
 
         auto vk_surface_khr = VkSurfaceKHR{nullptr};
         const auto result = glfwCreateWindowSurface(
@@ -202,7 +202,7 @@ namespace xar_engine::os
             error::XarException,
             "Failed to create window surface");
 
-        _window_surface = std::make_shared<graphics::vulkan::VulkanWindowSurface>(
+        _window_surface = std::make_shared<graphics::context::vulkan::VulkanWindowSurface>(
             vulkan_instance,
             vk_surface_khr,
             this);
@@ -347,7 +347,7 @@ namespace xar_engine::os
         return _parameters.title;
     }
 
-    const std::shared_ptr<graphics::IWindowSurface>& GlfwWindow::get_surface() const
+    const std::shared_ptr<graphics::context::IWindowSurface>& GlfwWindow::get_surface() const
     {
         return _window_surface;
     }

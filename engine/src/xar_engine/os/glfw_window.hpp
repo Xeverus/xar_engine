@@ -42,7 +42,7 @@ namespace xar_engine::os
         [[nodiscard]]
         const std::string& get_title() const override;
         [[nodiscard]]
-        const std::shared_ptr<graphics::IWindowSurface>& get_surface() const override;
+        const std::shared_ptr<graphics::context::IWindowSurface>& get_surface() const override;
         [[nodiscard]]
         math::Vector2i32 get_surface_pixel_size() const override;
 
@@ -55,7 +55,7 @@ namespace xar_engine::os
 
     private:
         GLFWwindow* _native_glfw_window;
-        std::shared_ptr<graphics::IWindowSurface> _window_surface;
+        std::shared_ptr<graphics::context::IWindowSurface> _window_surface;
 
         OnRun _on_run;
         OnUpdate _on_update;

@@ -4,8 +4,6 @@
 #include <set>
 #include <vector>
 
-#include <xar_engine/graphics/window_surface.hpp>
-
 #include <xar_engine/graphics/api/buffer_reference.hpp>
 #include <xar_engine/graphics/api/command_buffer_reference.hpp>
 #include <xar_engine/graphics/api/descriptor_pool_reference.hpp>
@@ -21,6 +19,8 @@
 #include <xar_engine/graphics/api/shader_reference.hpp>
 #include <xar_engine/graphics/api/surface_reference.hpp>
 #include <xar_engine/graphics/api/swap_chain_reference.hpp>
+
+#include <xar_engine/graphics/context/window_surface.hpp>
 
 #include <xar_engine/math/vector.hpp>
 
@@ -84,7 +84,7 @@ namespace xar_engine::graphics::backend
         virtual api::ShaderReference make_shader(const std::vector<char>& shader_byte_code) = 0;
 
         virtual api::SwapChainReference make_swap_chain(
-            std::shared_ptr<IWindowSurface> window_surface,
+            std::shared_ptr<context::IWindowSurface> window_surface,
             std::uint32_t buffering_level) = 0;
     };
 

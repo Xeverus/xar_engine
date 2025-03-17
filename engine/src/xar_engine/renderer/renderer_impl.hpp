@@ -40,7 +40,7 @@ namespace xar_engine::renderer
     public:
         RendererImpl(
             std::shared_ptr<graphics::backend::IGraphicsBackend> graphics_backend,
-            std::shared_ptr<graphics::IWindowSurface> window_surface);
+            std::shared_ptr<graphics::context::IWindowSurface> window_surface);
 
         ~RendererImpl() override;
 
@@ -66,7 +66,7 @@ namespace xar_engine::renderer
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
-        std::shared_ptr<graphics::IWindowSurface> _window_surface;
+        std::shared_ptr<graphics::context::IWindowSurface> _window_surface;
         std::shared_ptr<graphics::backend::IGraphicsBackend> _graphics_backend;
 
         std::vector<graphics::api::CommandBufferReference> _command_buffer_list;

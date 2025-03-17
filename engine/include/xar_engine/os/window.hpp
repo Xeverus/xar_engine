@@ -12,7 +12,7 @@
 #include <xar_engine/renderer/renderer.hpp>
 
 
-namespace xar_engine::graphics
+namespace xar_engine::graphics::context
 {
     class IWindowSurface;
 }
@@ -55,7 +55,7 @@ namespace xar_engine::os
         [[nodiscard]]
         virtual const std::string& get_title() const = 0;
         [[nodiscard]]
-        virtual const std::shared_ptr<graphics::IWindowSurface>& get_surface() const = 0;
+        virtual const std::shared_ptr<graphics::context::IWindowSurface>& get_surface() const = 0;
         [[nodiscard]]
         virtual math::Vector2i32 get_surface_pixel_size() const = 0;
     };
