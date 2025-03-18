@@ -104,7 +104,6 @@ set(XAR_ENGINE_PRIVATE_FILES
         # graphics backend vulkan
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.hpp
-        src/xar_engine/graphics/backend/vulkan/vulkan_resource_storage.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_resource_storage.hpp
         src/xar_engine/graphics/backend/vulkan/vulkan_type_converters.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_type_converters.hpp

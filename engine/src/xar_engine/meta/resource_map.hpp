@@ -23,9 +23,10 @@ namespace xar_engine::meta
 
         Resource add(Type&& object);
 
-        const Type& get_object(const Resource& resource) const;
-        Type& get_object(const Resource& resource);
+        const Type& get(const Resource& resource) const;
+        Type& get(const Resource& resource);
 
+        [[nodiscard]]
         std::size_t size() const;
 
     private:
@@ -60,7 +61,7 @@ namespace xar_engine::meta
 
     template <typename Tag,
               typename Type>
-    const Type& TResourceMap<Tag, Type>::get_object(const Resource& resource) const
+    const Type& TResourceMap<Tag, Type>::get(const Resource& resource) const
     {
         const auto iter = _resource_map.find(resource.get_id());
         XAR_THROW_IF(
@@ -75,7 +76,7 @@ namespace xar_engine::meta
 
     template <typename Tag,
               typename Type>
-    Type& TResourceMap<Tag, Type>::get_object(const Resource& resource)
+    Type& TResourceMap<Tag, Type>::get(const Resource& resource)
     {
         const auto iter = _resource_map.find(resource.get_id());
         XAR_THROW_IF(

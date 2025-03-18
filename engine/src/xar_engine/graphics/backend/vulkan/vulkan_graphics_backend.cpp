@@ -133,7 +133,7 @@ namespace xar_engine::graphics::backend::vulkan
         _vulkan_command_buffer_list.reserve(buffer_counts);
         for (auto& vk_command_buffer: vk_command_buffer_list)
         {
-            _vulkan_command_buffer_list.push_back(_vulkan_resource_storage.add(vk_command_buffer));
+            _vulkan_command_buffer_list.push_back(_vulkan_resource_storage.add(std::move(vk_command_buffer)));
         }
 
         return _vulkan_command_buffer_list;
@@ -209,7 +209,7 @@ namespace xar_engine::graphics::backend::vulkan
         auto vulkan_descriptor_set_list = _vulkan_resource_storage.get(descriptor_pool).make_descriptor_set_list(layouts);
         for (auto& vulkan_descriptor_set: vulkan_descriptor_set_list)
         {
-            vulkan_descriptor_set_ref_list.push_back(_vulkan_resource_storage.add(vulkan_descriptor_set));
+            vulkan_descriptor_set_ref_list.push_back(_vulkan_resource_storage.add(std::move(vulkan_descriptor_set)));
         }
 
         return vulkan_descriptor_set_ref_list;

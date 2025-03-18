@@ -621,11 +621,11 @@ namespace xar_engine::renderer
 
         for (const auto& render_item: _redner_item_list)
         {
-            const auto& gpu_mesh_data = _gpu_mesh_data_map.get_object(render_item.gpu_mesh_instance.gpu_mesh);
-            const auto& gpu_model_data = _gpu_model_data_map.get_object(gpu_mesh_data.gpu_model);
-            const auto& gpu_buffer_data = _gpu_model_data_buffer_map.get_object(gpu_model_data.gpu_model_data_buffer);
+            const auto& gpu_mesh_data = _gpu_mesh_data_map.get(render_item.gpu_mesh_instance.gpu_mesh);
+            const auto& gpu_model_data = _gpu_model_data_map.get(gpu_mesh_data.gpu_model);
+            const auto& gpu_buffer_data = _gpu_model_data_buffer_map.get(gpu_model_data.gpu_model_data_buffer);
 
-            const auto& gpu_material_data = _gpu_material_data_map.get_object(render_item.gpu_material);
+            const auto& gpu_material_data = _gpu_material_data_map.get(render_item.gpu_material);
 
             pc.material_index = gpu_material_data.index;
             _graphics_backend->command().push_constants(
