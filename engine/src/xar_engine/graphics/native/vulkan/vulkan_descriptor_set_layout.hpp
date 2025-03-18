@@ -21,6 +21,7 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanDescriptorSetLayout();
 
+
         [[nodiscard]]
         VkDescriptorSetLayout get_native() const;
 

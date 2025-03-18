@@ -20,6 +20,7 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanSampler();
 
+
         [[nodiscard]]
         VkSampler get_native() const;
 

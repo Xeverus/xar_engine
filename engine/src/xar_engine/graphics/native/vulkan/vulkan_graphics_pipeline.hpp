@@ -24,11 +24,12 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanGraphicsPipeline();
 
-        [[nodiscard]]
-        VkPipelineLayout get_native_pipeline_layout() const;
 
         [[nodiscard]]
-        VkPipeline get_native_pipeline() const;
+        VkPipeline get_native() const;
+
+        [[nodiscard]]
+        VkPipelineLayout get_native_pipeline_layout() const;
 
     private:
         struct State;

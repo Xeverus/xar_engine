@@ -21,6 +21,7 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanShader();
 
+
         [[nodiscard]]
         VkShaderModule get_native() const;
 

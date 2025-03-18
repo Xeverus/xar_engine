@@ -77,7 +77,7 @@ namespace xar_engine::graphics::native::vulkan
         auto vk_memory_allocate_info = VkMemoryAllocateInfo{};
         vk_memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         vk_memory_allocate_info.allocationSize = vk_memory_requirements.size;
-        vk_memory_allocate_info.memoryTypeIndex = parameters.vulkan_device.get_physical_device().find_memory_type(
+        vk_memory_allocate_info.memoryTypeIndex = parameters.vulkan_device.get_native_physical_device().find_memory_type(
             vk_memory_requirements.memoryTypeBits,
             parameters.vm_memory_property_flags);
 
@@ -214,7 +214,7 @@ namespace xar_engine::graphics::native::vulkan
 
     void VulkanImage::generate_mipmaps(VkCommandBuffer vk_command_buffer)
     {
-        const auto vk_format_properties = _state->device.get_physical_device().get_vk_format_properties(_state->vk_format);
+        const auto vk_format_properties = _state->device.get_native_physical_device().get_vk_format_properties(_state->vk_format);
         XAR_THROW_IF(
             !(vk_format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT),
             error::XarException,
@@ -324,19 +324,14 @@ namespace xar_engine::graphics::native::vulkan
             &vk_image_memory_barrier);
     }
 
-    const VulkanDevice& VulkanImage::get_device() const
+    VkImage VulkanImage::get_native() const
     {
-        return _state->device;
+        return _state->vk_image;
     }
 
     VulkanDevice& VulkanImage::get_device()
     {
         return _state->device;
-    }
-
-    VkImage VulkanImage::get_native() const
-    {
-        return _state->vk_image;
     }
 
     math::Vector3i32 VulkanImage::get_dimension() const

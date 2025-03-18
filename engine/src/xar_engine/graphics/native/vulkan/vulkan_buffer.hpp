@@ -21,8 +21,10 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanBuffer();
 
+
         void* map();
         void unmap();
+
 
         [[nodiscard]]
         VkBuffer get_native() const;

@@ -54,7 +54,7 @@ namespace xar_engine::graphics::native::vulkan
         , render_finished_vk_semaphore{}
         , in_flight_vk_fence{}
     {
-        const auto vk_surface_capabilities_khr = parameters.vulkan_device.get_physical_device().get_vk_surface_capabilities_khr(parameters.vulkan_window_surface->get_vulkan_surface().get_native());
+        const auto vk_surface_capabilities_khr = parameters.vulkan_device.get_native_physical_device().get_vk_surface_capabilities_khr(parameters.vulkan_window_surface->get_vulkan_surface().get_native());
 
         vk_extent_2d = {
             static_cast<std::uint32_t>(parameters.vulkan_window_surface->get_pixel_size().x),
@@ -281,7 +281,12 @@ namespace xar_engine::graphics::native::vulkan
         return {vk_queue_present_khr_result};
     }
 
-    VkExtent2D VulkanSwapChain::get_extent() const
+    VkSwapchainKHR VulkanSwapChain::get_native() const
+    {
+        return _state->vk_swap_chain;
+    }
+
+    VkExtent2D VulkanSwapChain::get_vk_extent() const
     {
         return _state->vk_extent_2d;
     }
@@ -289,11 +294,6 @@ namespace xar_engine::graphics::native::vulkan
     VkFormat VulkanSwapChain::get_vk_format() const
     {
         return _state->vk_surface_format_khr.format;
-    }
-
-    VkSwapchainKHR VulkanSwapChain::get_native() const
-    {
-        return _state->vk_swap_chain;
     }
 
     VkImage VulkanSwapChain::get_vk_image(std::uint32_t index) const

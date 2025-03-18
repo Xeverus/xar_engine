@@ -24,11 +24,12 @@ namespace xar_engine::graphics::native::vulkan
 
         void wait_idle() const;
 
-        [[nodiscard]]
-        const VulkanPhysicalDevice& get_physical_device() const;
 
         [[nodiscard]]
         VkDevice get_native() const;
+
+        [[nodiscard]]
+        const VulkanPhysicalDevice& get_native_physical_device() const;
 
         [[nodiscard]]
         std::uint32_t get_graphics_family_index() const;

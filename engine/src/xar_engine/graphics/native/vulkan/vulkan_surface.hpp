@@ -20,6 +20,7 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanSurface();
 
+
         [[nodiscard]]
         VkSurfaceKHR get_native() const;
 

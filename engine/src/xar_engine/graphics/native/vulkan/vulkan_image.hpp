@@ -22,6 +22,7 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanImage();
 
+
         void transition_layout(
             VkCommandBuffer vk_command_buffer,
             VkImageLayout new_vk_image_layout);
@@ -30,13 +31,10 @@ namespace xar_engine::graphics::native::vulkan
 
 
         [[nodiscard]]
-        const VulkanDevice& get_device() const;
+        VkImage get_native() const;
 
         [[nodiscard]]
         VulkanDevice& get_device();
-
-        [[nodiscard]]
-        VkImage get_native() const;
 
         [[nodiscard]]
         math::Vector3i32 get_dimension() const;

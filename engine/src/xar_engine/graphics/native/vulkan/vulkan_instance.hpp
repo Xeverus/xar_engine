@@ -16,11 +16,12 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanInstance();
 
-        [[nodiscard]]
-        std::vector<VulkanPhysicalDevice> get_physical_device_list() const;
 
         [[nodiscard]]
         VkInstance get_native() const;
+
+        [[nodiscard]]
+        std::vector<VulkanPhysicalDevice> get_physical_device_list() const;
 
     private:
         struct State;

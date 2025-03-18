@@ -37,13 +37,13 @@ namespace xar_engine::graphics::native::vulkan
 
 
         [[nodiscard]]
-        VkExtent2D get_extent() const;
+        VkSwapchainKHR get_native() const;
+
+        [[nodiscard]]
+        VkExtent2D get_vk_extent() const;
 
         [[nodiscard]]
         VkFormat get_vk_format() const;
-
-        [[nodiscard]]
-        VkSwapchainKHR get_native() const;
 
         [[nodiscard]]
         VkImage get_vk_image(std::uint32_t index) const;

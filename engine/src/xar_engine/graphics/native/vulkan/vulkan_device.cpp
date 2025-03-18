@@ -76,7 +76,7 @@ namespace xar_engine::graphics::native::vulkan
             "{} calling vkCreateDevice",
             XAR_OBJECT_ID(this));
         const auto vk_create_device_result = vkCreateDevice(
-            vulkan_physical_device.get_vk_physical_device(),
+            vulkan_physical_device.get_native(),
             &vk_device_create_info,
             nullptr,
             &vk_device);
@@ -112,11 +112,6 @@ namespace xar_engine::graphics::native::vulkan
 
     VulkanDevice::~VulkanDevice() = default;
 
-    const VulkanPhysicalDevice& VulkanDevice::get_physical_device() const
-    {
-        return _state->vulkan_physical_device;
-    }
-
     void VulkanDevice::wait_idle() const
     {
         XAR_LOG(
@@ -135,6 +130,11 @@ namespace xar_engine::graphics::native::vulkan
     VkDevice VulkanDevice::get_native() const
     {
         return _state->vk_device;
+    }
+
+    const VulkanPhysicalDevice& VulkanDevice::get_native_physical_device() const
+    {
+        return _state->vulkan_physical_device;
     }
 
     std::uint32_t VulkanDevice::get_graphics_family_index() const

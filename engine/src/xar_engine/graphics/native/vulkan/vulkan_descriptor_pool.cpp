@@ -120,18 +120,13 @@ namespace xar_engine::graphics::native::vulkan
         return vulkan_descriptor_set;
     }
 
-    const VulkanDevice& VulkanDescriptorPool::get_device() const
+    VkDescriptorPool VulkanDescriptorPool::get_native() const
     {
-        return _state->vulkan_device;
+        return _state->vk_descriptor_pool;
     }
 
     VulkanDevice& VulkanDescriptorPool::get_device()
     {
         return _state->vulkan_device;
-    }
-
-    VkDescriptorPool VulkanDescriptorPool::get_native() const
-    {
-        return _state->vk_descriptor_pool;
     }
 }

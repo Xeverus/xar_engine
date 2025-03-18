@@ -19,7 +19,7 @@ namespace xar_engine::graphics::native::vulkan
 
 
         [[nodiscard]]
-        VkPhysicalDevice get_vk_physical_device() const;
+        VkPhysicalDevice get_native() const;
 
 
         [[nodiscard]]

@@ -243,6 +243,11 @@ namespace xar_engine::graphics::native::vulkan
 
     VulkanInstance::~VulkanInstance() = default;
 
+    VkInstance VulkanInstance::get_native() const
+    {
+        return _state->vk_instance;
+    }
+
     std::vector<VulkanPhysicalDevice> VulkanInstance::get_physical_device_list() const
     {
         auto physical_device_counts = std::uint32_t{0};
@@ -267,10 +272,5 @@ namespace xar_engine::graphics::native::vulkan
         }
 
         return physical_device_list;
-    }
-
-    VkInstance VulkanInstance::get_native() const
-    {
-        return _state->vk_instance;
     }
 }

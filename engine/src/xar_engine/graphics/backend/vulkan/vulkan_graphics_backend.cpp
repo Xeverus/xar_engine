@@ -15,14 +15,14 @@ namespace xar_engine::graphics::backend::vulkan
         {
             return std::min(
                 std::uint32_t{32},
-                vulkan_device.get_physical_device().get_vk_device_properties().limits.maxDescriptorSetUniformBuffers);
+                vulkan_device.get_native_physical_device().get_vk_device_properties().limits.maxDescriptorSetUniformBuffers);
         }
 
         std::uint32_t get_combined_image_sampler_count(const native::vulkan::VulkanDevice& vulkan_device)
         {
             return std::min(
                 std::uint32_t{1024},
-                vulkan_device.get_physical_device().get_vk_device_properties().limits.maxDescriptorSetSampledImages);
+                vulkan_device.get_native_physical_device().get_vk_device_properties().limits.maxDescriptorSetSampledImages);
         }
     }
 
@@ -418,7 +418,7 @@ namespace xar_engine::graphics::backend::vulkan
             native::vulkan::VulkanSampler{
                 {
                     _vulkan_device,
-                    _vulkan_device.get_physical_device().get_vk_device_properties().limits.maxSamplerAnisotropy,
+                    _vulkan_device.get_native_physical_device().get_vk_device_properties().limits.maxSamplerAnisotropy,
                     mip_levels,
                 }
             });
@@ -441,7 +441,7 @@ namespace xar_engine::graphics::backend::vulkan
         auto vulkan_window_surface = std::dynamic_pointer_cast<context::vulkan::VulkanWindowSurface>(window_surface);
 
         auto vk_format_to_use = VkSurfaceFormatKHR{};
-        const auto vk_format_list = _vulkan_device.get_physical_device().get_vk_surface_format_khr_list(vulkan_window_surface->get_vulkan_surface().get_native());
+        const auto vk_format_list = _vulkan_device.get_native_physical_device().get_vk_surface_format_khr_list(vulkan_window_surface->get_vulkan_surface().get_native());
         for (const auto& vk_format: vk_format_list)
         {
             if (vk_format.format == VK_FORMAT_R8G8B8A8_SRGB &&
@@ -453,7 +453,7 @@ namespace xar_engine::graphics::backend::vulkan
         }
 
         auto vk_present_mode_to_use = VkPresentModeKHR{};
-        const auto vk_present_mode_list = _vulkan_device.get_physical_device().get_vk_present_mode_khr_list(vulkan_window_surface->get_vulkan_surface().get_native());
+        const auto vk_present_mode_list = _vulkan_device.get_native_physical_device().get_vk_present_mode_khr_list(vulkan_window_surface->get_vulkan_surface().get_native());
         for (const auto& vk_present_mode: vk_present_mode_list)
         {
             if (vk_present_mode == VK_PRESENT_MODE_FIFO_KHR)
@@ -506,12 +506,12 @@ namespace xar_engine::graphics::backend::vulkan
 
     std::uint32_t VulkanGraphicsBackend::get_sample_count() const
     {
-        return _vulkan_device.get_physical_device().get_vk_sample_count_flag_bits();
+        return _vulkan_device.get_native_physical_device().get_vk_sample_count_flag_bits();
     }
 
     api::EFormat VulkanGraphicsBackend::find_depth_format() const
     {
-        const auto vk_format = _vulkan_device.get_physical_device().find_supported_vk_format(
+        const auto vk_format = _vulkan_device.get_native_physical_device().find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -822,7 +822,7 @@ namespace xar_engine::graphics::backend::vulkan
         vk_rendering_info_khr.pColorAttachments = &color_vk_rendering_attachment_info_khr;
         vk_rendering_info_khr.pDepthAttachment = &depth_vk_rendering_attachment_info_khr;
         vk_rendering_info_khr.renderArea = VkRect2D{
-            VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_extent()
+            VkOffset2D{}, _vulkan_resource_storage.get(swap_chain).get_vk_extent()
         };
         vk_rendering_info_khr.layerCount = 1;
 
@@ -842,9 +842,9 @@ namespace xar_engine::graphics::backend::vulkan
         vkCmdBindPipeline(
             vk_command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            _vulkan_resource_storage.get(graphics_pipeline).get_native_pipeline());
+            _vulkan_resource_storage.get(graphics_pipeline).get_native());
 
-        const auto swap_chain_vk_extent = _vulkan_resource_storage.get(swap_chain).get_extent();
+        const auto swap_chain_vk_extent = _vulkan_resource_storage.get(swap_chain).get_vk_extent();
 
         auto vk_viewport = VkViewport{};
         vk_viewport.x = 0.0f;

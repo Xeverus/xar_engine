@@ -124,7 +124,7 @@ namespace xar_engine::graphics::native::vulkan
     {
     }
 
-    VkPhysicalDevice VulkanPhysicalDevice::get_vk_physical_device() const
+    VkPhysicalDevice VulkanPhysicalDevice::get_native() const
     {
         return _state->vk_physical_device;
     }
@@ -190,7 +190,7 @@ namespace xar_engine::graphics::native::vulkan
     {
         auto vk_format_properties = VkFormatProperties{};
         vkGetPhysicalDeviceFormatProperties(
-            get_vk_physical_device(),
+            get_native(),
             vk_format,
             &vk_format_properties);
 

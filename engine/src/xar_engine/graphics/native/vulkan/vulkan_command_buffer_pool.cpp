@@ -95,18 +95,13 @@ namespace xar_engine::graphics::native::vulkan
         return vulkan_command_buffer_list;
     }
 
-    const VulkanDevice& VulkanCommandBufferPool::get_device() const
+    VkCommandPool VulkanCommandBufferPool::get_native() const
     {
-        return _state->vulkan_device;
+        return _state->vk_command_pool;
     }
 
     VulkanDevice& VulkanCommandBufferPool::get_device()
     {
         return _state->vulkan_device;
-    }
-
-    VkCommandPool VulkanCommandBufferPool::get_native() const
-    {
-        return _state->vk_command_pool;
     }
 }

@@ -23,7 +23,9 @@ namespace xar_engine::graphics::native::vulkan
 
         ~VulkanDescriptorSet();
 
+
         void write(const std::vector<VkWriteDescriptorSet>& vk_write_descriptor_set_list);
+
 
         [[nodiscard]]
         VkDescriptorSet get_native() const;

@@ -28,13 +28,10 @@ namespace xar_engine::graphics::native::vulkan
 
 
         [[nodiscard]]
-        const VulkanDevice& get_device() const;
+        VkDescriptorPool get_native() const;
 
         [[nodiscard]]
         VulkanDevice& get_device();
-
-        [[nodiscard]]
-        VkDescriptorPool get_native() const;
 
     private:
         struct State;
