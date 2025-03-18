@@ -40,9 +40,9 @@ namespace xar_engine::graphics::backend
 
         virtual std::vector<api::CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) = 0;
 
-        virtual api::DescriptorPoolReference make_descriptor_pool(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) = 0;
+        virtual api::DescriptorPoolReference make_descriptor_pool(const std::set<api::EDescriptorType>& descriptor_pool_type_list) = 0;
 
-        virtual api::DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) = 0;
+        virtual api::DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<api::EDescriptorType>& descriptor_pool_type_list) = 0;
 
         virtual std::vector<api::DescriptorSetReference> make_descriptor_set_list(
             const api::DescriptorPoolReference& descriptor_pool,
@@ -89,14 +89,6 @@ namespace xar_engine::graphics::backend
     };
 
 
-    struct BufferUpdate
-    {
-        const void* data;
-        std::uint32_t byte_offset;
-        std::uint32_t byte_size;
-    };
-
-
     class IGraphicsBackendHost
     {
     public:
@@ -104,7 +96,7 @@ namespace xar_engine::graphics::backend
 
         virtual void update_buffer(
             const api::BufferReference& buffer,
-            const std::vector<BufferUpdate>& data) = 0;
+            const std::vector<api::BufferUpdate>& data) = 0;
 
         virtual std::tuple<api::ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(
             const api::SwapChainReference& swap_chain) = 0;

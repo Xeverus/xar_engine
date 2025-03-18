@@ -52,17 +52,17 @@ namespace xar_engine::renderer
 
             attributeDescriptions[0].binding_index = 0;
             attributeDescriptions[0].location = 0;
-            attributeDescriptions[0].format = graphics::api::EFormat::R32G32B32_SFLOAT;
+            attributeDescriptions[0].format = graphics::api::EFormat::R32G32B32_SIGNED_FLOAT;
             attributeDescriptions[0].offset = 0;
 
             attributeDescriptions[1].binding_index = 1;
             attributeDescriptions[1].location = 1;
-            attributeDescriptions[1].format = graphics::api::EFormat::R32G32B32_SFLOAT;
+            attributeDescriptions[1].format = graphics::api::EFormat::R32G32B32_SIGNED_FLOAT;
             attributeDescriptions[1].offset = 0;
 
             attributeDescriptions[2].binding_index = 2;
             attributeDescriptions[2].location = 2;
-            attributeDescriptions[2].format = graphics::api::EFormat::R32G32_SFLOAT;
+            attributeDescriptions[2].format = graphics::api::EFormat::R32G32_SIGNED_FLOAT;
             attributeDescriptions[2].offset = 0;
 
             return attributeDescriptions;
@@ -243,8 +243,8 @@ namespace xar_engine::renderer
         _vertex_shader_ref = _graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.vert.spv"));
         _fragment_shader_ref = _graphics_backend->resource().make_shader(xar_engine::file::read_binary_file("assets/triangle.frag.spv"));
 
-        _ubo_descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout({graphics::api::EDescriptorPoolType::UNIFORM_BUFFER});
-        _image_descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout({graphics::api::EDescriptorPoolType::SAMPLED_IMAGE});
+        _ubo_descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout({graphics::api::EDescriptorType::UNIFORM_BUFFER});
+        _image_descriptor_set_layout_ref = _graphics_backend->resource().make_descriptor_set_layout({graphics::api::EDescriptorType::SAMPLED_IMAGE});
 
         _graphics_pipeline_ref = _graphics_backend->resource().make_graphics_pipeline(
             {_ubo_descriptor_set_layout_ref, _image_descriptor_set_layout_ref},
@@ -265,8 +265,8 @@ namespace xar_engine::renderer
             _uniform_buffer_ref_list.push_back(_graphics_backend->resource().make_uniform_buffer(sizeof(UniformBufferObject)));
         }
 
-        _ubo_descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool({graphics::api::EDescriptorPoolType::UNIFORM_BUFFER});
-        _image_descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool({graphics::api::EDescriptorPoolType::SAMPLED_IMAGE});
+        _ubo_descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool({graphics::api::EDescriptorType::UNIFORM_BUFFER});
+        _image_descriptor_pool_ref = _graphics_backend->resource().make_descriptor_pool({graphics::api::EDescriptorType::SAMPLED_IMAGE});
 
         _ubo_descriptor_set_list_ref = _graphics_backend->resource().make_descriptor_set_list(
             _ubo_descriptor_pool_ref,
@@ -353,7 +353,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.position_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -381,7 +381,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer_1 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.normal_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -409,7 +409,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer_2 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.texture_coord_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {
@@ -438,7 +438,7 @@ namespace xar_engine::renderer
 
         auto staging_buffer_3 = _graphics_backend->resource().make_staging_buffer(gpu_model_data_buffer.structure.index_list_byte_size);
         {
-            auto buffer_update_list = std::vector<graphics::backend::BufferUpdate>{};
+            auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
             for (auto i = 0; i < model_list.size(); ++i)
             {

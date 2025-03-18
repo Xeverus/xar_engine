@@ -1,5 +1,6 @@
 #pragma once
 
+#include <xar_engine/meta/enum.hpp>
 #include <xar_engine/meta/resource_reference.hpp>
 
 
@@ -28,3 +29,8 @@ namespace xar_engine::graphics::api
         DEPTH,
     };
 }
+
+
+ENUM_TO_STRING(xar_engine::graphics::api::EImageType);
+ENUM_TO_STRING(xar_engine::graphics::api::EImageLayout);
+ENUM_TO_STRING(xar_engine::graphics::api::EImageAspect);

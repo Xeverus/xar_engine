@@ -41,9 +41,9 @@ namespace xar_engine::graphics::backend::vulkan
 
         std::vector<api::CommandBufferReference> make_command_buffer_list(std::uint32_t buffer_counts) override;
 
-        api::DescriptorPoolReference make_descriptor_pool(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) override;
+        api::DescriptorPoolReference make_descriptor_pool(const std::set<api::EDescriptorType>& descriptor_pool_type_list) override;
 
-        api::DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list) override;
+        api::DescriptorSetLayoutReference make_descriptor_set_layout(const std::set<api::EDescriptorType>& descriptor_pool_type_list) override;
 
         std::vector<api::DescriptorSetReference> make_descriptor_set_list(
             const api::DescriptorPoolReference& descriptor_pool,
@@ -92,7 +92,7 @@ namespace xar_engine::graphics::backend::vulkan
     public: // IGraphicsBackendHostCommand
         void update_buffer(
             const api::BufferReference& buffer,
-            const std::vector<BufferUpdate>& data) override;
+            const std::vector<api::BufferUpdate>& data) override;
 
         std::tuple<api::ESwapChainResult, std::uint32_t, std::uint32_t> begin_frame(const api::SwapChainReference& swap_chain) override;
 

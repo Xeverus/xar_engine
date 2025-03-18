@@ -9,15 +9,15 @@ namespace xar_engine::graphics::backend::vulkan
     {
         switch (image_format)
         {
-            case api::EFormat::D32_SFLOAT:
+            case api::EFormat::D32_SIGNED_FLOAT:
             {
                 return VK_FORMAT_D32_SFLOAT;
             }
-            case api::EFormat::R32G32_SFLOAT:
+            case api::EFormat::R32G32_SIGNED_FLOAT:
             {
                 return VK_FORMAT_R32G32_SFLOAT;
             }
-            case api::EFormat::R32G32B32_SFLOAT:
+            case api::EFormat::R32G32B32_SIGNED_FLOAT:
             {
                 return VK_FORMAT_R32G32B32_SFLOAT;
             }

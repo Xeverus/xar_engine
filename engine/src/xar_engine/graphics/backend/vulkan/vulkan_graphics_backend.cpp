@@ -139,14 +139,14 @@ namespace xar_engine::graphics::backend::vulkan
         return _vulkan_command_buffer_list;
     }
 
-    api::DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list)
+    api::DescriptorPoolReference VulkanGraphicsBackend::make_descriptor_pool(const std::set<api::EDescriptorType>& descriptor_pool_type_list)
     {
         const auto uniform_buffer_count =
-            descriptor_pool_type_list.count(api::EDescriptorPoolType::UNIFORM_BUFFER) == 0 ?
+            descriptor_pool_type_list.count(api::EDescriptorType::UNIFORM_BUFFER) == 0 ?
             0 : get_uniform_buffer_count(_vulkan_device);
 
         const auto combined_image_sampler_count =
-            descriptor_pool_type_list.count(api::EDescriptorPoolType::SAMPLED_IMAGE) == 0 ?
+            descriptor_pool_type_list.count(api::EDescriptorType::SAMPLED_IMAGE) == 0 ?
             0 : get_combined_image_sampler_count(_vulkan_device);
 
         const auto max_descriptor_set_count = std::uint32_t{16};
@@ -161,10 +161,10 @@ namespace xar_engine::graphics::backend::vulkan
                 }});
     }
 
-    api::DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout(const std::set<api::EDescriptorPoolType>& descriptor_pool_type_list)
+    api::DescriptorSetLayoutReference VulkanGraphicsBackend::make_descriptor_set_layout(const std::set<api::EDescriptorType>& descriptor_pool_type_list)
     {
         std::vector<VkDescriptorSetLayoutBinding> vk_descriptor_set_layout_binding_list;
-        if (descriptor_pool_type_list.count(api::EDescriptorPoolType::UNIFORM_BUFFER) != 0)
+        if (descriptor_pool_type_list.count(api::EDescriptorType::UNIFORM_BUFFER) != 0)
         {
             VkDescriptorSetLayoutBinding uboLayoutBinding{};
             uboLayoutBinding.binding = 0;
@@ -176,7 +176,7 @@ namespace xar_engine::graphics::backend::vulkan
             vk_descriptor_set_layout_binding_list.push_back(uboLayoutBinding);
         }
 
-        if (descriptor_pool_type_list.count(api::EDescriptorPoolType::SAMPLED_IMAGE) != 0)
+        if (descriptor_pool_type_list.count(api::EDescriptorType::SAMPLED_IMAGE) != 0)
         {
             VkDescriptorSetLayoutBinding samplerLayoutBinding{};
             samplerLayoutBinding.binding = 1;
@@ -478,7 +478,7 @@ namespace xar_engine::graphics::backend::vulkan
 
     void VulkanGraphicsBackend::update_buffer(
         const api::BufferReference& buffer,
-        const std::vector<BufferUpdate>& data)
+        const std::vector<api::BufferUpdate>& data)
     {
         auto& vulkan_buffer = _vulkan_resource_storage.get(buffer);
 
@@ -545,7 +545,7 @@ namespace xar_engine::graphics::backend::vulkan
             }
         }
 
-        return api::EFormat::D32_SFLOAT;
+        return api::EFormat::D32_SIGNED_FLOAT;
     }
 
     api::ESwapChainResult VulkanGraphicsBackend::end_frame(
@@ -761,7 +761,7 @@ namespace xar_engine::graphics::backend::vulkan
         const auto& vulkan_command_buffer = _vulkan_resource_storage.get(command_buffer);
         const auto vk_command_buffer = vulkan_command_buffer.get_native();
 
-        _vulkan_resource_storage.get(command_buffer).begin(false);
+        begin_command_buffer(command_buffer, api::ECommandBufferType::REUSABLE);
 
         const VkImageMemoryBarrier image_memory_barrier_start{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -920,6 +920,6 @@ namespace xar_engine::graphics::backend::vulkan
             &image_memory_barrier_end // pImageMemoryBarriers
         );
 
-        _vulkan_resource_storage.get(command_buffer).end();
+        end_command_buffer(command_buffer);
     }
 }

@@ -83,18 +83,24 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/api/buffer_reference.hpp
         src/xar_engine/graphics/api/command_buffer_reference.hpp
         src/xar_engine/graphics/api/descriptor_pool_reference.hpp
+        src/xar_engine/graphics/api/descriptor_set_reference.cpp
         src/xar_engine/graphics/api/descriptor_set_reference.hpp
         src/xar_engine/graphics/api/descriptor_set_layout_reference.hpp
+        src/xar_engine/graphics/api/format.cpp
         src/xar_engine/graphics/api/format.hpp
         src/xar_engine/graphics/api/graphics_backend_factory.cpp
         src/xar_engine/graphics/api/graphics_backend_type.cpp
+        src/xar_engine/graphics/api/graphics_pipeline_reference.cpp
         src/xar_engine/graphics/api/graphics_pipeline_reference.hpp
+        src/xar_engine/graphics/api/image_reference.cpp
         src/xar_engine/graphics/api/image_reference.hpp
         src/xar_engine/graphics/api/image_view_reference.hpp
         src/xar_engine/graphics/api/queue_reference.hpp
         src/xar_engine/graphics/api/sampler_reference.hpp
+        src/xar_engine/graphics/api/shader_reference.cpp
         src/xar_engine/graphics/api/shader_reference.hpp
         src/xar_engine/graphics/api/surface_reference.hpp
+        src/xar_engine/graphics/api/swap_chain_reference.cpp
         src/xar_engine/graphics/api/swap_chain_reference.hpp
 
         # graphics backend
