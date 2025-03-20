@@ -25,7 +25,7 @@ int main()
     window->set_on_run(
         [&]()
         {
-            gpu_model_list = renderer->make_gpu_model(
+            gpu_model_list = renderer->gpu_model_module().make_gpu_model(
                 std::vector<xar_engine::asset::Model>{
                     xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj"),
                     xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/house.obj"),

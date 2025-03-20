@@ -2,6 +2,8 @@
 
 #include <xar_engine/graphics/backend/vulkan/vulkan_resource_storage.hpp>
 
+#include <xar_engine/meta/shared_state.hpp>
+
 
 namespace xar_engine::graphics::backend::vulkan
 {
@@ -15,21 +17,9 @@ namespace xar_engine::graphics::backend::vulkan
         VulkanResourceStorage _vulkan_resource_storage;
     };
 
-
-    class SharedVulkanGraphicsBackendState
+    class SharedVulkanGraphicsBackendState : public meta::TSharedState<VulkanGraphicsBackendState>
     {
     public:
-        explicit SharedVulkanGraphicsBackendState(std::shared_ptr<VulkanGraphicsBackendState> state);
-        virtual ~SharedVulkanGraphicsBackendState();
-
-    protected:
-        [[nodiscard]]
-        const VulkanGraphicsBackendState& get_state() const;
-
-        [[nodiscard]]
-        VulkanGraphicsBackendState& get_state();
-
-    private:
-        std::shared_ptr<VulkanGraphicsBackendState> _state;
+        using meta::TSharedState<VulkanGraphicsBackendState>::TSharedState;
     };
 }

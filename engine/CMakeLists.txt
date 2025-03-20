@@ -57,6 +57,9 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/renderer/gpu_asset/gpu_model.hpp
         include/xar_engine/renderer/renderer.hpp
 
+        # renderer module
+        include/xar_engine/renderer/module/gpu_model_module.hpp
+
         # version
         include/xar_engine/version/version.hpp)
 
@@ -146,7 +149,6 @@ set(XAR_ENGINE_PRIVATE_FILES
         # graphics backend vulkan
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.hpp
-        src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend_state.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend_state.hpp
         src/xar_engine/graphics/backend/vulkan/vulkan_resource_storage.hpp
         src/xar_engine/graphics/backend/vulkan/vulkan_type_converters.cpp
@@ -220,6 +222,7 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/meta/ref_counting_singleton.cpp
         src/xar_engine/meta/ref_counting_singleton.hpp
         src/xar_engine/meta/resource_map.hpp
+        src/xar_engine/meta/shared_state.hpp
         src/xar_engine/meta/singleton.hpp
 
         # os
@@ -233,16 +236,22 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/os/service_register_impl.hpp
         src/xar_engine/os/window.cpp
 
+        # renderer
+        src/xar_engine/renderer/renderer.cpp
+        src/xar_engine/renderer/renderer_impl.cpp
+        src/xar_engine/renderer/renderer_impl.hpp
+        src/xar_engine/renderer/renderer_state.hpp
+
         # renderer gpu_asset
         src/xar_engine/renderer/gpu_asset/gpu_model_data.cpp
         src/xar_engine/renderer/gpu_asset/gpu_model_data.hpp
         src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.cpp
         src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp
 
-        # renderer
-        src/xar_engine/renderer/renderer.cpp
-        src/xar_engine/renderer/renderer_impl.cpp
-        src/xar_engine/renderer/renderer_impl.hpp
+        # renderer module
+        src/xar_engine/renderer/module/gpu_model_module.cpp
+        src/xar_engine/renderer/module/gpu_model_module_impl.cpp
+        src/xar_engine/renderer/module/gpu_model_module_impl.hpp
 
         # time
         src/xar_engine/time/time.cpp
