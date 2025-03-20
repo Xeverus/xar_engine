@@ -35,7 +35,7 @@ namespace xar_engine::graphics::backend::component::vulkan
                 {
                     get_state()._vulkan_device,
                     parameters.dimension,
-                    ::xar_engine::graphics::backend::vulkan::to_vk_format(parameters.image_format),
+                    backend::vulkan::to_vk_format(parameters.image_format),
                     VK_IMAGE_TILING_OPTIMAL,
                     static_cast<VkImageUsageFlagBits>(vk_image_usage),
                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -54,7 +54,7 @@ namespace xar_engine::graphics::backend::component::vulkan
                     get_state()._vulkan_device,
                     vulkan_image.get_native(),
                     vulkan_image.get_vk_format(),
-                    ::xar_engine::graphics::backend::vulkan::to_vk_image_aspec(parameters.image_aspect),
+                    backend::vulkan::to_vk_image_aspec(parameters.image_aspect),
                     parameters.mip_levels
                 }});
     }

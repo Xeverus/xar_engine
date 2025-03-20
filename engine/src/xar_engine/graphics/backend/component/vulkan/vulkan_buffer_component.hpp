@@ -11,7 +11,7 @@ namespace xar_engine::graphics::backend::component::vulkan
 {
     class IVulkanBufferComponent
         : public IBufferComponent
-          , public ::xar_engine::graphics::backend::vulkan::SharedVulkanGraphicsBackendState
+          , public backend::vulkan::SharedVulkanGraphicsBackendState
     {
     public:
         using SharedVulkanGraphicsBackendState::SharedVulkanGraphicsBackendState;

@@ -9,7 +9,7 @@ namespace xar_engine::graphics::backend::component::vulkan
 {
     class IVulkanShaderComponent
         : public IShaderComponent
-          , public ::xar_engine::graphics::backend::vulkan::SharedVulkanGraphicsBackendState
+          , public backend::vulkan::SharedVulkanGraphicsBackendState
     {
     public:
         using SharedVulkanGraphicsBackendState::SharedVulkanGraphicsBackendState;

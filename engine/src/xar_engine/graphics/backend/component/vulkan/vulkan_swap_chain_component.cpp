@@ -49,7 +49,7 @@ namespace xar_engine::graphics::backend::component::vulkan
         const auto result = get_state()._vulkan_resource_storage.get(parameters.swap_chain).begin_frame();
 
         return {
-            ::xar_engine::graphics::backend::vulkan::to_swap_chain_result(result.vk_result),
+            backend::vulkan::to_swap_chain_result(result.vk_result),
             result.image_index,
             result.frame_buffer_index
         };
@@ -170,6 +170,6 @@ namespace xar_engine::graphics::backend::component::vulkan
     {
         const auto result = get_state()._vulkan_resource_storage.get(parameters.swap_chain).end_frame(get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native());
 
-        return ::xar_engine::graphics::backend::vulkan::to_swap_chain_result(result.vk_result);
+        return backend::vulkan::to_swap_chain_result(result.vk_result);
     }
 }
