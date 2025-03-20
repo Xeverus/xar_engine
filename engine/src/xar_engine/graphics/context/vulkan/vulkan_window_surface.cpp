@@ -7,7 +7,8 @@ namespace xar_engine::graphics::context::vulkan
         std::shared_ptr<native::vulkan::VulkanInstance> vulkan_instance,
         VkSurfaceKHR vk_surface_khr,
         const os::IWindow* os_window)
-        : _vulkan_surface(native::vulkan::VulkanSurface::Parameters{
+        : _vulkan_surface(
+        native::vulkan::VulkanSurface::Parameters{
             std::move(vulkan_instance),
             vk_surface_khr,
         })

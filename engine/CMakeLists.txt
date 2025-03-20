@@ -106,10 +106,48 @@ set(XAR_ENGINE_PRIVATE_FILES
         # graphics backend
         src/xar_engine/graphics/backend/graphics_backend.cpp
         src/xar_engine/graphics/backend/graphics_backend.hpp
-        
+
+        # graphics backend component
+        src/xar_engine/graphics/backend/component/buffer_component.cpp
+        src/xar_engine/graphics/backend/component/buffer_component.hpp
+        src/xar_engine/graphics/backend/component/command_buffer_component.cpp
+        src/xar_engine/graphics/backend/component/command_buffer_component.hpp
+        src/xar_engine/graphics/backend/component/descriptor_component.cpp
+        src/xar_engine/graphics/backend/component/descriptor_component.hpp
+        src/xar_engine/graphics/backend/component/device_component.cpp
+        src/xar_engine/graphics/backend/component/device_component.hpp
+        src/xar_engine/graphics/backend/component/graphics_pipeline_component.cpp
+        src/xar_engine/graphics/backend/component/graphics_pipeline_component.hpp
+        src/xar_engine/graphics/backend/component/image_component.cpp
+        src/xar_engine/graphics/backend/component/image_component.hpp
+        src/xar_engine/graphics/backend/component/shader_component.cpp
+        src/xar_engine/graphics/backend/component/shader_component.hpp
+        src/xar_engine/graphics/backend/component/swap_chain_component.cpp
+        src/xar_engine/graphics/backend/component/swap_chain_component.hpp
+
+        # graphics backend component vulkan
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_buffer_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_buffer_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_command_buffer_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_command_buffer_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_descriptor_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_descriptor_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_device_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_device_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_graphics_pipeline_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_graphics_pipeline_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_image_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_image_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_shader_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_shader_component.hpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_swap_chain_component.cpp
+        src/xar_engine/graphics/backend/component/vulkan/vulkan_swap_chain_component.hpp
+
         # graphics backend vulkan
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.hpp
+        src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend_state.cpp
+        src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend_state.hpp
         src/xar_engine/graphics/backend/vulkan/vulkan_resource_storage.hpp
         src/xar_engine/graphics/backend/vulkan/vulkan_type_converters.cpp
         src/xar_engine/graphics/backend/vulkan/vulkan_type_converters.hpp

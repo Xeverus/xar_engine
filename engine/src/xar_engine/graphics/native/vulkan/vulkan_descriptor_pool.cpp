@@ -84,7 +84,7 @@ namespace xar_engine::graphics::native::vulkan
         const std::vector<VulkanDescriptorSetLayout>& vulkan_descriptor_set_layout_list)
     {
         auto vk_descriptor_set_layout_list = std::vector<VkDescriptorSetLayout>{};
-        for (const auto& vulkan_descriptor_set_layout : vulkan_descriptor_set_layout_list)
+        for (const auto& vulkan_descriptor_set_layout: vulkan_descriptor_set_layout_list)
         {
             vk_descriptor_set_layout_list.push_back(vulkan_descriptor_set_layout.get_native());
         }

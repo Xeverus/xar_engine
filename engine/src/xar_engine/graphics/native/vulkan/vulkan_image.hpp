@@ -37,7 +37,7 @@ namespace xar_engine::graphics::native::vulkan
         VulkanDevice& get_device();
 
         [[nodiscard]]
-        math::Vector3i32 get_dimension() const;
+        math::Vector3u32 get_dimension() const;
 
         [[nodiscard]]
         VkFormat get_vk_format() const;
@@ -53,7 +53,7 @@ namespace xar_engine::graphics::native::vulkan
     {
         VulkanDevice vulkan_device;
 
-        math::Vector3i32 dimension;
+        math::Vector3u32 dimension;
         VkFormat vk_format;
         VkImageTiling vk_image_tiling;
         VkImageUsageFlags vk_image_usage_flags;

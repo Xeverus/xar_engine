@@ -3,11 +3,5 @@
 
 namespace xar_engine::graphics::backend
 {
-    IGraphicsBackendResource::~IGraphicsBackendResource() = default;
-
-    IGraphicsBackendHost::~IGraphicsBackendHost() = default;
-
-    IGraphicsBackendCommand::~IGraphicsBackendCommand() = default;
-
     IGraphicsBackend::~IGraphicsBackend() = default;
 }

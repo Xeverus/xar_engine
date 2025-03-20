@@ -29,7 +29,7 @@ namespace xar_engine::graphics::native::vulkan
 
         VkFormat vk_format;
         VkImageLayout vk_image_layout;
-        math::Vector3i32 dimension;
+        math::Vector3u32 dimension;
         std::uint32_t mip_levels;
     };
 
@@ -231,8 +231,8 @@ namespace xar_engine::graphics::native::vulkan
         vk_image_memory_barrier.subresourceRange.layerCount = 1;
         vk_image_memory_barrier.subresourceRange.levelCount = 1;
 
-        auto mip_width = _state->dimension.x;
-        auto mip_height = _state->dimension.y;
+        auto mip_width = static_cast<std::int32_t>(_state->dimension.x);
+        auto mip_height = static_cast<std::int32_t>(_state->dimension.y);
 
         for (auto mip_level = std::uint32_t{1}; mip_level < _state->mip_levels; mip_level++)
         {
@@ -334,7 +334,7 @@ namespace xar_engine::graphics::native::vulkan
         return _state->device;
     }
 
-    math::Vector3i32 VulkanImage::get_dimension() const
+    math::Vector3u32 VulkanImage::get_dimension() const
     {
         return _state->dimension;
     }

@@ -264,11 +264,12 @@ namespace xar_engine::graphics::native::vulkan
 
         auto physical_device_list = std::vector<VulkanPhysicalDevice>{};
         physical_device_list.reserve(physical_device_counts);
-        for (auto vk_physical_device : vk_physical_device_list)
+        for (auto vk_physical_device: vk_physical_device_list)
         {
-            physical_device_list.emplace_back(VulkanPhysicalDevice::Parameters{
-                vk_physical_device,
-            });
+            physical_device_list.emplace_back(
+                VulkanPhysicalDevice::Parameters{
+                    vk_physical_device,
+                });
         }
 
         return physical_device_list;

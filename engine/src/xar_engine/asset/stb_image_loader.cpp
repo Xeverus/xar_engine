@@ -28,9 +28,9 @@ namespace xar_engine::asset
             path.string());
 
         Image image;
-        image.pixel_width = width;
-        image.pixel_height = height;
-        image.channel_count = data_channel_count;
+        image.pixel_width = static_cast<std::uint32_t>(width);
+        image.pixel_height = static_cast<std::uint32_t>(height);
+        image.channel_count = static_cast<std::uint32_t>(data_channel_count);
 
         image.bytes.resize(image::get_byte_size(image));
         memcpy(
@@ -38,7 +38,7 @@ namespace xar_engine::asset
             bytes,
             image.bytes.size());
 
-        image.mip_level_count = static_cast<int32_t>(std::floor(
+        image.mip_level_count = static_cast<std::uint32_t>(std::floor(
             std::log2(
                 std::max(
                     image.pixel_width,

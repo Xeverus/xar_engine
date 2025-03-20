@@ -207,12 +207,14 @@ namespace xar_engine::graphics::native::vulkan
             const auto vk_format_properties = get_vk_format_properties(vk_format);
 
             if (requested_vk_image_tiling == VK_IMAGE_TILING_LINEAR &&
-                (vk_format_properties.linearTilingFeatures & requested_vk_format_feature_flags) == requested_vk_format_feature_flags)
+                (vk_format_properties.linearTilingFeatures & requested_vk_format_feature_flags) ==
+                requested_vk_format_feature_flags)
             {
                 return vk_format;
             }
             else if (requested_vk_image_tiling == VK_IMAGE_TILING_OPTIMAL &&
-                     (vk_format_properties.optimalTilingFeatures & requested_vk_format_feature_flags) == requested_vk_format_feature_flags)
+                     (vk_format_properties.optimalTilingFeatures & requested_vk_format_feature_flags) ==
+                     requested_vk_format_feature_flags)
             {
                 return vk_format;
             }
@@ -237,7 +239,8 @@ namespace xar_engine::graphics::native::vulkan
         for (auto i = std::uint32_t{0}; i < vk_physical_device_memory_properties.memoryTypeCount; i++)
         {
             if ((type_filter & (std::uint32_t{1} << i)) &&
-                (vk_physical_device_memory_properties.memoryTypes[i].propertyFlags & requested_vk_memory_property_flags) == requested_vk_memory_property_flags)
+                (vk_physical_device_memory_properties.memoryTypes[i].propertyFlags &
+                 requested_vk_memory_property_flags) == requested_vk_memory_property_flags)
             {
                 return i;
             }

@@ -10,7 +10,8 @@
 
 namespace xar_engine::graphics::context::vulkan
 {
-    class VulkanWindowSurface : public IWindowSurface
+    class VulkanWindowSurface
+        : public IWindowSurface
     {
     public:
         explicit VulkanWindowSurface(
