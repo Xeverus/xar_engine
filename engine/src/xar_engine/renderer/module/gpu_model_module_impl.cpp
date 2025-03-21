@@ -15,14 +15,14 @@ namespace
 
 namespace xar_engine::renderer::module
 {
-    std::vector<gpu_asset::GpuModel> GpuModelModuleImpl::make_gpu_model(const std::vector<asset::Model>& model_list)
+    std::vector<gpu_asset::GpuModel> GpuModelModuleImpl::make_gpu_model(const MakeGpuModelParameters& parameters)
     {
-        auto gpu_model_data_list_buffer_structure = gpu_asset::make_gpu_model_data_list_buffer_structure(model_list);
+        auto gpu_model_data_list_buffer_structure = gpu_asset::make_gpu_model_data_list_buffer_structure(parameters.model_list);
 
         {
-            for (auto j = 0; j < model_list.size(); ++j)
+            for (auto j = 0; j < parameters.model_list.size(); ++j)
             {
-                const auto& model = model_list[j];
+                const auto& model = parameters.model_list[j];
 
                 for (auto i = 0; i < model.mesh_list.size(); ++i)
                 {
@@ -41,9 +41,9 @@ namespace xar_engine::renderer::module
                 }
             }
 
-            for (auto j = 0; j < model_list.size(); ++j)
+            for (auto j = 0; j < parameters.model_list.size(); ++j)
             {
-                const auto& model = model_list[j];
+                const auto& model = parameters.model_list[j];
 
                 for (auto i = 0; i < model.mesh_list.size(); ++i)
                 {
@@ -72,9 +72,9 @@ namespace xar_engine::renderer::module
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
-            for (auto i = 0; i < model_list.size(); ++i)
+            for (auto i = 0; i < parameters.model_list.size(); ++i)
             {
-                const auto& model = model_list[i];
+                const auto& model = parameters.model_list[i];
 
                 for (auto j = 0; j < model.mesh_list.size(); ++j)
                 {
@@ -100,9 +100,9 @@ namespace xar_engine::renderer::module
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
-            for (auto i = 0; i < model_list.size(); ++i)
+            for (auto i = 0; i < parameters.model_list.size(); ++i)
             {
-                const auto& model = model_list[i];
+                const auto& model = parameters.model_list[i];
 
                 for (auto j = 0; j < model.mesh_list.size(); ++j)
                 {
@@ -128,9 +128,9 @@ namespace xar_engine::renderer::module
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
-            for (auto i = 0; i < model_list.size(); ++i)
+            for (auto i = 0; i < parameters.model_list.size(); ++i)
             {
-                const auto& model = model_list[i];
+                const auto& model = parameters.model_list[i];
 
                 for (auto j = 0; j < model.mesh_list.size(); ++j)
                 {
@@ -157,9 +157,9 @@ namespace xar_engine::renderer::module
         {
             auto buffer_update_list = std::vector<graphics::api::BufferUpdate>{};
             auto byte_size_offset = std::uint32_t{0};
-            for (auto i = 0; i < model_list.size(); ++i)
+            for (auto i = 0; i < parameters.model_list.size(); ++i)
             {
-                const auto& model = model_list[i];
+                const auto& model = parameters.model_list[i];
 
                 for (auto j = 0; j < model.mesh_list.size(); ++j)
                 {
@@ -210,9 +210,9 @@ namespace xar_engine::renderer::module
 
         auto gpu_model_data_list = std::vector<gpu_asset::GpuModel>{};
         {
-            for (auto model_index = std::uint32_t{0}; model_index < model_list.size(); ++model_index)
+            for (auto model_index = std::uint32_t{0}; model_index < parameters.model_list.size(); ++model_index)
             {
-                const auto& model = model_list[model_index];
+                const auto& model = parameters.model_list[model_index];
 
                 auto& gpu_model_data = gpu_model_data_list.emplace_back(
                     get_state()._gpu_model_data_map.add(

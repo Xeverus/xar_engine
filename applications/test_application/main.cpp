@@ -25,13 +25,13 @@ int main()
     window->set_on_run(
         [&]()
         {
-            gpu_model_list = renderer->gpu_model_module().make_gpu_model(
+            gpu_model_list = renderer->gpu_model_module().make_gpu_model({
                 std::vector<xar_engine::asset::Model>{
                     xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/viking_room.obj"),
                     xar_engine::asset::ModelLoaderFactory().make()->load_model_from_file("assets/house.obj"),
-                });
-            gpu_material_list.push_back(renderer->make_gpu_material({"assets/viking_room.png"}));
-            gpu_material_list.push_back(renderer->make_gpu_material({"assets/house.png"}));
+                }});
+            gpu_material_list.push_back(renderer->gpu_material_module().make_gpu_material({{"assets/viking_room.png"}}));
+            gpu_material_list.push_back(renderer->gpu_material_module().make_gpu_material({{"assets/house.png"}}));
         });
 
     window->set_on_update(

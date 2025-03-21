@@ -12,8 +12,17 @@ namespace xar_engine::renderer::module
     class IGpuModelModule
     {
     public:
+        struct MakeGpuModelParameters;
+
+    public:
         virtual ~IGpuModelModule();
 
-        virtual std::vector<gpu_asset::GpuModel> make_gpu_model(const std::vector<asset::Model>& model_list) = 0;
+        virtual std::vector<gpu_asset::GpuModel> make_gpu_model(const MakeGpuModelParameters& parameters) = 0;
+    };
+
+
+    struct IGpuModelModule::MakeGpuModelParameters
+    {
+        std::vector<asset::Model> model_list;
     };
 }

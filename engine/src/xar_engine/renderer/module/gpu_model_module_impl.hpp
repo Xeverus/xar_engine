@@ -14,7 +14,6 @@ namespace xar_engine::renderer::module
     public:
         using SharedRendererState::SharedRendererState;
 
-
-        std::vector<gpu_asset::GpuModel> make_gpu_model(const std::vector<asset::Model>& model_list) override;
+        std::vector<gpu_asset::GpuModel> make_gpu_model(const MakeGpuModelParameters& parameters) override;
     };
 }

@@ -4,8 +4,6 @@
 #include <thread>
 #include <vector>
 
-#include <xar_engine/asset/image_loader.hpp>
-
 #include <xar_engine/error/exception_utils.hpp>
 
 #include <xar_engine/file/file.hpp>
@@ -141,64 +139,6 @@ namespace xar_engine::renderer
     }
 
 
-    graphics::api::ImageReference RendererImpl::init_texture(const asset::Image& image)
-    {
-        const auto imageSize = asset::image::get_byte_size(image);
-
-        auto staging_buffer = get_state()._graphics_backend->buffer_component().make_staging_buffer({imageSize});
-        get_state()._graphics_backend->buffer_component().update_buffer(
-            {
-                staging_buffer,
-                {
-                    {
-                        image.bytes.data(),
-                        0,
-                        static_cast<std::uint32_t>(imageSize),
-                    }
-                }
-            });
-
-        auto texture_image_ref = get_state()._graphics_backend->image_component().make_image(
-            {
-                graphics::api::EImageType::TEXTURE,
-                {
-                    image.pixel_width,
-                    image.pixel_height,
-                    1
-                },
-                graphics::api::EFormat::R8G8B8A8_SRGB,
-                image.mip_level_count,
-                1
-            });
-
-        auto tmp_command_buffer = get_state()._graphics_backend->command_buffer_component().make_command_buffer_list({1});
-        get_state()._graphics_backend->command_buffer_component().begin_command_buffer(
-            {
-                tmp_command_buffer[0],
-                graphics::api::ECommandBufferType::ONE_TIME
-            });
-        get_state()._graphics_backend->image_component().transit_image_layout(
-            {
-                tmp_command_buffer[0],
-                texture_image_ref,
-                graphics::api::EImageLayout::TRANSFER_DESTINATION
-            });
-        get_state()._graphics_backend->buffer_component().copy_buffer_to_image(
-            {
-                tmp_command_buffer[0],
-                staging_buffer,
-                texture_image_ref
-            });
-        get_state()._graphics_backend->image_component().generate_image_mip_maps(
-            {
-                tmp_command_buffer[0],
-                texture_image_ref
-            });
-        get_state()._graphics_backend->command_buffer_component().end_command_buffer({tmp_command_buffer[0]});
-        get_state()._graphics_backend->command_buffer_component().submit_command_buffer({tmp_command_buffer[0]});
-
-        return texture_image_ref;
-    }
 
 
     void RendererImpl::updateUniformBuffer(uint32_t currentImageNr)
@@ -262,8 +202,10 @@ namespace xar_engine::renderer
 {
     RendererImpl::RendererImpl(
         std::shared_ptr<RendererState> state,
+        std::unique_ptr<module::IGpuMaterialModule> gpu_material_module,
         std::unique_ptr<module::IGpuModelModule> gpu_model_module)
         : SharedRendererState(std::move(state))
+        , _gpu_material_module(std::move(gpu_material_module))
         , _gpu_model_module(std::move(gpu_model_module))
     {
         get_state()._command_buffer_list = get_state()._graphics_backend->command_buffer_component().make_command_buffer_list({MAX_FRAMES_IN_FLIGHT});
@@ -341,38 +283,14 @@ namespace xar_engine::renderer
         get_state()._graphics_backend->device_component().wait_idle();
     }
 
+    module::IGpuMaterialModule& RendererImpl::gpu_material_module()
+    {
+        return *_gpu_material_module;
+    }
+
     module::IGpuModelModule& RendererImpl::gpu_model_module()
     {
         return *_gpu_model_module;
-    }
-
-    gpu_asset::GpuMaterialReference RendererImpl::make_gpu_material(const asset::Material& material)
-    {
-        const auto material_index = static_cast<std::uint32_t>(get_state()._gpu_material_data_map.size());
-
-        auto image = asset::ImageLoaderFactory().make()->load_image_from_file(*material.color_base_texture);
-        auto texture_image_ref = init_texture(image);
-        auto texture_image_view_ref = get_state()._graphics_backend->image_component().make_image_view({
-            texture_image_ref,
-            graphics::api::EImageAspect::COLOR,
-            image.mip_level_count});
-        auto sampler_ref = get_state()._graphics_backend->image_component().make_sampler({static_cast<float>(image.mip_level_count)});
-
-        get_state()._graphics_backend->descriptor_component().write_descriptor_set({
-            get_state()._image_descriptor_set_ref,
-            0,
-            {},
-            material_index,
-            {texture_image_view_ref},
-            {sampler_ref}});
-
-        return get_state()._gpu_material_data_map.add(
-            {
-                texture_image_ref,
-                texture_image_view_ref,
-                sampler_ref,
-                static_cast<std::uint32_t>(material_index),
-            });
     }
 
     void RendererImpl::add_gpu_mesh_instance_to_render(

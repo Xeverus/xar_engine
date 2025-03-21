@@ -18,15 +18,14 @@ namespace xar_engine::renderer
     public:
         RendererImpl(
             std::shared_ptr<RendererState> state,
+            std::unique_ptr<module::IGpuMaterialModule> gpu_material_module,
             std::unique_ptr<module::IGpuModelModule> gpu_model_module);
 
         ~RendererImpl() override;
 
 
         module::IGpuModelModule& gpu_model_module() override;
-
-
-        gpu_asset::GpuMaterialReference make_gpu_material(const asset::Material& material) override;
+        module::IGpuMaterialModule& gpu_material_module() override;
 
         void add_gpu_mesh_instance_to_render(
             const gpu_asset::GpuMeshInstance& gpu_mesh_instance,
@@ -44,6 +43,7 @@ namespace xar_engine::renderer
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
+        std::unique_ptr<module::IGpuMaterialModule> _gpu_material_module;
         std::unique_ptr<module::IGpuModelModule> _gpu_model_module;
     };
 }

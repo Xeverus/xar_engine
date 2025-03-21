@@ -58,6 +58,7 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/renderer/renderer.hpp
 
         # renderer module
+        include/xar_engine/renderer/module/gpu_material_module.hpp
         include/xar_engine/renderer/module/gpu_model_module.hpp
 
         # version
@@ -249,6 +250,9 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp
 
         # renderer module
+        src/xar_engine/renderer/module/gpu_material_module.cpp
+        src/xar_engine/renderer/module/gpu_material_module_impl.cpp
+        src/xar_engine/renderer/module/gpu_material_module_impl.hpp
         src/xar_engine/renderer/module/gpu_model_module.cpp
         src/xar_engine/renderer/module/gpu_model_module_impl.cpp
         src/xar_engine/renderer/module/gpu_model_module_impl.hpp
