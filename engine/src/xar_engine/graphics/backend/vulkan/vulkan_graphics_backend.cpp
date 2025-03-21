@@ -9,23 +9,23 @@ namespace xar_engine::graphics::backend::vulkan
 {
     VulkanGraphicsBackend::VulkanGraphicsBackend(
         std::shared_ptr<VulkanGraphicsBackendState> state,
-        std::unique_ptr<::xar_engine::graphics::backend::component::IBufferComponent> buffer_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::ICommandBufferComponent> command_buffer_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::IDescriptorComponent> descriptor_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::IDeviceComponent> device_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::IGraphicsPipelineComponent> graphics_pipeline_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::IImageComponent> image_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::IShaderComponent> shader_component,
-        std::unique_ptr<::xar_engine::graphics::backend::component::ISwapChainComponent> swap_chain_component)
+        std::unique_ptr<::xar_engine::graphics::backend::unit::IBufferUnit> buffer_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::ICommandBufferUnit> command_buffer_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::IDescriptorUnit> descriptor_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::IDeviceUnit> device_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::IGraphicsPipelineUnit> graphics_pipeline_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::IImageUnit> image_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::IShaderUnit> shader_unit,
+        std::unique_ptr<::xar_engine::graphics::backend::unit::ISwapChainUnit> swap_chain_unit)
         : SharedVulkanGraphicsBackendState(std::move(state))
-        , _buffer_component(std::move(buffer_component))
-        , _command_buffer_component(std::move(command_buffer_component))
-        , _descriptor_component(std::move(descriptor_component))
-        , _device_component(std::move(device_component))
-        , _graphics_pipeline_component(std::move(graphics_pipeline_component))
-        , _image_component(std::move(image_component))
-        , _shader_component(std::move(shader_component))
-        , _swap_chain_component(std::move(swap_chain_component))
+        , _buffer_unit(std::move(buffer_unit))
+        , _command_buffer_unit(std::move(command_buffer_unit))
+        , _descriptor_unit(std::move(descriptor_unit))
+        , _device_unit(std::move(device_unit))
+        , _graphics_pipeline_unit(std::move(graphics_pipeline_unit))
+        , _image_unit(std::move(image_unit))
+        , _shader_unit(std::move(shader_unit))
+        , _swap_chain_unit(std::move(swap_chain_unit))
     {
         get_state()._vulkan_instance = meta::RefCountedSingleton::get_instance_t<native::vulkan::VulkanInstance>();
         get_state()._vulkan_physical_device_list = get_state()._vulkan_instance->get_physical_device_list();
@@ -43,43 +43,43 @@ namespace xar_engine::graphics::backend::vulkan
             }};
     }
 
-    component::IBufferComponent& VulkanGraphicsBackend::buffer_component()
+    unit::IBufferUnit& VulkanGraphicsBackend::buffer_unit()
     {
-        return *_buffer_component;
+        return *_buffer_unit;
     }
 
-    component::ICommandBufferComponent& VulkanGraphicsBackend::command_buffer_component()
+    unit::ICommandBufferUnit& VulkanGraphicsBackend::command_buffer_unit()
     {
-        return *_command_buffer_component;
+        return *_command_buffer_unit;
     }
 
-    component::IDescriptorComponent& VulkanGraphicsBackend::descriptor_component()
+    unit::IDescriptorUnit& VulkanGraphicsBackend::descriptor_unit()
     {
-        return *_descriptor_component;
+        return *_descriptor_unit;
     }
 
-    component::IDeviceComponent& VulkanGraphicsBackend::device_component()
+    unit::IDeviceUnit& VulkanGraphicsBackend::device_unit()
     {
-        return *_device_component;
+        return *_device_unit;
     }
 
-    component::IGraphicsPipelineComponent& VulkanGraphicsBackend::graphics_pipeline_component()
+    unit::IGraphicsPipelineUnit& VulkanGraphicsBackend::graphics_pipeline_unit()
     {
-        return *_graphics_pipeline_component;
+        return *_graphics_pipeline_unit;
     }
 
-    component::IImageComponent& VulkanGraphicsBackend::image_component()
+    unit::IImageUnit& VulkanGraphicsBackend::image_unit()
     {
-        return *_image_component;
+        return *_image_unit;
     }
 
-    component::IShaderComponent& VulkanGraphicsBackend::shader_component()
+    unit::IShaderUnit& VulkanGraphicsBackend::shader_unit()
     {
-        return *_shader_component;
+        return *_shader_unit;
     }
 
-    component::ISwapChainComponent& VulkanGraphicsBackend::swap_chain_component()
+    unit::ISwapChainUnit& VulkanGraphicsBackend::swap_chain_unit()
     {
-        return *_swap_chain_component;
+        return *_swap_chain_unit;
     }
 }

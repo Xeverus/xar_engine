@@ -4,8 +4,8 @@
 
 #include <xar_engine/renderer/renderer_impl.hpp>
 
-#include <xar_engine/renderer/module/gpu_material_module_impl.hpp>
-#include <xar_engine/renderer/module/gpu_model_module_impl.hpp>
+#include <xar_engine/renderer/unit/gpu_material_unit_impl.hpp>
+#include <xar_engine/renderer/unit/gpu_model_unit_impl.hpp>
 
 namespace xar_engine::renderer
 {
@@ -24,7 +24,7 @@ namespace xar_engine::renderer
 
         return std::make_unique<RendererImpl>(
             state,
-            std::make_unique<module::GpuMaterialModuleImpl>(state),
-            std::make_unique<module::GpuModelModuleImpl>(state));
+            std::make_unique<unit::GpuMaterialUnitImpl>(state),
+            std::make_unique<unit::GpuModelUnitImpl>(state));
     }
 }

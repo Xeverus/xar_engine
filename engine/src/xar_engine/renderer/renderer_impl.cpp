@@ -77,7 +77,7 @@ namespace xar_engine::renderer
 
     void RendererImpl::init_color_msaa()
     {
-        get_state()._color_image_ref = get_state()._graphics_backend->image_component().make_image(
+        get_state()._color_image_ref = get_state()._graphics_backend->image_unit().make_image(
             {
                 graphics::api::EImageType::COLOR_ATTACHMENT,
                 {
@@ -87,11 +87,11 @@ namespace xar_engine::renderer
                 },
                 graphics::api::EFormat::R8G8B8A8_SRGB,
                 1,
-                get_state()._graphics_backend->device_component().get_sample_count()
+                get_state()._graphics_backend->device_unit().get_sample_count()
             });
 
 
-        get_state()._color_image_view_ref = get_state()._graphics_backend->image_component().make_image_view(
+        get_state()._color_image_view_ref = get_state()._graphics_backend->image_unit().make_image_view(
             {
                 get_state()._color_image_ref,
                 graphics::api::EImageAspect::COLOR,
@@ -102,7 +102,7 @@ namespace xar_engine::renderer
 
     void RendererImpl::init_depth()
     {
-        get_state()._depth_image_ref = get_state()._graphics_backend->image_component().make_image(
+        get_state()._depth_image_ref = get_state()._graphics_backend->image_unit().make_image(
             {
                 graphics::api::EImageType::DEPTH_ATTACHMENT,
                 {
@@ -110,32 +110,32 @@ namespace xar_engine::renderer
                     static_cast<std::uint32_t>(get_state()._window_surface->get_pixel_size().y),
                     1
                 },
-                get_state()._graphics_backend->device_component().find_depth_format(),
+                get_state()._graphics_backend->device_unit().find_depth_format(),
                 1,
-                get_state()._graphics_backend->device_component().get_sample_count()
+                get_state()._graphics_backend->device_unit().get_sample_count()
             });
 
-        get_state()._depth_image_view_ref = get_state()._graphics_backend->image_component().make_image_view(
+        get_state()._depth_image_view_ref = get_state()._graphics_backend->image_unit().make_image_view(
             {
                 get_state()._depth_image_ref,
                 graphics::api::EImageAspect::DEPTH,
                 1
             });
 
-        auto tmp_command_buffer = get_state()._graphics_backend->command_buffer_component().make_command_buffer_list({1});
-        get_state()._graphics_backend->command_buffer_component().begin_command_buffer(
+        auto tmp_command_buffer = get_state()._graphics_backend->command_buffer_unit().make_command_buffer_list({1});
+        get_state()._graphics_backend->command_buffer_unit().begin_command_buffer(
             {
                 tmp_command_buffer[0],
                 graphics::api::ECommandBufferType::ONE_TIME
             });
-        get_state()._graphics_backend->image_component().transit_image_layout(
+        get_state()._graphics_backend->image_unit().transit_image_layout(
             {
                 tmp_command_buffer[0],
                 get_state()._depth_image_ref,
                 graphics::api::EImageLayout::DEPTH_STENCIL_ATTACHMENT
             });
-        get_state()._graphics_backend->command_buffer_component().end_command_buffer({tmp_command_buffer[0]});
-        get_state()._graphics_backend->command_buffer_component().submit_command_buffer({tmp_command_buffer[0]});
+        get_state()._graphics_backend->command_buffer_unit().end_command_buffer({tmp_command_buffer[0]});
+        get_state()._graphics_backend->command_buffer_unit().submit_command_buffer({tmp_command_buffer[0]});
     }
 
 
@@ -183,7 +183,7 @@ namespace xar_engine::renderer
             10.0f);
         ubo.proj.as_column_list[1].y *= -1;
 
-        get_state()._graphics_backend->buffer_component().update_buffer(
+        get_state()._graphics_backend->buffer_unit().update_buffer(
             {
                 get_state()._uniform_buffer_ref_list[currentImageNr],
                 {
@@ -202,27 +202,27 @@ namespace xar_engine::renderer
 {
     RendererImpl::RendererImpl(
         std::shared_ptr<RendererState> state,
-        std::unique_ptr<module::IGpuMaterialModule> gpu_material_module,
-        std::unique_ptr<module::IGpuModelModule> gpu_model_module)
+        std::unique_ptr<unit::IGpuMaterialUnit> gpu_material_unit,
+        std::unique_ptr<unit::IGpuModelUnit> gpu_model_unit)
         : SharedRendererState(std::move(state))
-        , _gpu_material_module(std::move(gpu_material_module))
-        , _gpu_model_module(std::move(gpu_model_module))
+        , _gpu_material_unit(std::move(gpu_material_unit))
+        , _gpu_model_unit(std::move(gpu_model_unit))
     {
-        get_state()._command_buffer_list = get_state()._graphics_backend->command_buffer_component().make_command_buffer_list({MAX_FRAMES_IN_FLIGHT});
+        get_state()._command_buffer_list = get_state()._graphics_backend->command_buffer_unit().make_command_buffer_list({MAX_FRAMES_IN_FLIGHT});
 
-        get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_component().make_swap_chain(
+        get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain(
             {
                 get_state()._window_surface,
                 MAX_FRAMES_IN_FLIGHT
             });
 
-        get_state()._vertex_shader_ref = get_state()._graphics_backend->shader_component().make_shader({xar_engine::file::read_binary_file("assets/triangle.vert.spv")});
-        get_state()._fragment_shader_ref = get_state()._graphics_backend->shader_component().make_shader({xar_engine::file::read_binary_file("assets/triangle.frag.spv")});
+        get_state()._vertex_shader_ref = get_state()._graphics_backend->shader_unit().make_shader({xar_engine::file::read_binary_file("assets/triangle.vert.spv")});
+        get_state()._fragment_shader_ref = get_state()._graphics_backend->shader_unit().make_shader({xar_engine::file::read_binary_file("assets/triangle.frag.spv")});
 
-        get_state()._ubo_descriptor_set_layout_ref = get_state()._graphics_backend->descriptor_component().make_descriptor_set_layout({{graphics::api::EDescriptorType::UNIFORM_BUFFER}});
-        get_state()._image_descriptor_set_layout_ref = get_state()._graphics_backend->descriptor_component().make_descriptor_set_layout({{graphics::api::EDescriptorType::SAMPLED_IMAGE}});
+        get_state()._ubo_descriptor_set_layout_ref = get_state()._graphics_backend->descriptor_unit().make_descriptor_set_layout({{graphics::api::EDescriptorType::UNIFORM_BUFFER}});
+        get_state()._image_descriptor_set_layout_ref = get_state()._graphics_backend->descriptor_unit().make_descriptor_set_layout({{graphics::api::EDescriptorType::SAMPLED_IMAGE}});
 
-        get_state()._graphics_pipeline_ref = get_state()._graphics_backend->graphics_pipeline_component().make_graphics_pipeline(
+        get_state()._graphics_pipeline_ref = get_state()._graphics_backend->graphics_pipeline_unit().make_graphics_pipeline(
             {
                 {get_state()._ubo_descriptor_set_layout_ref, get_state()._image_descriptor_set_layout_ref},
                 get_state()._vertex_shader_ref,
@@ -230,8 +230,8 @@ namespace xar_engine::renderer
                 getAttributeDescriptions(),
                 getBindingDescription(),
                 graphics::api::EFormat::R8G8B8A8_SRGB,
-                get_state()._graphics_backend->device_component().find_depth_format(),
-                get_state()._graphics_backend->device_component().get_sample_count()
+                get_state()._graphics_backend->device_unit().find_depth_format(),
+                get_state()._graphics_backend->device_unit().get_sample_count()
             });
 
         init_color_msaa();
@@ -240,19 +240,19 @@ namespace xar_engine::renderer
         get_state()._uniform_buffer_ref_list.reserve(MAX_FRAMES_IN_FLIGHT);
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
-            get_state()._uniform_buffer_ref_list.push_back(get_state()._graphics_backend->buffer_component().make_uniform_buffer({sizeof(UniformBufferObject)}));
+            get_state()._uniform_buffer_ref_list.push_back(get_state()._graphics_backend->buffer_unit().make_uniform_buffer({sizeof(UniformBufferObject)}));
         }
 
-        get_state()._ubo_descriptor_pool_ref = get_state()._graphics_backend->descriptor_component().make_descriptor_pool({{graphics::api::EDescriptorType::UNIFORM_BUFFER}});
-        get_state()._image_descriptor_pool_ref = get_state()._graphics_backend->descriptor_component().make_descriptor_pool({{graphics::api::EDescriptorType::SAMPLED_IMAGE}});
+        get_state()._ubo_descriptor_pool_ref = get_state()._graphics_backend->descriptor_unit().make_descriptor_pool({{graphics::api::EDescriptorType::UNIFORM_BUFFER}});
+        get_state()._image_descriptor_pool_ref = get_state()._graphics_backend->descriptor_unit().make_descriptor_pool({{graphics::api::EDescriptorType::SAMPLED_IMAGE}});
 
-        get_state()._ubo_descriptor_set_list_ref = get_state()._graphics_backend->descriptor_component().make_descriptor_set_list(
+        get_state()._ubo_descriptor_set_list_ref = get_state()._graphics_backend->descriptor_unit().make_descriptor_set_list(
             {
                 get_state()._ubo_descriptor_pool_ref,
                 get_state()._ubo_descriptor_set_layout_ref,
                 MAX_FRAMES_IN_FLIGHT
             });
-        get_state()._graphics_backend->descriptor_component().write_descriptor_set(
+        get_state()._graphics_backend->descriptor_unit().write_descriptor_set(
             {
                 get_state()._ubo_descriptor_set_list_ref[0],
                 0,
@@ -261,7 +261,7 @@ namespace xar_engine::renderer
                 {},
                 {}
             });
-        get_state()._graphics_backend->descriptor_component().write_descriptor_set(
+        get_state()._graphics_backend->descriptor_unit().write_descriptor_set(
             {
                 get_state()._ubo_descriptor_set_list_ref[1],
                 0,
@@ -270,7 +270,7 @@ namespace xar_engine::renderer
                 {},
                 {}});
 
-        get_state()._image_descriptor_set_ref = get_state()._graphics_backend->descriptor_component().make_descriptor_set_list(
+        get_state()._image_descriptor_set_ref = get_state()._graphics_backend->descriptor_unit().make_descriptor_set_list(
             {
                 get_state()._image_descriptor_pool_ref,
                 get_state()._image_descriptor_set_layout_ref,
@@ -280,17 +280,17 @@ namespace xar_engine::renderer
 
     RendererImpl::~RendererImpl()
     {
-        get_state()._graphics_backend->device_component().wait_idle();
+        get_state()._graphics_backend->device_unit().wait_idle();
     }
 
-    module::IGpuMaterialModule& RendererImpl::gpu_material_module()
+    unit::IGpuMaterialUnit& RendererImpl::gpu_material_unit()
     {
-        return *_gpu_material_module;
+        return *_gpu_material_unit;
     }
 
-    module::IGpuModelModule& RendererImpl::gpu_model_module()
+    unit::IGpuModelUnit& RendererImpl::gpu_model_unit()
     {
-        return *_gpu_model_module;
+        return *_gpu_model_unit;
     }
 
     void RendererImpl::add_gpu_mesh_instance_to_render(
@@ -307,7 +307,7 @@ namespace xar_engine::renderer
 
     void RendererImpl::update()
     {
-        const auto begin_frame_result = get_state()._graphics_backend->swap_chain_component().begin_frame({get_state()._swap_chain_ref});
+        const auto begin_frame_result = get_state()._graphics_backend->swap_chain_unit().begin_frame({get_state()._swap_chain_ref});
 
         if (std::get<0>(begin_frame_result) == graphics::api::ESwapChainResult::RECREATION_REQUIRED)
         {
@@ -316,10 +316,10 @@ namespace xar_engine::renderer
                 tag,
                 "Acquire failed because Swapchain is out of date");
 
-            get_state()._graphics_backend->device_component().wait_idle();
+            get_state()._graphics_backend->device_unit().wait_idle();
             get_state()._swap_chain_ref = {};
 
-            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_component().make_swap_chain({
+            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain({
                 get_state()._window_surface,
                 MAX_FRAMES_IN_FLIGHT});
 
@@ -344,14 +344,14 @@ namespace xar_engine::renderer
         const auto current_image_index = std::get<1>(begin_frame_result);
         const auto frame_index = std::get<2>(begin_frame_result);
 
-        get_state()._graphics_backend->swap_chain_component().begin_rendering({
+        get_state()._graphics_backend->swap_chain_unit().begin_rendering({
             get_state()._command_buffer_list[frame_index],
             get_state()._swap_chain_ref,
             current_image_index,
             get_state()._color_image_view_ref,
             get_state()._depth_image_view_ref});
 
-        get_state()._graphics_backend->graphics_pipeline_component().set_pipeline_state({
+        get_state()._graphics_backend->graphics_pipeline_unit().set_pipeline_state({
             get_state()._command_buffer_list[frame_index],
             get_state()._swap_chain_ref,
             get_state()._graphics_pipeline_ref,
@@ -373,7 +373,7 @@ namespace xar_engine::renderer
             const auto& gpu_material_data = get_state()._gpu_material_data_map.get(render_item.gpu_material);
 
             pc.material_index = gpu_material_data.index;
-            get_state()._graphics_backend->graphics_pipeline_component().push_constants({
+            get_state()._graphics_backend->graphics_pipeline_unit().push_constants({
                 get_state()._command_buffer_list[frame_index],
                 get_state()._graphics_pipeline_ref,
                 graphics::api::EShaderType::FRAGMENT,
@@ -381,7 +381,7 @@ namespace xar_engine::renderer
                 sizeof(Constants),
                 &pc});
 
-            get_state()._graphics_backend->graphics_pipeline_component().set_vertex_buffer_list({
+            get_state()._graphics_backend->graphics_pipeline_unit().set_vertex_buffer_list({
                 get_state()._command_buffer_list[frame_index],
                 {
                     gpu_buffer_data.position_buffer,
@@ -390,7 +390,7 @@ namespace xar_engine::renderer
                 },
                 {0, 0, 0},
                 0});
-            get_state()._graphics_backend->graphics_pipeline_component().set_index_buffer({
+            get_state()._graphics_backend->graphics_pipeline_unit().set_index_buffer({
                 get_state()._command_buffer_list[frame_index],
                 gpu_buffer_data.index_buffer,
                 0});
@@ -400,7 +400,7 @@ namespace xar_engine::renderer
                 .gpu_model_buffer_structure_list[gpu_model_data.model_index]
                 .gpu_mesh_buffer_structure_list[gpu_mesh_data.mesh_index];
 
-            get_state()._graphics_backend->graphics_pipeline_component().draw_indexed({
+            get_state()._graphics_backend->graphics_pipeline_unit().draw_indexed({
                 get_state()._command_buffer_list[frame_index],
                 gpu_mesh_buffer_structure.index_counts,
                 1,
@@ -409,7 +409,7 @@ namespace xar_engine::renderer
                 0});
         }
 
-        get_state()._graphics_backend->swap_chain_component().end_rendering({
+        get_state()._graphics_backend->swap_chain_unit().end_rendering({
             get_state()._command_buffer_list[frame_index],
             get_state()._swap_chain_ref,
             current_image_index});
@@ -419,7 +419,7 @@ namespace xar_engine::renderer
             updateUniformBuffer(frame_index);
         }
 
-        const auto end_result = get_state()._graphics_backend->swap_chain_component().end_frame({
+        const auto end_result = get_state()._graphics_backend->swap_chain_unit().end_frame({
             get_state()._command_buffer_list[frame_index],
             get_state()._swap_chain_ref});
         if (end_result == graphics::api::ESwapChainResult::RECREATION_REQUIRED)
@@ -429,10 +429,10 @@ namespace xar_engine::renderer
                 tag,
                 "Present failed because Swapchain is out of date");
 
-            get_state()._graphics_backend->device_component().wait_idle();
+            get_state()._graphics_backend->device_unit().wait_idle();
             get_state()._swap_chain_ref = {};
 
-            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_component().make_swap_chain({
+            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain({
                 get_state()._window_surface,
                 MAX_FRAMES_IN_FLIGHT});
 

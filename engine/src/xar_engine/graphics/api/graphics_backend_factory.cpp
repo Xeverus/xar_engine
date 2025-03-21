@@ -1,13 +1,13 @@
 #include <xar_engine/graphics/api/graphics_backend_factory.hpp>
 
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_buffer_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_command_buffer_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_descriptor_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_device_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_graphics_pipeline_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_image_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_shader_component.hpp>
-#include <xar_engine/graphics/backend/component/vulkan/vulkan_swap_chain_component.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_buffer_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_command_buffer_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_descriptor_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_device_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_graphics_pipeline_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_image_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_shader_unit.hpp>
+#include <xar_engine/graphics/backend/unit/vulkan/vulkan_swap_chain_unit.hpp>
 
 #include <xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.hpp>
 
@@ -26,14 +26,14 @@ namespace xar_engine::graphics::api
 
                 return std::make_unique<backend::vulkan::VulkanGraphicsBackend>(
                     state,
-                    std::make_unique<backend::component::vulkan::IVulkanBufferComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanCommandBufferComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanDescriptorComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanDeviceComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanGraphicsPipelineComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanImageComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanShaderComponent>(state),
-                    std::make_unique<backend::component::vulkan::IVulkanSwapChainComponent>(state));
+                    std::make_unique<backend::unit::vulkan::IVulkanBufferUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanCommandBufferUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanDescriptorUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanDeviceUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanGraphicsPipelineUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanImageUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanShaderUnit>(state),
+                    std::make_unique<backend::unit::vulkan::IVulkanSwapChainUnit>(state));
             }
         }
 

@@ -16,32 +16,32 @@ namespace xar_engine::graphics::backend::vulkan
     public:
         VulkanGraphicsBackend(
             std::shared_ptr<VulkanGraphicsBackendState> state,
-            std::unique_ptr<component::IBufferComponent> buffer_component,
-            std::unique_ptr<component::ICommandBufferComponent> command_buffer_component,
-            std::unique_ptr<component::IDescriptorComponent> descriptor_component,
-            std::unique_ptr<component::IDeviceComponent> device_component,
-            std::unique_ptr<component::IGraphicsPipelineComponent> graphics_pipeline_component,
-            std::unique_ptr<component::IImageComponent> image_component,
-            std::unique_ptr<component::IShaderComponent> shader_component,
-            std::unique_ptr<component::ISwapChainComponent> swap_chain_component);
+            std::unique_ptr<unit::IBufferUnit> buffer_unit,
+            std::unique_ptr<unit::ICommandBufferUnit> command_buffer_unit,
+            std::unique_ptr<unit::IDescriptorUnit> descriptor_unit,
+            std::unique_ptr<unit::IDeviceUnit> device_unit,
+            std::unique_ptr<unit::IGraphicsPipelineUnit> graphics_pipeline_unit,
+            std::unique_ptr<unit::IImageUnit> image_unit,
+            std::unique_ptr<unit::IShaderUnit> shader_unit,
+            std::unique_ptr<unit::ISwapChainUnit> swap_chain_unit);
 
-        component::IBufferComponent& buffer_component() override;
-        component::ICommandBufferComponent& command_buffer_component() override;
-        component::IDescriptorComponent& descriptor_component() override;
-        component::IDeviceComponent& device_component() override;
-        component::IGraphicsPipelineComponent& graphics_pipeline_component() override;
-        component::IImageComponent& image_component() override;
-        component::IShaderComponent& shader_component() override;
-        component::ISwapChainComponent& swap_chain_component() override;
+        unit::IBufferUnit& buffer_unit() override;
+        unit::ICommandBufferUnit& command_buffer_unit() override;
+        unit::IDescriptorUnit& descriptor_unit() override;
+        unit::IDeviceUnit& device_unit() override;
+        unit::IGraphicsPipelineUnit& graphics_pipeline_unit() override;
+        unit::IImageUnit& image_unit() override;
+        unit::IShaderUnit& shader_unit() override;
+        unit::ISwapChainUnit& swap_chain_unit() override;
 
     private:
-        std::unique_ptr<component::IBufferComponent> _buffer_component;
-        std::unique_ptr<component::ICommandBufferComponent> _command_buffer_component;
-        std::unique_ptr<component::IDescriptorComponent> _descriptor_component;
-        std::unique_ptr<component::IDeviceComponent> _device_component;
-        std::unique_ptr<component::IGraphicsPipelineComponent> _graphics_pipeline_component;
-        std::unique_ptr<component::IImageComponent> _image_component;
-        std::unique_ptr<component::IShaderComponent> _shader_component;
-        std::unique_ptr<component::ISwapChainComponent> _swap_chain_component;
+        std::unique_ptr<unit::IBufferUnit> _buffer_unit;
+        std::unique_ptr<unit::ICommandBufferUnit> _command_buffer_unit;
+        std::unique_ptr<unit::IDescriptorUnit> _descriptor_unit;
+        std::unique_ptr<unit::IDeviceUnit> _device_unit;
+        std::unique_ptr<unit::IGraphicsPipelineUnit> _graphics_pipeline_unit;
+        std::unique_ptr<unit::IImageUnit> _image_unit;
+        std::unique_ptr<unit::IShaderUnit> _shader_unit;
+        std::unique_ptr<unit::ISwapChainUnit> _swap_chain_unit;
     };
 }

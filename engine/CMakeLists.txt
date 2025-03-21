@@ -57,9 +57,9 @@ set(XAR_ENGINE_PUBLIC_FILES
         include/xar_engine/renderer/gpu_asset/gpu_model.hpp
         include/xar_engine/renderer/renderer.hpp
 
-        # renderer module
-        include/xar_engine/renderer/module/gpu_material_module.hpp
-        include/xar_engine/renderer/module/gpu_model_module.hpp
+        # renderer unit
+        include/xar_engine/renderer/unit/gpu_material_unit.hpp
+        include/xar_engine/renderer/unit/gpu_model_unit.hpp
 
         # version
         include/xar_engine/version/version.hpp)
@@ -111,41 +111,41 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/graphics/backend/graphics_backend.cpp
         src/xar_engine/graphics/backend/graphics_backend.hpp
 
-        # graphics backend component
-        src/xar_engine/graphics/backend/component/buffer_component.cpp
-        src/xar_engine/graphics/backend/component/buffer_component.hpp
-        src/xar_engine/graphics/backend/component/command_buffer_component.cpp
-        src/xar_engine/graphics/backend/component/command_buffer_component.hpp
-        src/xar_engine/graphics/backend/component/descriptor_component.cpp
-        src/xar_engine/graphics/backend/component/descriptor_component.hpp
-        src/xar_engine/graphics/backend/component/device_component.cpp
-        src/xar_engine/graphics/backend/component/device_component.hpp
-        src/xar_engine/graphics/backend/component/graphics_pipeline_component.cpp
-        src/xar_engine/graphics/backend/component/graphics_pipeline_component.hpp
-        src/xar_engine/graphics/backend/component/image_component.cpp
-        src/xar_engine/graphics/backend/component/image_component.hpp
-        src/xar_engine/graphics/backend/component/shader_component.cpp
-        src/xar_engine/graphics/backend/component/shader_component.hpp
-        src/xar_engine/graphics/backend/component/swap_chain_component.cpp
-        src/xar_engine/graphics/backend/component/swap_chain_component.hpp
+        # graphics backend unit
+        src/xar_engine/graphics/backend/unit/buffer_unit.cpp
+        src/xar_engine/graphics/backend/unit/buffer_unit.hpp
+        src/xar_engine/graphics/backend/unit/command_buffer_unit.cpp
+        src/xar_engine/graphics/backend/unit/command_buffer_unit.hpp
+        src/xar_engine/graphics/backend/unit/descriptor_unit.cpp
+        src/xar_engine/graphics/backend/unit/descriptor_unit.hpp
+        src/xar_engine/graphics/backend/unit/device_unit.cpp
+        src/xar_engine/graphics/backend/unit/device_unit.hpp
+        src/xar_engine/graphics/backend/unit/graphics_pipeline_unit.cpp
+        src/xar_engine/graphics/backend/unit/graphics_pipeline_unit.hpp
+        src/xar_engine/graphics/backend/unit/image_unit.cpp
+        src/xar_engine/graphics/backend/unit/image_unit.hpp
+        src/xar_engine/graphics/backend/unit/shader_unit.cpp
+        src/xar_engine/graphics/backend/unit/shader_unit.hpp
+        src/xar_engine/graphics/backend/unit/swap_chain_unit.cpp
+        src/xar_engine/graphics/backend/unit/swap_chain_unit.hpp
 
-        # graphics backend component vulkan
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_buffer_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_buffer_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_command_buffer_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_command_buffer_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_descriptor_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_descriptor_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_device_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_device_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_graphics_pipeline_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_graphics_pipeline_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_image_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_image_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_shader_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_shader_component.hpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_swap_chain_component.cpp
-        src/xar_engine/graphics/backend/component/vulkan/vulkan_swap_chain_component.hpp
+        # graphics backend unit vulkan
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_buffer_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_buffer_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_command_buffer_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_command_buffer_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_descriptor_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_descriptor_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_device_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_device_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_graphics_pipeline_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_graphics_pipeline_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_image_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_image_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_shader_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_shader_unit.hpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_swap_chain_unit.cpp
+        src/xar_engine/graphics/backend/unit/vulkan/vulkan_swap_chain_unit.hpp
 
         # graphics backend vulkan
         src/xar_engine/graphics/backend/vulkan/vulkan_graphics_backend.cpp
@@ -249,13 +249,13 @@ set(XAR_ENGINE_PRIVATE_FILES
         src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.cpp
         src/xar_engine/renderer/gpu_asset/gpu_model_data_buffer.hpp
 
-        # renderer module
-        src/xar_engine/renderer/module/gpu_material_module.cpp
-        src/xar_engine/renderer/module/gpu_material_module_impl.cpp
-        src/xar_engine/renderer/module/gpu_material_module_impl.hpp
-        src/xar_engine/renderer/module/gpu_model_module.cpp
-        src/xar_engine/renderer/module/gpu_model_module_impl.cpp
-        src/xar_engine/renderer/module/gpu_model_module_impl.hpp
+        # renderer unit
+        src/xar_engine/renderer/unit/gpu_material_unit.cpp
+        src/xar_engine/renderer/unit/gpu_material_unit_impl.cpp
+        src/xar_engine/renderer/unit/gpu_material_unit_impl.hpp
+        src/xar_engine/renderer/unit/gpu_model_unit.cpp
+        src/xar_engine/renderer/unit/gpu_model_unit_impl.cpp
+        src/xar_engine/renderer/unit/gpu_model_unit_impl.hpp
 
         # time
         src/xar_engine/time/time.cpp

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <xar_engine/graphics/backend/component/buffer_component.hpp>
-#include <xar_engine/graphics/backend/component/command_buffer_component.hpp>
-#include <xar_engine/graphics/backend/component/descriptor_component.hpp>
-#include <xar_engine/graphics/backend/component/device_component.hpp>
-#include <xar_engine/graphics/backend/component/graphics_pipeline_component.hpp>
-#include <xar_engine/graphics/backend/component/image_component.hpp>
-#include <xar_engine/graphics/backend/component/shader_component.hpp>
-#include <xar_engine/graphics/backend/component/swap_chain_component.hpp>
+#include <xar_engine/graphics/backend/unit/buffer_unit.hpp>
+#include <xar_engine/graphics/backend/unit/command_buffer_unit.hpp>
+#include <xar_engine/graphics/backend/unit/descriptor_unit.hpp>
+#include <xar_engine/graphics/backend/unit/device_unit.hpp>
+#include <xar_engine/graphics/backend/unit/graphics_pipeline_unit.hpp>
+#include <xar_engine/graphics/backend/unit/image_unit.hpp>
+#include <xar_engine/graphics/backend/unit/shader_unit.hpp>
+#include <xar_engine/graphics/backend/unit/swap_chain_unit.hpp>
 
 
 namespace xar_engine::graphics::backend
@@ -17,13 +17,13 @@ namespace xar_engine::graphics::backend
     public:
         virtual ~IGraphicsBackend();
 
-        virtual component::IBufferComponent& buffer_component() = 0;
-        virtual component::ICommandBufferComponent& command_buffer_component() = 0;
-        virtual component::IDescriptorComponent& descriptor_component() = 0;
-        virtual component::IDeviceComponent& device_component() = 0;
-        virtual component::IGraphicsPipelineComponent& graphics_pipeline_component() = 0;
-        virtual component::IImageComponent& image_component() = 0;
-        virtual component::IShaderComponent& shader_component() = 0;
-        virtual component::ISwapChainComponent& swap_chain_component() = 0;
+        virtual unit::IBufferUnit& buffer_unit() = 0;
+        virtual unit::ICommandBufferUnit& command_buffer_unit() = 0;
+        virtual unit::IDescriptorUnit& descriptor_unit() = 0;
+        virtual unit::IDeviceUnit& device_unit() = 0;
+        virtual unit::IGraphicsPipelineUnit& graphics_pipeline_unit() = 0;
+        virtual unit::IImageUnit& image_unit() = 0;
+        virtual unit::IShaderUnit& shader_unit() = 0;
+        virtual unit::ISwapChainUnit& swap_chain_unit() = 0;
     };
 }

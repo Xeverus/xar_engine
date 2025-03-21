@@ -10,8 +10,8 @@
 #include <xar_engine/renderer/gpu_asset/gpu_mesh_instance.hpp>
 #include <xar_engine/renderer/gpu_asset/gpu_model.hpp>
 
-#include <xar_engine/renderer/module/gpu_material_module.hpp>
-#include <xar_engine/renderer/module/gpu_model_module.hpp>
+#include <xar_engine/renderer/unit/gpu_material_unit.hpp>
+#include <xar_engine/renderer/unit/gpu_model_unit.hpp>
 
 
 namespace xar_engine::graphics::backend
@@ -32,8 +32,8 @@ namespace xar_engine::renderer
         virtual ~IRenderer();
 
 
-        virtual module::IGpuMaterialModule& gpu_material_module() = 0;
-        virtual module::IGpuModelModule& gpu_model_module() = 0;
+        virtual unit::IGpuMaterialUnit& gpu_material_unit() = 0;
+        virtual unit::IGpuModelUnit& gpu_model_unit() = 0;
 
         virtual void add_gpu_mesh_instance_to_render(
             const gpu_asset::GpuMeshInstance& gpu_mesh_instance,

@@ -4,7 +4,7 @@
 
 #include <xar_engine/asset/image.hpp>
 
-#include <xar_engine/renderer/module/gpu_model_module.hpp>
+#include <xar_engine/renderer/unit/gpu_model_unit.hpp>
 
 #include <xar_engine/renderer/renderer_state.hpp>
 
@@ -18,14 +18,14 @@ namespace xar_engine::renderer
     public:
         RendererImpl(
             std::shared_ptr<RendererState> state,
-            std::unique_ptr<module::IGpuMaterialModule> gpu_material_module,
-            std::unique_ptr<module::IGpuModelModule> gpu_model_module);
+            std::unique_ptr<unit::IGpuMaterialUnit> gpu_material_unit,
+            std::unique_ptr<unit::IGpuModelUnit> gpu_model_unit);
 
         ~RendererImpl() override;
 
 
-        module::IGpuModelModule& gpu_model_module() override;
-        module::IGpuMaterialModule& gpu_material_module() override;
+        unit::IGpuModelUnit& gpu_model_unit() override;
+        unit::IGpuMaterialUnit& gpu_material_unit() override;
 
         void add_gpu_mesh_instance_to_render(
             const gpu_asset::GpuMeshInstance& gpu_mesh_instance,
@@ -43,7 +43,7 @@ namespace xar_engine::renderer
         void updateUniformBuffer(uint32_t currentImage);
 
     private:
-        std::unique_ptr<module::IGpuMaterialModule> _gpu_material_module;
-        std::unique_ptr<module::IGpuModelModule> _gpu_model_module;
+        std::unique_ptr<unit::IGpuMaterialUnit> _gpu_material_unit;
+        std::unique_ptr<unit::IGpuModelUnit> _gpu_model_unit;
     };
 }
