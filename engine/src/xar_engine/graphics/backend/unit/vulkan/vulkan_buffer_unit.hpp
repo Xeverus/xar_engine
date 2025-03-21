@@ -24,6 +24,12 @@ namespace xar_engine::graphics::backend::unit::vulkan
         void update_buffer(const UpdateBufferParameters& parameters) override;
         void copy_buffer(const CopyBufferParameters& parameters) override;
         void copy_buffer_to_image(const CopyBufferToImageParameters& parameters) override;
+
+    private:
+        api::BufferReference make_buffer(
+            const IVulkanBufferUnit::MakeBufferParameters& parameters,
+            VkBufferUsageFlags vk_buffer_usage_flag_bits,
+            VkMemoryPropertyFlags vk_memory_property_flag_bits);
     };
 
 }
