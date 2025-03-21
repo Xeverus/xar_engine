@@ -9,7 +9,7 @@ namespace xar_engine::renderer::unit
 {
     class GpuModelUnitImpl
         : public IGpuModelUnit
-        , public SharedRendererState
+          , public SharedRendererState
     {
     public:
         using SharedRendererState::SharedRendererState;

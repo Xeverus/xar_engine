@@ -25,7 +25,8 @@ namespace xar_engine::asset
         virtual std::unique_ptr<IImageLoader> make() const = 0;
     };
 
-    class ImageLoaderFactory : public IImageLoaderFactory
+    class ImageLoaderFactory
+        : public IImageLoaderFactory
     {
     public:
         [[nodiscard]]

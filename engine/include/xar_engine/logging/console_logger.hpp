@@ -8,7 +8,8 @@
 
 namespace xar_engine::logging
 {
-    class ConsoleLogger : public ILogger
+    class ConsoleLogger
+        : public ILogger
     {
     public:
         ConsoleLogger();

@@ -6,7 +6,8 @@
 
 namespace
 {
-    TEST(exception_utils, format_message_without_args)
+    TEST(exception_utils,
+         format_message_without_args)
     {
         constexpr auto* const expected_value =
             "Reason: 1 != 2\n"
@@ -21,7 +22,8 @@ namespace
             expected_value);
     }
 
-    TEST(exception_utils, format_message_with_args)
+    TEST(exception_utils,
+         format_message_with_args)
     {
         constexpr auto* const expected_value =
             "Reason: 1 != 2\n"
@@ -38,18 +40,20 @@ namespace
             expected_value);
     }
 
-    TEST(exception_utils, throw__should_throw)
+    TEST(exception_utils,
+         throw__should_throw)
     {
         EXPECT_THROW([]()
-            {
-                XAR_THROW(
-                    xar_engine::error::XarException,
-                    "Should throw");
-            }(),
-            xar_engine::error::XarException);
+                     {
+                         XAR_THROW(
+                             xar_engine::error::XarException,
+                             "Should throw");
+                     }(),
+                     xar_engine::error::XarException);
     }
 
-    TEST(exception_utils, throw_with_message__message_in_exception_should_match)
+    TEST(exception_utils,
+         throw_with_message__message_in_exception_should_match)
     {
         try
         {
@@ -65,19 +69,21 @@ namespace
         }
     }
 
-    TEST(exception_utils, throw_if_true__should_throw)
+    TEST(exception_utils,
+         throw_if_true__should_throw)
     {
         EXPECT_THROW([]()
-            {
-                XAR_THROW_IF(
-                    true,
-                    xar_engine::error::XarException,
-                    "Should throw");
-            }(),
-            xar_engine::error::XarException);
+                     {
+                         XAR_THROW_IF(
+                             true,
+                             xar_engine::error::XarException,
+                             "Should throw");
+                     }(),
+                     xar_engine::error::XarException);
     }
 
-    TEST(exception_utils, throw_if_false__should_not_throw)
+    TEST(exception_utils,
+         throw_if_false__should_not_throw)
     {
         XAR_THROW_IF(
             false,
@@ -85,7 +91,8 @@ namespace
             "Should not throw");
     }
 
-    TEST(exception_utils, throw_if_with_message__message_in_exception_should_match)
+    TEST(exception_utils,
+         throw_if_with_message__message_in_exception_should_match)
     {
         try
         {

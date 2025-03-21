@@ -7,7 +7,8 @@
 
 namespace xar_engine::logging
 {
-    class LogFormatterMock : public ILogFormatter
+    class LogFormatterMock
+        : public ILogFormatter
     {
     public:
         MOCK_METHOD(

@@ -139,8 +139,6 @@ namespace xar_engine::renderer
     }
 
 
-
-
     void RendererImpl::updateUniformBuffer(uint32_t currentImageNr)
     {
         static auto startTime = std::chrono::high_resolution_clock::now();
@@ -319,9 +317,11 @@ namespace xar_engine::renderer
             get_state()._graphics_backend->device_unit().wait_idle();
             get_state()._swap_chain_ref = {};
 
-            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain({
-                get_state()._window_surface,
-                MAX_FRAMES_IN_FLIGHT});
+            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain(
+                {
+                    get_state()._window_surface,
+                    MAX_FRAMES_IN_FLIGHT
+                });
 
             init_color_msaa();
             init_depth();
@@ -344,18 +344,21 @@ namespace xar_engine::renderer
         const auto current_image_index = std::get<1>(begin_frame_result);
         const auto frame_index = std::get<2>(begin_frame_result);
 
-        get_state()._graphics_backend->swap_chain_unit().begin_rendering({
-            get_state()._command_buffer_list[frame_index],
-            get_state()._swap_chain_ref,
-            current_image_index,
-            get_state()._color_image_view_ref,
-            get_state()._depth_image_view_ref});
+        get_state()._graphics_backend->swap_chain_unit().begin_rendering(
+            {
+                get_state()._command_buffer_list[frame_index],
+                get_state()._swap_chain_ref,
+                current_image_index,
+                get_state()._color_image_view_ref,
+                get_state()._depth_image_view_ref
+            });
 
-        get_state()._graphics_backend->graphics_pipeline_unit().set_pipeline_state({
-            get_state()._command_buffer_list[frame_index],
-            get_state()._swap_chain_ref,
-            get_state()._graphics_pipeline_ref,
-            {get_state()._ubo_descriptor_set_list_ref[frame_index], get_state()._image_descriptor_set_ref}});
+        get_state()._graphics_backend->graphics_pipeline_unit().set_pipeline_state(
+            {
+                get_state()._command_buffer_list[frame_index],
+                get_state()._swap_chain_ref,
+                get_state()._graphics_pipeline_ref,
+                {get_state()._ubo_descriptor_set_list_ref[frame_index], get_state()._image_descriptor_set_ref}});
 
         static float pcc = 0.0f;
         struct Constants
@@ -373,55 +376,67 @@ namespace xar_engine::renderer
             const auto& gpu_material_data = get_state()._gpu_material_data_map.get(render_item.gpu_material);
 
             pc.material_index = gpu_material_data.index;
-            get_state()._graphics_backend->graphics_pipeline_unit().push_constants({
-                get_state()._command_buffer_list[frame_index],
-                get_state()._graphics_pipeline_ref,
-                graphics::api::EShaderType::FRAGMENT,
-                0,
-                sizeof(Constants),
-                &pc});
-
-            get_state()._graphics_backend->graphics_pipeline_unit().set_vertex_buffer_list({
-                get_state()._command_buffer_list[frame_index],
+            get_state()._graphics_backend->graphics_pipeline_unit().push_constants(
                 {
-                    gpu_buffer_data.position_buffer,
-                    gpu_buffer_data.normal_buffer,
-                    gpu_buffer_data.texture_coord_buffer,
-                },
-                {0, 0, 0},
-                0});
-            get_state()._graphics_backend->graphics_pipeline_unit().set_index_buffer({
-                get_state()._command_buffer_list[frame_index],
-                gpu_buffer_data.index_buffer,
-                0});
+                    get_state()._command_buffer_list[frame_index],
+                    get_state()._graphics_pipeline_ref,
+                    graphics::api::EShaderType::FRAGMENT,
+                    0,
+                    sizeof(Constants),
+                    &pc
+                });
+
+            get_state()._graphics_backend->graphics_pipeline_unit().set_vertex_buffer_list(
+                {
+                    get_state()._command_buffer_list[frame_index],
+                    {
+                        gpu_buffer_data.position_buffer,
+                        gpu_buffer_data.normal_buffer,
+                        gpu_buffer_data.texture_coord_buffer,
+                    },
+                    {0, 0, 0},
+                    0
+                });
+            get_state()._graphics_backend->graphics_pipeline_unit().set_index_buffer(
+                {
+                    get_state()._command_buffer_list[frame_index],
+                    gpu_buffer_data.index_buffer,
+                    0
+                });
 
             const auto gpu_mesh_buffer_structure = gpu_buffer_data
                 .structure
                 .gpu_model_buffer_structure_list[gpu_model_data.model_index]
                 .gpu_mesh_buffer_structure_list[gpu_mesh_data.mesh_index];
 
-            get_state()._graphics_backend->graphics_pipeline_unit().draw_indexed({
-                get_state()._command_buffer_list[frame_index],
-                gpu_mesh_buffer_structure.index_counts,
-                1,
-                gpu_mesh_buffer_structure.first_index,
-                gpu_mesh_buffer_structure.first_vertex,
-                0});
+            get_state()._graphics_backend->graphics_pipeline_unit().draw_indexed(
+                {
+                    get_state()._command_buffer_list[frame_index],
+                    gpu_mesh_buffer_structure.index_counts,
+                    1,
+                    gpu_mesh_buffer_structure.first_index,
+                    gpu_mesh_buffer_structure.first_vertex,
+                    0
+                });
         }
 
-        get_state()._graphics_backend->swap_chain_unit().end_rendering({
-            get_state()._command_buffer_list[frame_index],
-            get_state()._swap_chain_ref,
-            current_image_index});
+        get_state()._graphics_backend->swap_chain_unit().end_rendering(
+            {
+                get_state()._command_buffer_list[frame_index],
+                get_state()._swap_chain_ref,
+                current_image_index
+            });
 
         if (!get_state()._redner_item_list.empty())
         {
             updateUniformBuffer(frame_index);
         }
 
-        const auto end_result = get_state()._graphics_backend->swap_chain_unit().end_frame({
-            get_state()._command_buffer_list[frame_index],
-            get_state()._swap_chain_ref});
+        const auto end_result = get_state()._graphics_backend->swap_chain_unit().end_frame(
+            {
+                get_state()._command_buffer_list[frame_index],
+                get_state()._swap_chain_ref
+            });
         if (end_result == graphics::api::ESwapChainResult::RECREATION_REQUIRED)
         {
             XAR_LOG(
@@ -432,9 +447,11 @@ namespace xar_engine::renderer
             get_state()._graphics_backend->device_unit().wait_idle();
             get_state()._swap_chain_ref = {};
 
-            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain({
-                get_state()._window_surface,
-                MAX_FRAMES_IN_FLIGHT});
+            get_state()._swap_chain_ref = get_state()._graphics_backend->swap_chain_unit().make_swap_chain(
+                {
+                    get_state()._window_surface,
+                    MAX_FRAMES_IN_FLIGHT
+                });
 
             init_color_msaa();
             init_depth();

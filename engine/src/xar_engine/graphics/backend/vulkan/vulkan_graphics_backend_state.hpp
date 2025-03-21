@@ -17,7 +17,8 @@ namespace xar_engine::graphics::backend::vulkan
         VulkanResourceStorage _vulkan_resource_storage;
     };
 
-    class SharedVulkanGraphicsBackendState : public meta::TSharedState<VulkanGraphicsBackendState>
+    class SharedVulkanGraphicsBackendState
+        : public meta::TSharedState<VulkanGraphicsBackendState>
     {
     public:
         using meta::TSharedState<VulkanGraphicsBackendState>::TSharedState;

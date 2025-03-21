@@ -10,11 +10,14 @@
 
 namespace xar_engine::logging
 {
-    class FileLogger : public ILogger
+    class FileLogger
+        : public ILogger
     {
     public:
         explicit FileLogger(const std::filesystem::path& filepath);
-        FileLogger(const std::filesystem::path& filepath, std::unique_ptr<ILogFormatter> log_formatter);
+        FileLogger(
+            const std::filesystem::path& filepath,
+            std::unique_ptr<ILogFormatter> log_formatter);
 
         void log_message(
             LogLevel log_level,

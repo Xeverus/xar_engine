@@ -8,11 +8,14 @@
 
 namespace xar_engine::logging
 {
-    class StreamLogger : public ILogger
+    class StreamLogger
+        : public ILogger
     {
     public:
         explicit StreamLogger(std::ostream& stream);
-        StreamLogger(std::ostream& stream, std::unique_ptr<ILogFormatter> log_formatter);
+        StreamLogger(
+            std::ostream& stream,
+            std::unique_ptr<ILogFormatter> log_formatter);
 
         void log_message(
             LogLevel log_level,

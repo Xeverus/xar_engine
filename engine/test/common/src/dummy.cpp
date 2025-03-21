@@ -1,1 +1,3 @@
-void dummy_function() {}
+void dummy_function()
+{
+}

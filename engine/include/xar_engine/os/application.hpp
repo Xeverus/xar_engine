@@ -51,7 +51,8 @@ namespace xar_engine::os
         virtual std::unique_ptr<IApplication> make(IApplication::Parameters parameters) const = 0;
     };
 
-    class ApplicationFactory : public IApplicationFactory
+    class ApplicationFactory
+        : public IApplicationFactory
     {
     public:
         [[nodiscard]]

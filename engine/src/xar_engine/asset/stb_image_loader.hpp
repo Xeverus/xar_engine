@@ -5,7 +5,8 @@
 
 namespace xar_engine::asset
 {
-    class StbImageLoader : public IImageLoader
+    class StbImageLoader
+        : public IImageLoader
     {
     public:
         [[nodiscard]]

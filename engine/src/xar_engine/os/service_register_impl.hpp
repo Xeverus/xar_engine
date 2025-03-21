@@ -10,7 +10,8 @@ namespace xar_engine::logging
 
 namespace xar_engine::os
 {
-    class ServiceRegisterImpl : public IServiceRegister
+    class ServiceRegisterImpl
+        : public IServiceRegister
     {
     public:
         ServiceRegisterImpl();

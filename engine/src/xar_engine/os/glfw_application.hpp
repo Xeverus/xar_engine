@@ -9,7 +9,8 @@
 
 namespace xar_engine::os
 {
-    class GlfwApplication : public IApplication
+    class GlfwApplication
+        : public IApplication
     {
     public:
         explicit GlfwApplication(IApplication::Parameters parameters);
@@ -35,14 +36,14 @@ namespace xar_engine::os
         std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows_running;
         std::vector<std::shared_ptr<GlfwWindow>> _glfw_windows_to_run;
 
-         OnUpdate _on_run;
-         OnUpdate _on_update;
-         OnUpdate _on_close;
+        OnUpdate _on_run;
+        OnUpdate _on_update;
+        OnUpdate _on_close;
 
-         bool _current_close_requested;
-         bool _previous_close_requested;
+        bool _current_close_requested;
+        bool _previous_close_requested;
 
-         Parameters _parameters;
+        Parameters _parameters;
 
     private:
         void handle_windows_run();

@@ -159,8 +159,9 @@ namespace xar_engine::asset
             ModelMetadata parse_metadata() const
             {
                 return {
-                    std::string{_scene->mName.C_Str()
-                }};
+                    std::string{
+                        _scene->mName.C_Str()
+                    }};
             }
 
             std::vector<Mesh> parse_meshes() const

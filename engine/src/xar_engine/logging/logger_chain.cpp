@@ -13,9 +13,12 @@ namespace xar_engine::logging
         const std::string& tag,
         const std::string& message)
     {
-        for (auto& logger : _loggers)
+        for (auto& logger: _loggers)
         {
-            logger->log_message(log_level, tag, message);
+            logger->log_message(
+                log_level,
+                tag,
+                message);
         }
     }
 }

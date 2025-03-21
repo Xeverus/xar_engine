@@ -8,7 +8,9 @@
 namespace xar_engine::logging
 {
     FileLogger::FileLogger(const std::filesystem::path& filepath)
-        : FileLogger(filepath, nullptr)
+        : FileLogger(
+        filepath,
+        nullptr)
     {
     }
 

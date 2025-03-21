@@ -91,9 +91,11 @@ namespace xar_engine::renderer::unit
                 }
             }
 
-            get_state()._graphics_backend->buffer_unit().update_buffer({
-                                                                                staging_buffer,
-                                                                                buffer_update_list});
+            get_state()._graphics_backend->buffer_unit().update_buffer(
+                {
+                    staging_buffer,
+                    buffer_update_list
+                });
         }
 
         auto staging_buffer_1 = get_state()._graphics_backend->buffer_unit().make_staging_buffer({gpu_model_data_buffer.structure.normal_list_byte_size});
@@ -119,9 +121,11 @@ namespace xar_engine::renderer::unit
                 }
             }
 
-            get_state()._graphics_backend->buffer_unit().update_buffer({
-                                                                                staging_buffer_1,
-                                                                                buffer_update_list});
+            get_state()._graphics_backend->buffer_unit().update_buffer(
+                {
+                    staging_buffer_1,
+                    buffer_update_list
+                });
         }
 
         auto staging_buffer_2 = get_state()._graphics_backend->buffer_unit().make_staging_buffer({gpu_model_data_buffer.structure.texture_coord_list_byte_size});
@@ -148,9 +152,11 @@ namespace xar_engine::renderer::unit
                 }
             }
 
-            get_state()._graphics_backend->buffer_unit().update_buffer({
-                                                                                staging_buffer_2,
-                                                                                buffer_update_list});
+            get_state()._graphics_backend->buffer_unit().update_buffer(
+                {
+                    staging_buffer_2,
+                    buffer_update_list
+                });
         }
 
         auto staging_buffer_3 = get_state()._graphics_backend->buffer_unit().make_staging_buffer({gpu_model_data_buffer.structure.index_list_byte_size});
@@ -176,32 +182,44 @@ namespace xar_engine::renderer::unit
                 }
             }
 
-            get_state()._graphics_backend->buffer_unit().update_buffer({
-                                                                                staging_buffer_3,
-                                                                                buffer_update_list});
+            get_state()._graphics_backend->buffer_unit().update_buffer(
+                {
+                    staging_buffer_3,
+                    buffer_update_list
+                });
         }
 
         const auto command_buffer = get_state()._graphics_backend->command_buffer_unit().make_command_buffer_list({1});
-        get_state()._graphics_backend->command_buffer_unit().begin_command_buffer({
-                                                                                           command_buffer[0],
-                                                                                           graphics::api::ECommandBufferType::ONE_TIME});
+        get_state()._graphics_backend->command_buffer_unit().begin_command_buffer(
+            {
+                command_buffer[0],
+                graphics::api::ECommandBufferType::ONE_TIME
+            });
 
-        get_state()._graphics_backend->buffer_unit().copy_buffer({
-                                                                          command_buffer[0],
-                                                                          staging_buffer,
-                                                                          gpu_model_data_buffer.position_buffer});
-        get_state()._graphics_backend->buffer_unit().copy_buffer({
-                                                                          command_buffer[0],
-                                                                          staging_buffer_1,
-                                                                          gpu_model_data_buffer.normal_buffer});
-        get_state()._graphics_backend->buffer_unit().copy_buffer({
-                                                                          command_buffer[0],
-                                                                          staging_buffer_2,
-                                                                          gpu_model_data_buffer.texture_coord_buffer});
-        get_state()._graphics_backend->buffer_unit().copy_buffer({
-                                                                          command_buffer[0],
-                                                                          staging_buffer_3,
-                                                                          gpu_model_data_buffer.index_buffer});
+        get_state()._graphics_backend->buffer_unit().copy_buffer(
+            {
+                command_buffer[0],
+                staging_buffer,
+                gpu_model_data_buffer.position_buffer
+            });
+        get_state()._graphics_backend->buffer_unit().copy_buffer(
+            {
+                command_buffer[0],
+                staging_buffer_1,
+                gpu_model_data_buffer.normal_buffer
+            });
+        get_state()._graphics_backend->buffer_unit().copy_buffer(
+            {
+                command_buffer[0],
+                staging_buffer_2,
+                gpu_model_data_buffer.texture_coord_buffer
+            });
+        get_state()._graphics_backend->buffer_unit().copy_buffer(
+            {
+                command_buffer[0],
+                staging_buffer_3,
+                gpu_model_data_buffer.index_buffer
+            });
 
         get_state()._graphics_backend->command_buffer_unit().end_command_buffer({command_buffer[0]});
         get_state()._graphics_backend->command_buffer_unit().submit_command_buffer({command_buffer[0]});

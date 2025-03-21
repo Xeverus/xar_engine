@@ -80,7 +80,8 @@ namespace xar_engine::renderer
     };
 
 
-    class SharedRendererState : public meta::TSharedState<RendererState>
+    class SharedRendererState
+        : public meta::TSharedState<RendererState>
     {
     public:
         using meta::TSharedState<RendererState>::TSharedState;

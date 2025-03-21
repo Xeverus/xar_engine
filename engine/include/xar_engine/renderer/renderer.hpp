@@ -55,7 +55,8 @@ namespace xar_engine::renderer
     };
 
 
-    class RendererFactory : public IRendererFactory
+    class RendererFactory
+        : public IRendererFactory
     {
     public:
         std::unique_ptr<IRenderer> make(

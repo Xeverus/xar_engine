@@ -6,11 +6,15 @@
 namespace xar_engine::logging
 {
     StreamLogger::StreamLogger(std::ostream& stream)
-        : StreamLogger(stream, nullptr)
+        : StreamLogger(
+        stream,
+        nullptr)
     {
     }
 
-    StreamLogger::StreamLogger(std::ostream& stream, std::unique_ptr<ILogFormatter> log_formatter)
+    StreamLogger::StreamLogger(
+        std::ostream& stream,
+        std::unique_ptr<ILogFormatter> log_formatter)
         : _log_formatter(std::move(log_formatter))
         , _stream(stream)
     {
@@ -30,6 +34,9 @@ namespace xar_engine::logging
             return;
         }
 
-        _stream << _log_formatter->format(log_level, tag, message) << std::endl;
+        _stream << _log_formatter->format(
+            log_level,
+            tag,
+            message) << std::endl;
     }
 }

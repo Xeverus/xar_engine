@@ -13,7 +13,7 @@ namespace xar_engine::renderer
 {
     class RendererImpl
         : public IRenderer
-        , public SharedRendererState
+          , public SharedRendererState
     {
     public:
         RendererImpl(

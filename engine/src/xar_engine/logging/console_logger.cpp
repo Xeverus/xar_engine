@@ -17,11 +17,9 @@ namespace xar_engine::logging
             {
                 case LogLevel::DEBUG:
                 case LogLevel::INFO:
-                case LogLevel::WARNING:
-                    return std::cout;
+                case LogLevel::WARNING:return std::cout;
                 case LogLevel::ERROR:
-                case LogLevel::CRITICAL:
-                    return std::cerr;
+                case LogLevel::CRITICAL:return std::cerr;
             }
 
             XAR_THROW(
@@ -56,6 +54,9 @@ namespace xar_engine::logging
             return;
         }
 
-        stream << _log_formatter->format(log_level, tag, message) << std::endl;
+        stream << _log_formatter->format(
+            log_level,
+            tag,
+            message) << std::endl;
     }
 }

@@ -1,6 +1,7 @@
 #include <xar_engine/asset/stb_image_loader.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
+
 #include <stb_image.h>
 
 #include <xar_engine/error/exception_utils.hpp>

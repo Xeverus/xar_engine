@@ -9,7 +9,8 @@
 
 namespace xar_engine::logging
 {
-    class LoggerChain : public ILogger
+    class LoggerChain
+        : public ILogger
     {
     public:
         explicit LoggerChain(std::vector<std::unique_ptr<ILogger>> loggers);

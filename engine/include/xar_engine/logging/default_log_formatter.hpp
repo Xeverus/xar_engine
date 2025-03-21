@@ -5,7 +5,8 @@
 
 namespace xar_engine::logging
 {
-    class DefaultLogFormatter : public ILogFormatter
+    class DefaultLogFormatter
+        : public ILogFormatter
     {
     public:
         [[nodiscard]]

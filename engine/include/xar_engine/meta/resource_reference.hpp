@@ -36,8 +36,9 @@ namespace xar_engine::meta
     struct TResourceReference<Tag>::State
     {
     public:
-        State(Id id,
-              Deleter deleter);
+        State(
+            Id id,
+            Deleter deleter);
 
         ~State();
 
@@ -75,7 +76,10 @@ namespace xar_engine::meta
     TResourceReference<Tag>::TResourceReference(
         const Id id,
         Deleter deleter)
-        : _state(std::make_shared<State>(id, std::move(deleter)))
+        : _state(
+        std::make_shared<State>(
+            id,
+            std::move(deleter)))
     {
     }
 

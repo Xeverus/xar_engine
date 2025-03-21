@@ -25,7 +25,8 @@ namespace xar_engine::asset
         virtual std::unique_ptr<IModelLoader> make() const = 0;
     };
 
-    class ModelLoaderFactory : public IModelLoaderFactory
+    class ModelLoaderFactory
+        : public IModelLoaderFactory
     {
     public:
         [[nodiscard]]

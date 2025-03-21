@@ -22,7 +22,8 @@ namespace xar_engine::graphics::api
     };
 
 
-    class GraphicsBackendFactory : public IGraphicsBackendFactory
+    class GraphicsBackendFactory
+        : public IGraphicsBackendFactory
     {
     public:
         [[nodiscard]]

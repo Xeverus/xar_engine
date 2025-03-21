@@ -9,7 +9,9 @@ namespace xar_engine::file
 {
     std::vector<char> read_binary_file(const std::filesystem::path& filepath)
     {
-        std::ifstream file(filepath.c_str(), std::ios::ate | std::ios::binary);
+        std::ifstream file(
+            filepath.c_str(),
+            std::ios::ate | std::ios::binary);
         if (!file.is_open())
         {
             XAR_THROW(

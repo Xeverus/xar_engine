@@ -11,7 +11,8 @@
 
 namespace xar_engine::os
 {
-    class GlfwWindow : public IWindow
+    class GlfwWindow
+        : public IWindow
     {
     public:
         explicit GlfwWindow(Parameters parameters);
@@ -27,7 +28,9 @@ namespace xar_engine::os
 
         void set_on_resize_event(OnResize&& on_resize) override;
 
-        void enqueue_resize_event(int32_t new_width, int32_t new_height);
+        void enqueue_resize_event(
+            int32_t new_width,
+            int32_t new_height);
 
         void set_on_keyboard_event(OnKeyboardEvent&& on_keyboard_event) override;
         void set_on_mouse_event(OnMouseEvent&& on_mouse_event) override;

@@ -6,7 +6,8 @@
 
 namespace
 {
-    TEST(file_logger, empty_formatter__no_crash)
+    TEST(file_logger,
+         empty_formatter__no_crash)
     {
         const auto filepath = std::string{"test.file_logger.empty_formatter__no_crash.txt"};
         auto logger = xar_engine::logging::FileLogger{filepath};
@@ -17,16 +18,25 @@ namespace
             "message");
     }
 
-    TEST(file_logger, with_formatter__message_is_logged_with_correct_format)
+    TEST(file_logger,
+         with_formatter__message_is_logged_with_correct_format)
     {
         const auto logging_level = xar_engine::logging::LogLevel::INFO;
         const auto tag = std::string{"some tag"};
         const auto message = std::string{"some message"};
 
-        const auto formatted_message = fmt::format("{} {} {}", xar_engine::meta::enum_to_string(logging_level), tag, message);
+        const auto formatted_message = fmt::format(
+            "{} {} {}",
+            xar_engine::meta::enum_to_string(logging_level),
+            tag,
+            message);
 
         auto log_formatter = std::make_unique<xar_engine::logging::LogFormatterMock>();
-        EXPECT_CALL(*log_formatter, format(logging_level, tag, message)).WillOnce(::testing::Return(formatted_message));
+        EXPECT_CALL(*log_formatter,
+                    format(
+                        logging_level,
+                        tag,
+                        message)).WillOnce(::testing::Return(formatted_message));
 
         const auto filepath = std::string{"test.file_logger.with_formatter__message_is_logged_with_correct_format.txt"};
         {
@@ -37,11 +47,16 @@ namespace
                 message);
         }
 
-        std::fstream file(filepath, std::ios::in);
+        std::fstream file(
+            filepath,
+            std::ios::in);
         ASSERT_TRUE(file.is_open());
 
         std::string line;
-        std::getline(file, line);
-        EXPECT_EQ(line, formatted_message);
+        std::getline(
+            file,
+            line);
+        EXPECT_EQ(line,
+                  formatted_message);
     }
 }

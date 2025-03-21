@@ -5,7 +5,8 @@
 
 namespace xar_engine::asset
 {
-    class AssimpModelLoader : public IModelLoader
+    class AssimpModelLoader
+        : public IModelLoader
     {
     public:
         [[nodiscard]]

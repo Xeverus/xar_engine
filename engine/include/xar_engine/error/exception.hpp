@@ -6,7 +6,8 @@
 
 namespace xar_engine::error
 {
-    class XarException : public std::exception
+    class XarException
+        : public std::exception
     {
     public:
         explicit XarException(std::string&& message);

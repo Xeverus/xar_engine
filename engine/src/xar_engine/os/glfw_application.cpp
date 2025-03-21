@@ -141,7 +141,7 @@ namespace xar_engine::os
 
     void GlfwApplication::handle_windows_close_request()
     {
-        for (auto& glfw_window : _glfw_windows_running)
+        for (auto& glfw_window: _glfw_windows_running)
         {
             if (glfw_window->close_requested())
             {
