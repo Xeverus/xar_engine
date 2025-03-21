@@ -19,8 +19,8 @@ namespace xar_engine::renderer
         std::shared_ptr<graphics::context::IWindowSurface> window_surface)
     {
         auto state = std::make_shared<RendererState>();
-        state->_graphics_backend = graphics_backend;
-        state->_window_surface = window_surface;
+        state->graphics_backend = graphics_backend;
+        state->window_surface = window_surface;
 
         return std::make_unique<RendererImpl>(
             state,

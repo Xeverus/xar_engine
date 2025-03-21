@@ -21,22 +21,22 @@ namespace xar_engine::graphics::backend::unit::vulkan
         std::vector<VkDescriptorSetLayout> vk_descriptor_set_layout{};
         for (const auto& descriptor_set_layout: parameters.descriptor_set_layout_list)
         {
-            vk_descriptor_set_layout.push_back(get_state()._vulkan_resource_storage.get(descriptor_set_layout).get_native());
+            vk_descriptor_set_layout.push_back(get_state().vulkan_resource_storage.get(descriptor_set_layout).get_native());
         }
 
 
-        return get_state()._vulkan_resource_storage.add(
+        return get_state().vulkan_resource_storage.add(
             native::vulkan::VulkanGraphicsPipeline{
                 {
-                    get_state()._vulkan_device,
+                    get_state().vulkan_device,
                     {
                         {
-                            get_state()._vulkan_resource_storage.get(parameters.vertex_shader).get_native(),
+                            get_state().vulkan_resource_storage.get(parameters.vertex_shader).get_native(),
                             VK_SHADER_STAGE_VERTEX_BIT,
                             "main"
                         },
                         {
-                            get_state()._vulkan_resource_storage.get(parameters.fragment_shader).get_native(),
+                            get_state().vulkan_resource_storage.get(parameters.fragment_shader).get_native(),
                             VK_SHADER_STAGE_FRAGMENT_BIT,
                             "main"
                         }
@@ -53,14 +53,14 @@ namespace xar_engine::graphics::backend::unit::vulkan
 
     void IVulkanGraphicsPipelineUnit::set_pipeline_state(const SetPipelineStateParameters& parameters)
     {
-        const auto vk_command_buffer = get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native();
+        const auto vk_command_buffer = get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native();
 
         vkCmdBindPipeline(
             vk_command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            get_state()._vulkan_resource_storage.get(parameters.graphics_pipeline).get_native());
+            get_state().vulkan_resource_storage.get(parameters.graphics_pipeline).get_native());
 
-        const auto swap_chain_vk_extent = get_state()._vulkan_resource_storage.get(parameters.swap_chain).get_vk_extent();
+        const auto swap_chain_vk_extent = get_state().vulkan_resource_storage.get(parameters.swap_chain).get_vk_extent();
 
         auto vk_viewport = VkViewport{};
         vk_viewport.x = 0.0f;
@@ -87,13 +87,13 @@ namespace xar_engine::graphics::backend::unit::vulkan
         std::vector<VkDescriptorSet> vk_descriptor_set_list{};
         for (const auto& descriptor_set: parameters.descriptor_set_list)
         {
-            vk_descriptor_set_list.push_back(get_state()._vulkan_resource_storage.get(descriptor_set).get_native());
+            vk_descriptor_set_list.push_back(get_state().vulkan_resource_storage.get(descriptor_set).get_native());
         }
 
         vkCmdBindDescriptorSets(
             vk_command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            get_state()._vulkan_resource_storage.get(parameters.graphics_pipeline).get_native_pipeline_layout(),
+            get_state().vulkan_resource_storage.get(parameters.graphics_pipeline).get_native_pipeline_layout(),
             0,
             vk_descriptor_set_list.size(),
             vk_descriptor_set_list.data(),
@@ -115,12 +115,12 @@ namespace xar_engine::graphics::backend::unit::vulkan
         auto vk_buffer_size_list = std::vector<VkDeviceSize>();
         for (auto i = 0; i < parameters.vertex_buffer_list.size(); ++i)
         {
-            vk_buffer_list.push_back(get_state()._vulkan_resource_storage.get(parameters.vertex_buffer_list[i]).get_native());
+            vk_buffer_list.push_back(get_state().vulkan_resource_storage.get(parameters.vertex_buffer_list[i]).get_native());
             vk_buffer_size_list.push_back(static_cast<VkDeviceSize>(parameters.vertex_buffer_offset_list[i]));
         }
 
         vkCmdBindVertexBuffers(
-            get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native(),
+            get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native(),
             parameters.first_slot,
             parameters.vertex_buffer_list.size(),
             vk_buffer_list.data(),
@@ -130,8 +130,8 @@ namespace xar_engine::graphics::backend::unit::vulkan
     void IVulkanGraphicsPipelineUnit::set_index_buffer(const SetIndexBufferParameters& parameters)
     {
         vkCmdBindIndexBuffer(
-            get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native(),
-            get_state()._vulkan_resource_storage.get(parameters.index_buffer).get_native(),
+            get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native(),
+            get_state().vulkan_resource_storage.get(parameters.index_buffer).get_native(),
             parameters.first_index,
             VK_INDEX_TYPE_UINT32);
     }
@@ -139,8 +139,8 @@ namespace xar_engine::graphics::backend::unit::vulkan
     void IVulkanGraphicsPipelineUnit::push_constants(const PushConstantsParameters& parameters)
     {
         vkCmdPushConstants(
-            get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native(),
-            get_state()._vulkan_resource_storage.get(parameters.graphics_pipeline).get_native_pipeline_layout(),
+            get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native(),
+            get_state().vulkan_resource_storage.get(parameters.graphics_pipeline).get_native_pipeline_layout(),
             xar_engine::graphics::backend::vulkan::to_vk_shader_stage(parameters.shader_type),
             parameters.offset,
             parameters.byte_size,
@@ -150,7 +150,7 @@ namespace xar_engine::graphics::backend::unit::vulkan
     void IVulkanGraphicsPipelineUnit::draw_indexed(const DrawIndexedParameters& parameters)
     {
         vkCmdDrawIndexed(
-            get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native(),
+            get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native(),
             static_cast<std::uint32_t>(parameters.index_counts),
             static_cast<std::uint32_t>(parameters.instance_counts),
             static_cast<std::uint32_t>(parameters.first_index),

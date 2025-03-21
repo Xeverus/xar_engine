@@ -5,17 +5,17 @@ namespace xar_engine::graphics::backend::unit::vulkan
 {
     void IVulkanDeviceUnit::wait_idle()
     {
-        get_state()._vulkan_device.wait_idle();
+        get_state().vulkan_device.wait_idle();
     }
 
     std::uint32_t IVulkanDeviceUnit::get_sample_count() const
     {
-        return get_state()._vulkan_device.get_native_physical_device().get_vk_sample_count_flag_bits();
+        return get_state().vulkan_device.get_native_physical_device().get_vk_sample_count_flag_bits();
     }
 
     api::EFormat IVulkanDeviceUnit::find_depth_format() const
     {
-        const auto vk_format = get_state()._vulkan_device.get_native_physical_device().find_supported_vk_format(
+        const auto vk_format = get_state().vulkan_device.get_native_physical_device().find_supported_vk_format(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
             VK_IMAGE_TILING_OPTIMAL,
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);

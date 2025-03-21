@@ -9,12 +9,12 @@ namespace xar_engine::graphics::backend::vulkan
 {
     struct VulkanGraphicsBackendState
     {
-        std::shared_ptr<native::vulkan::VulkanInstance> _vulkan_instance;
-        std::vector<native::vulkan::VulkanPhysicalDevice> _vulkan_physical_device_list;
-        native::vulkan::VulkanDevice _vulkan_device;
-        native::vulkan::VulkanQueue _vulkan_graphics_queue;
-        native::vulkan::VulkanCommandBufferPool _vulkan_command_buffer_pool;
-        VulkanResourceStorage _vulkan_resource_storage;
+        std::shared_ptr<native::vulkan::VulkanInstance> vulkan_instance;
+        std::vector<native::vulkan::VulkanPhysicalDevice> vulkan_physical_device_list;
+        native::vulkan::VulkanDevice vulkan_device;
+        native::vulkan::VulkanQueue vulkan_graphics_queue;
+        native::vulkan::VulkanCommandBufferPool vulkan_command_buffer_pool;
+        VulkanResourceStorage vulkan_resource_storage;
     };
 
     class SharedVulkanGraphicsBackendState

@@ -37,38 +37,38 @@ namespace xar_engine::renderer
 {
     struct RendererState
     {
-        std::shared_ptr<graphics::context::IWindowSurface> _window_surface;
-        std::shared_ptr<graphics::backend::IGraphicsBackend> _graphics_backend;
+        std::shared_ptr<graphics::context::IWindowSurface> window_surface;
+        std::shared_ptr<graphics::backend::IGraphicsBackend> graphics_backend;
 
-        std::vector<graphics::api::CommandBufferReference> _command_buffer_list;
+        std::vector<graphics::api::CommandBufferReference> command_buffer_list;
 
-        graphics::api::SwapChainReference _swap_chain_ref;
-        graphics::api::ShaderReference _vertex_shader_ref;
-        graphics::api::ShaderReference _fragment_shader_ref;
+        graphics::api::SwapChainReference swap_chain_ref;
+        graphics::api::ShaderReference vertex_shader_ref;
+        graphics::api::ShaderReference fragment_shader_ref;
 
-        std::vector<graphics::api::BufferReference> _uniform_buffer_ref_list;
+        std::vector<graphics::api::BufferReference> uniform_buffer_ref_list;
 
-        graphics::api::DescriptorPoolReference _ubo_descriptor_pool_ref;
-        graphics::api::DescriptorSetLayoutReference _ubo_descriptor_set_layout_ref;
-        std::vector<graphics::api::DescriptorSetReference> _ubo_descriptor_set_list_ref;
+        graphics::api::DescriptorPoolReference ubo_descriptor_pool_ref;
+        graphics::api::DescriptorSetLayoutReference ubo_descriptor_set_layout_ref;
+        std::vector<graphics::api::DescriptorSetReference> ubo_descriptor_set_list_ref;
 
-        graphics::api::DescriptorPoolReference _image_descriptor_pool_ref;
-        graphics::api::DescriptorSetLayoutReference _image_descriptor_set_layout_ref;
-        graphics::api::DescriptorSetReference _image_descriptor_set_ref;
+        graphics::api::DescriptorPoolReference image_descriptor_pool_ref;
+        graphics::api::DescriptorSetLayoutReference image_descriptor_set_layout_ref;
+        graphics::api::DescriptorSetReference image_descriptor_set_ref;
 
-        graphics::api::ImageReference _color_image_ref;
-        graphics::api::ImageViewReference _color_image_view_ref;
-        graphics::api::ImageReference _depth_image_ref;
-        graphics::api::ImageViewReference _depth_image_view_ref;
+        graphics::api::ImageReference color_image_ref;
+        graphics::api::ImageViewReference color_image_view_ref;
+        graphics::api::ImageReference depth_image_ref;
+        graphics::api::ImageViewReference depth_image_view_ref;
 
-        graphics::api::GraphicsPipelineReference _graphics_pipeline_ref;
+        graphics::api::GraphicsPipelineReference graphics_pipeline_ref;
 
         uint32_t frameCounter;
 
-        meta::TResourceMap<gpu_asset::GpuModelDataBufferTag, gpu_asset::GpuModelDataBuffer> _gpu_model_data_buffer_map;
-        meta::TResourceMap<gpu_asset::GpuModelTag, gpu_asset::GpuModelData> _gpu_model_data_map;
-        meta::TResourceMap<gpu_asset::GpuMeshTag, gpu_asset::GpuMeshData> _gpu_mesh_data_map;
-        meta::TResourceMap<gpu_asset::GpuMaterialTag, gpu_asset::GpuMaterialData> _gpu_material_data_map;
+        meta::TResourceMap<gpu_asset::GpuModelDataBufferTag, gpu_asset::GpuModelDataBuffer> gpu_model_data_buffer_map;
+        meta::TResourceMap<gpu_asset::GpuModelTag, gpu_asset::GpuModelData> gpu_model_data_map;
+        meta::TResourceMap<gpu_asset::GpuMeshTag, gpu_asset::GpuMeshData> gpu_mesh_data_map;
+        meta::TResourceMap<gpu_asset::GpuMaterialTag, gpu_asset::GpuMaterialData> gpu_material_data_map;
 
         struct RenderItem
         {
@@ -76,7 +76,7 @@ namespace xar_engine::renderer
             gpu_asset::GpuMaterialReference gpu_material;
         };
 
-        std::vector<RenderItem> _redner_item_list;
+        std::vector<RenderItem> redner_item_list;
     };
 
 

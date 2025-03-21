@@ -30,10 +30,10 @@ namespace xar_engine::graphics::backend::unit::vulkan
             }
         }
 
-        return get_state()._vulkan_resource_storage.add(
+        return get_state().vulkan_resource_storage.add(
             native::vulkan::VulkanImage{
                 {
-                    get_state()._vulkan_device,
+                    get_state().vulkan_device,
                     parameters.dimension,
                     backend::vulkan::to_vk_format(parameters.image_format),
                     VK_IMAGE_TILING_OPTIMAL,
@@ -46,12 +46,12 @@ namespace xar_engine::graphics::backend::unit::vulkan
 
     api::ImageViewReference IVulkanImageUnit::make_image_view(const MakeImageViewParameters& parameters)
     {
-        const auto& vulkan_image = get_state()._vulkan_resource_storage.get(parameters.image);
+        const auto& vulkan_image = get_state().vulkan_resource_storage.get(parameters.image);
 
-        return get_state()._vulkan_resource_storage.add(
+        return get_state().vulkan_resource_storage.add(
             native::vulkan::VulkanImageView{
                 {
-                    get_state()._vulkan_device,
+                    get_state().vulkan_device,
                     vulkan_image.get_native(),
                     vulkan_image.get_vk_format(),
                     backend::vulkan::to_vk_image_aspec(parameters.image_aspect),
@@ -61,11 +61,11 @@ namespace xar_engine::graphics::backend::unit::vulkan
 
     api::SamplerReference IVulkanImageUnit::make_sampler(const MakeSamplerParameters& parameters)
     {
-        return get_state()._vulkan_resource_storage.add(
+        return get_state().vulkan_resource_storage.add(
             native::vulkan::VulkanSampler{
                 {
-                    get_state()._vulkan_device,
-                    get_state()._vulkan_device.get_native_physical_device().get_vk_device_properties().limits.maxSamplerAnisotropy,
+                    get_state().vulkan_device,
+                    get_state().vulkan_device.get_native_physical_device().get_vk_device_properties().limits.maxSamplerAnisotropy,
                     parameters.mip_levels,
                 }
             });
@@ -73,7 +73,7 @@ namespace xar_engine::graphics::backend::unit::vulkan
 
     void IVulkanImageUnit::generate_image_mip_maps(const GenerateImageMipMapsParameters& parameters)
     {
-        get_state()._vulkan_resource_storage.get(parameters.image).generate_mipmaps(get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native());
+        get_state().vulkan_resource_storage.get(parameters.image).generate_mipmaps(get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native());
     }
 
     void IVulkanImageUnit::transit_image_layout(const TransitImageLayoutParameters& parameters)
@@ -98,8 +98,8 @@ namespace xar_engine::graphics::backend::unit::vulkan
             }
         }
 
-        get_state()._vulkan_resource_storage.get(parameters.image).transition_layout(
-            get_state()._vulkan_resource_storage.get(parameters.command_buffer).get_native(),
+        get_state().vulkan_resource_storage.get(parameters.image).transition_layout(
+            get_state().vulkan_resource_storage.get(parameters.command_buffer).get_native(),
             new_vk_image_layout);
     }
 }

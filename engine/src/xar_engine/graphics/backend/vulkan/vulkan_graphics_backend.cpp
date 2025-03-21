@@ -27,19 +27,19 @@ namespace xar_engine::graphics::backend::vulkan
         , _shader_unit(std::move(shader_unit))
         , _swap_chain_unit(std::move(swap_chain_unit))
     {
-        get_state()._vulkan_instance = meta::RefCountedSingleton::get_instance_t<native::vulkan::VulkanInstance>();
-        get_state()._vulkan_physical_device_list = get_state()._vulkan_instance->get_physical_device_list();
-        get_state()._vulkan_device = native::vulkan::VulkanDevice{{get_state()._vulkan_physical_device_list[0]}};
-        get_state()._vulkan_graphics_queue = native::vulkan::VulkanQueue{
+        get_state().vulkan_instance = meta::RefCountedSingleton::get_instance_t<native::vulkan::VulkanInstance>();
+        get_state().vulkan_physical_device_list = get_state().vulkan_instance->get_physical_device_list();
+        get_state().vulkan_device = native::vulkan::VulkanDevice{{get_state().vulkan_physical_device_list[0]}};
+        get_state().vulkan_graphics_queue = native::vulkan::VulkanQueue{
             {
-                get_state()._vulkan_device,
-                get_state()._vulkan_device.get_graphics_family_index(),
+                get_state().vulkan_device,
+                get_state().vulkan_device.get_graphics_family_index(),
             }
         };
 
-        get_state()._vulkan_command_buffer_pool = native::vulkan::VulkanCommandBufferPool{
+        get_state().vulkan_command_buffer_pool = native::vulkan::VulkanCommandBufferPool{
             {
-                get_state()._vulkan_device,
+                get_state().vulkan_device,
             }};
     }
 

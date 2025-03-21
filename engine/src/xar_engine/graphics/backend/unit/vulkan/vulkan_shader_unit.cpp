@@ -5,10 +5,10 @@ namespace xar_engine::graphics::backend::unit::vulkan
 {
     api::ShaderReference IVulkanShaderUnit::make_shader(const MakeShaderParameters& parameters)
     {
-        return get_state()._vulkan_resource_storage.add(
+        return get_state().vulkan_resource_storage.add(
             native::vulkan::VulkanShader{
                 {
-                    get_state()._vulkan_device,
+                    get_state().vulkan_device,
                     parameters.shader_byte_code,
                 }});
     }
