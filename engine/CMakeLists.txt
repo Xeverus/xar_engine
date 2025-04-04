@@ -66,6 +66,9 @@ set(XAR_ENGINE_PUBLIC_FILES
 
 
 set(XAR_ENGINE_PRIVATE_FILES
+        # algorithm
+        src/xar_engine/algorithm/interval_container.hpp
+
         # asset
         src/xar_engine/asset/assimp_model_loader.cpp
         src/xar_engine/asset/assimp_model_loader.hpp

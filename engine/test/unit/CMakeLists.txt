@@ -2,6 +2,7 @@ add_executable(xar_engine_test_unit)
 
 target_sources(xar_engine_test_unit
         PRIVATE
+            xar_engine/algorithm/interval_container_test.cpp
             xar_engine/asset/image_loader_test.cpp
             xar_engine/asset/model_loader_test.cpp
             xar_engine/error/exception_utils_test.cpp

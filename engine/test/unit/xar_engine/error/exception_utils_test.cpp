@@ -12,7 +12,7 @@ namespace
         constexpr auto* const expected_value =
             "Reason: 1 != 2\n"
             "File: " __FILE__ "\n"
-            "Line: 18\n"
+            "Line: 19\n"
             "Message: Hello World 123!";
 
         EXPECT_STREQ(
@@ -28,7 +28,7 @@ namespace
         constexpr auto* const expected_value =
             "Reason: 1 != 2\n"
             "File: " __FILE__ "\n"
-            "Line: 33\n"
+            "Line: 35\n"
             "Message: Hello World 123!";
 
         EXPECT_STREQ(

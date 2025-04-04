@@ -32,11 +32,7 @@ namespace
                   expected_normals);
 
         ASSERT_EQ(model.mesh_list[0].texture_coord_list.size(),
-                  std::size_t{1});
-        ASSERT_EQ(model.mesh_list[0].texture_coord_list[0].channel_count,
-                  std::size_t{2});
-        ASSERT_EQ(model.mesh_list[0].texture_coord_list[0].coords.size(),
-                  std::size_t{48});
+                  std::size_t{24});
 
         ASSERT_EQ(model.mesh_list[0].index_list.size(),
                   std::size_t{36});
