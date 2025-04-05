@@ -67,6 +67,7 @@ set(XAR_ENGINE_PUBLIC_FILES
 
 set(XAR_ENGINE_PRIVATE_FILES
         # algorithm
+        src/xar_engine/algorithm/interval.hpp
         src/xar_engine/algorithm/interval_container.hpp
 
         # asset
