@@ -97,7 +97,7 @@ namespace xar_engine::algorithm
     {
         const auto range_end = _interval_set.upper_bound({interval.end, {}});
 
-        auto range_begin = _interval_set.end();
+        auto range_begin = range_end;
         for (auto iter = _interval_set.begin(); iter != _interval_set.end(); ++iter)
         {
             if (interval_overlap_t(interval, *iter))
